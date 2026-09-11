@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { locales, localeNames, type Locale } from "@/app/i18n/config";
+import { setLocaleCookie } from "@/app/i18n/utils";
 
 export function LanguageSwitcher({ currentLocale }: { currentLocale: Locale }) {
   const pathname = usePathname();
@@ -17,6 +18,10 @@ export function LanguageSwitcher({ currentLocale }: { currentLocale: Locale }) {
     
     // Формируем новый путь с новой локалью
     const newPath = `/${newLocale}${segments.length ? "/" + segments.join("/") : ""}`;
+    
+    // Сохраняем выбранную локаль в cookie
+    setLocaleCookie(newLocale);
+    
     router.push(newPath);
   };
 
