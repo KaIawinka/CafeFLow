@@ -94,20 +94,16 @@ export async function POST(request: NextRequest) {
     // Password is correct
     logger.info('Admin password verified', { email: user.email });
 
-    // Get admin Telegram chat ID from settings
-    const adminTelegramSetting = await prisma.settings.findUnique({
-      where: { key: 'ADMIN_TELEGRAM_USER_ID' },
-    });
-
-    if (!adminTelegramSetting || !adminTelegramSetting.value) {
-      logger.error('ADMIN_TELEGRAM_USER_ID not configured in settings');
+    // Check if user has Telegram linked
+    if (!user.telegram_chat_id) {
+      logger.error('Admin has no Telegram linked', { email: user.email });
       return NextResponse.json(
-        { error: 'Telegram не настроен. Обратитесь к администратору системы.' },
-        { status: 500 }
+        { error: 'У вас не привязан Telegram. Обратитесь к администратору системы для настройки 2FA.' },
+        { status: 400 }
       );
     }
 
-    const adminTelegramChatId = adminTelegramSetting.value;
+    const adminTelegramChatId = user.telegram_chat_id;
 
     // Generate 6-digit code
     const code = crypto.randomInt(100000, 999999).toString();
@@ -127,6 +123,7 @@ export async function POST(request: NextRequest) {
 
     // Send code via Telegram
     try {
+      // Try to get bot token from settings first, fallback to env
       const telegramBotTokenSetting = await prisma.settings.findUnique({
         where: { key: 'ADMIN_TELEGRAM_BOT_TOKEN' },
       });
