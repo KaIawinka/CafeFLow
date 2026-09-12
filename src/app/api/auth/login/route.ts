@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
       const verificationCode = await createVerificationCode(
         user.id,
         '2fa_login',
-        ipAddress || 'unknown'
+        ipAddress ?? 'unknown'
       );
 
       // Send code via Telegram
