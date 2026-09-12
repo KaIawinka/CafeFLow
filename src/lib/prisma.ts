@@ -19,6 +19,7 @@ const createPrismaClient = () => {
   }
 
   const pool = new Pool({ connectionString });
+  // @ts-expect-error - Neon adapter type mismatch with Pool
   const adapter = new PrismaNeon(pool);
 
   return new PrismaClient({
