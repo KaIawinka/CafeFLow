@@ -23,8 +23,8 @@ async function createAdmin() {
     process.exit(1);
   }
 
-  if (!ADMIN_EMAIL || !ADMIN_PASSWORD || !ADMIN_TELEGRAM_CHAT_ID) {
-    console.error('❌ Set ADMIN_EMAIL, ADMIN_PASSWORD and ADMIN_TELEGRAM_CHAT_ID before running this script.');
+  if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
+    console.error('❌ Set ADMIN_EMAIL and ADMIN_PASSWORD before running this script.');
     process.exit(1);
   }
 
@@ -70,7 +70,7 @@ async function createAdmin() {
         first_name: ADMIN_FIRST_NAME,
         role: 'admin',
         status: 'active',
-        two_fa_enabled: !!ADMIN_TELEGRAM_CHAT_ID,
+        two_fa_enabled: Boolean(ADMIN_TELEGRAM_CHAT_ID),
         telegram_chat_id: ADMIN_TELEGRAM_CHAT_ID || null,
       },
     });

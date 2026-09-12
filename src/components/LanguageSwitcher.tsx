@@ -10,21 +10,16 @@ export function LanguageSwitcher({ currentLocale }: { currentLocale: Locale }) {
 
   const switchLocale = (newLocale: Locale) => {
     const segments = pathname.split("/").filter(Boolean);
-    
-    // Убираем текущую локаль из пути
+
+    // Убираем текущую локаль из пути, если она уже присутствует.
     if (locales.includes(segments[0] as Locale)) {
       segments.shift();
     }
-    
-    // Формируем новый путь с новой локалью
-    // Сохраняем выбранную локаль в cookie
+
+    // Сохраняем выбранную локаль в cookie.
     setLocaleCookie(newLocale);
 
-    if (!locales.includes(pathname.split('/')[1] as Locale)) {
-      router.refresh();
-      return;
-    }
-
+    // Формируем новый путь для любой страницы: локализованной или без префикса.
     const newPath = `/${newLocale}${segments.length ? "/" + segments.join("/") : ""}`;
     router.push(newPath);
   };

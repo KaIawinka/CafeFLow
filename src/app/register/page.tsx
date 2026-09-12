@@ -1,13 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { locales, type Locale } from '@/app/i18n/config';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { Eye, EyeOff, UserPlus, Mail, Lock, User, AlertCircle, Loader2, CheckCircle, Phone, ArrowLeft } from 'lucide-react';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const localeFromPath = (pathname.split('/').filter(Boolean)[0] as Locale) || 'ru';
+  const currentLocale = locales.includes(localeFromPath) ? localeFromPath : 'ru';
 
   const [formData, setFormData] = useState({
     email: '',
@@ -99,10 +104,13 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-100 via-orange-50 to-red-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <Link href="/ru" className="mb-6 inline-flex items-center gap-2 font-medium text-gray-800 hover:text-amber-700">
-          <ArrowLeft className="h-4 w-4" />
-          На главную
-        </Link>
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <Link href="/ru" className="inline-flex items-center gap-2 font-medium text-gray-800 hover:text-amber-700">
+            <ArrowLeft className="h-4 w-4" />
+            На главную
+          </Link>
+          <LanguageSwitcher currentLocale={currentLocale} />
+        </div>
         {/* Logo */}
         <div className="text-center mb-8">
           <Image src="/Logo-CafeFlow.png" alt="CafeFlow" width={64} height={64} className="mx-auto mb-4 h-16 w-16 rounded-2xl object-cover shadow-lg" />
