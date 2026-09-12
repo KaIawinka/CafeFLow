@@ -8,7 +8,7 @@ export async function getTranslations(locale: Locale, key: TranslationKey) {
   try {
     const translations = await import(`./locales/${locale}/${key}.json`);
     return translations.default;
-  } catch (error) {
+  } catch {
     console.warn(`Translation file not found: ${locale}/${key}.json, falling back to ${defaultLocale}`);
     const fallback = await import(`./locales/${defaultLocale}/${key}.json`);
     return fallback.default;

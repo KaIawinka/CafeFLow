@@ -1,11 +1,10 @@
 /**
- * Prisma Client Instance with Neon Adapter
+ * Prisma Client Instance with PostgreSQL adapter
  * Singleton pattern to avoid multiple instances in development
  */
 
 import { PrismaClient } from '@prisma/client';
-import { PrismaNeon } from '@prisma/adapter-neon';
-import { Pool } from '@neondatabase/serverless';
+import { PrismaPg } from '@prisma/adapter-pg';
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -18,9 +17,7 @@ const createPrismaClient = () => {
     throw new Error('DATABASE_URL environment variable is not set');
   }
 
-  const pool = new Pool({ connectionString });
-  // @ts-expect-error - Neon adapter type mismatch with Pool
-  const adapter = new PrismaNeon(pool);
+  const adapter = new PrismaPg(connectionString);
 
   return new PrismaClient({
     adapter,

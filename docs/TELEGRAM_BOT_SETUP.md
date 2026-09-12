@@ -81,7 +81,10 @@ https://core.telegram.org/bots/api
 Список команд:
 ```
 start - Привязать аккаунт
+activate - Активировать аккаунт по ключу
+login - Получить ссылку для входа
 status - Проверить статус привязки
+admin - Команды администратора
 help - Справка по командам
 ```
 
@@ -139,6 +142,20 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 
 ## 🚀 Шаг 4: Запуск и настройка webhook
 
+Перед установкой webhook настройте меню и описание бота:
+
+```bash
+npm run telegram:commands
+```
+
+Для создания первого администратора задайте значения только в текущем терминале и выполните:
+
+```bash
+ADMIN_EMAIL="admin@example.com" ADMIN_PASSWORD="strong-password" ADMIN_FIRST_NAME="Admin" ADMIN_TELEGRAM_CHAT_ID="123456789" npm run admin:create
+```
+
+Пароль и chat ID не храните в исходном коде. Администратор должен иметь привязанный Telegram, потому что вход в admin-панель подтверждается кодом из бота.
+
 ### Development (Local):
 
 ```bash
@@ -171,6 +188,8 @@ curl -X POST https://your-domain.com/api/telegram/setup \
 curl https://your-domain.com/api/telegram/setup \
   -H "Authorization: Bearer YOUR_ADMIN_SETUP_TOKEN"
 ```
+
+Для локальной разработки URL webhook должен быть публичным HTTPS-адресом ngrok. `http://localhost:3000` Telegram использовать не может.
 
 **Ответ должен быть:**
 ```json

@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "title": "CafeFlow - Demo Cafe",
+    "description": "Delicious food, a welcoming atmosphere, and professional service"
+  },
+  "nav": {
+    "features": "Menu",
+    "pricing": "Reservations",
+    "demo": "About us",
+    "contact": "Contact"
+  }
+}

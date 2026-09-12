@@ -1,10 +1,19 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { XCircle, ShieldAlert } from 'lucide-react';
 
 export default function AccessDeniedPage() {
+  return (
+    <Suspense fallback={null}>
+      <AccessDeniedContent />
+    </Suspense>
+  );
+}
+
+function AccessDeniedContent() {
   const searchParams = useSearchParams();
   const required = searchParams.get('required');
   const current = searchParams.get('current');

@@ -15,7 +15,7 @@ if (!process.env.TELEGRAM_BOT_TOKEN) {
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
 // Custom context type for type safety
-export interface BotContext extends Context {}
+export type BotContext = Context;
 
 // Create bot instance
 export const bot = new Bot<BotContext>(BOT_TOKEN);
@@ -57,6 +57,22 @@ export async function setWebhook(url: string, secretToken?: string) {
     logger.error('Failed to set webhook', error);
     return false;
   }
+}
+
+export async function configureBotProfile() {
+  await bot.api.setMyDescription(
+    'CaféFlow: безопасный вход, уведомления и управление рестораном через Telegram.'
+  );
+  await bot.api.setMyShortDescription('CaféFlow: вход и управление рестораном');
+  await bot.api.setMyCommands([
+    { command: 'start', description: 'Начать работу с ботом' },
+    { command: 'activate', description: 'Привязать аккаунт по ключу' },
+    { command: 'login', description: 'Получить ссылку для входа' },
+    { command: 'status', description: 'Проверить статус аккаунта' },
+    { command: 'admin', description: 'Команды администратора' },
+    { command: 'help', description: 'Показать справку' },
+  ]);
+  logger.info('Telegram bot profile configured');
 }
 
 /**

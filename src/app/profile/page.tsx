@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 import {
   User,
   Mail,
   Phone,
-  MapPin,
   Clock,
   Globe,
   Shield,
@@ -18,7 +18,6 @@ import {
   CheckCircle,
   AlertCircle,
   MessageSquare,
-  Key,
   Calendar,
 } from 'lucide-react';
 
@@ -44,6 +43,11 @@ interface UserProfile {
   last_login_at?: string;
   last_seen_at?: string;
   created_at: string;
+  avatar_file_id?: string;
+  avatar_file?: {
+    storage_key: string;
+    mime_type: string;
+  };
   user_settings?: {
     email_notifications: boolean;
     sms_notifications: boolean;
@@ -58,15 +62,28 @@ interface UserProfile {
 }
 
 export default function ProfilePage() {
+  return (
+    <Suspense fallback={null}>
+      <ProfileContent />
+    </Suspense>
+  );
+}
+
+function ProfileContent() {
   const searchParams = useSearchParams();
   const message = searchParams.get('message');
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState(
+    message === 'awaiting_approval' ? 'Ваш аккаунт ожидает подтверждения администратором.' : ''
+  );
+  const [success, setSuccess] = useState(
+    message === 'welcome' ? 'Добро пожаловать! Ваш аккаунт успешно создан.' : ''
+  );
   const [activeTab, setActiveTab] = useState<'profile' | 'settings'>('profile');
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   // Form data
   const [formData, setFormData] = useState({
@@ -91,21 +108,7 @@ export default function ProfilePage() {
     compactMode: false,
   });
 
-  // Load profile
-  useEffect(() => {
-    loadProfile();
-  }, []);
-
-  // Show welcome message
-  useEffect(() => {
-    if (message === 'welcome') {
-      setSuccess('Добро пожаловать! Ваш аккаунт успешно создан.');
-    } else if (message === 'awaiting_approval') {
-      setError('Ваш аккаунт ожидает подтверждения администратором.');
-    }
-  }, [message]);
-
-  const loadProfile = async () => {
+  async function loadProfile() {
     try {
       const response = await fetch('/api/user/profile');
       const data = await response.json();
@@ -136,12 +139,20 @@ export default function ProfilePage() {
           });
         }
       }
-    } catch (err) {
+    } catch {
       setError('Ошибка загрузки профиля');
     } finally {
       setIsLoading(false);
     }
-  };
+  }
+
+  // Load profile after mounting so the page can show its initial status message immediately.
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void loadProfile();
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   const handleSaveProfile = async () => {
     setError('');
@@ -163,7 +174,7 @@ export default function ProfilePage() {
       } else {
         setError(data.error || 'Ошибка сохранения');
       }
-    } catch (err) {
+    } catch {
       setError('Произошла ошибка');
     } finally {
       setIsSaving(false);
@@ -189,7 +200,7 @@ export default function ProfilePage() {
       } else {
         setError(data.error || 'Ошибка сохранения');
       }
-    } catch (err) {
+    } catch {
       setError('Произошла ошибка');
     } finally {
       setIsSaving(false);
@@ -231,8 +242,49 @@ export default function ProfilePage() {
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 mb-6">
             <div className="flex items-start gap-6">
               {/* Avatar */}
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white text-3xl font-bold shadow-lg">
-                {profile.first_name[0]?.toUpperCase()}
+              <div className="relative shrink-0">
+                {profile.avatar_file?.storage_key ? (
+                  <Image src={profile.avatar_file.storage_key} alt="Аватар профиля" width={96} height={96} className="h-24 w-24 rounded-full object-cover shadow-lg" />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white text-3xl font-bold shadow-lg">
+                    {profile.first_name[0]?.toUpperCase()}
+                  </div>
+                )}
+                <label className="absolute -bottom-2 -right-2 cursor-pointer rounded-full bg-gray-900 px-3 py-1 text-xs font-medium text-white shadow hover:bg-gray-700">
+                  {isUploadingAvatar ? '...' : 'Фото'}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="sr-only"
+                    disabled={isUploadingAvatar}
+                    onChange={async (event) => {
+                      const file = event.target.files?.[0];
+                      if (!file) return;
+                      setIsUploadingAvatar(true);
+                      setError('');
+                      const uploadData = new FormData();
+                      uploadData.append('avatar', file);
+                      try {
+                        const response = await fetch('/api/user/avatar', { method: 'POST', body: uploadData });
+                        const data = await response.json();
+                        if (!response.ok) {
+                          setError(data.error || 'Не удалось загрузить аватарку');
+                        } else {
+                          setProfile((current) => current ? {
+                            ...current,
+                            avatar_file: { storage_key: data.avatarUrl, mime_type: file.type },
+                          } : current);
+                          setSuccess('Аватарка обновлена');
+                        }
+                      } catch {
+                        setError('Не удалось загрузить аватарку');
+                      } finally {
+                        setIsUploadingAvatar(false);
+                        event.target.value = '';
+                      }
+                    }}
+                  />
+                </label>
               </div>
 
               {/* Info */}

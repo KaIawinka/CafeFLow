@@ -9,11 +9,10 @@ const { PrismaClient } = require('@prisma/client');
 const { PrismaPg } = require('@prisma/adapter-pg');
 const { Pool } = require('pg');
 
-// Admin credentials
-const ADMIN_EMAIL = 'admin@cafeflow.com';
-const ADMIN_PASSWORD = 'Admin123!';
-const ADMIN_FIRST_NAME = 'Admin';
-const ADMIN_TELEGRAM_CHAT_ID = '6288343249'; // ← Ваш Telegram Chat ID (опционально)
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const ADMIN_FIRST_NAME = process.env.ADMIN_FIRST_NAME || 'Admin';
+const ADMIN_TELEGRAM_CHAT_ID = process.env.ADMIN_TELEGRAM_CHAT_ID;
 
 async function createAdmin() {
   console.log('🔧 Creating admin user...\n');
@@ -21,6 +20,11 @@ async function createAdmin() {
   // Check DATABASE_URL
   if (!process.env.DATABASE_URL) {
     console.error('❌ DATABASE_URL not found in .env');
+    process.exit(1);
+  }
+
+  if (!ADMIN_EMAIL || !ADMIN_PASSWORD || !ADMIN_TELEGRAM_CHAT_ID) {
+    console.error('❌ Set ADMIN_EMAIL, ADMIN_PASSWORD and ADMIN_TELEGRAM_CHAT_ID before running this script.');
     process.exit(1);
   }
 
@@ -71,10 +75,19 @@ async function createAdmin() {
       },
     });
 
+    await prisma.user_settings.create({
+      data: {
+        user_id: admin.id,
+        email_notifications: true,
+        push_notifications: true,
+        telegram_notifications: true,
+      },
+    });
+
     console.log('\n✅ Admin user created successfully!\n');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('📧 Email:    ', ADMIN_EMAIL);
-    console.log('🔑 Password: ', ADMIN_PASSWORD);
+    console.log('🔑 Password: ', 'the value from ADMIN_PASSWORD');
     console.log('👤 Name:     ', ADMIN_FIRST_NAME);
     console.log('🎭 Role:     ', admin.role);
     console.log('📊 Status:   ', admin.status);
@@ -101,7 +114,7 @@ async function createAdmin() {
     console.log('2. Login to admin panel:');
     console.log('   → http://localhost:3000/ru/admin/login');
     console.log('   → Email: admin@cafeflow.com');
-    console.log('   → Password: Admin123!');
+    console.log('   → Password: the value from ADMIN_PASSWORD');
     console.log('');
 
   } catch (error) {

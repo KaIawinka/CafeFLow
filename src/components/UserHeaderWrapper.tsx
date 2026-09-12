@@ -30,6 +30,9 @@ export async function UserHeaderWrapper() {
             last_name: true,
             display_name: true,
             avatar_file_id: true,
+            avatar_file: {
+              select: { storage_key: true },
+            },
             role: true,
             status: true,
           },
@@ -43,6 +46,7 @@ export async function UserHeaderWrapper() {
             lastName: user.last_name || undefined,
             displayName: user.display_name || undefined,
             avatarFileId: user.avatar_file_id || undefined,
+            avatarUrl: user.avatar_file?.storage_key || undefined,
             role: user.role,
             status: user.status,
           };

@@ -1,8 +1,11 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
+import { locales, type Locale } from '@/app/i18n/config';
+import { LanguageSwitcher } from './LanguageSwitcher';
 import { 
   User, 
   Settings, 
@@ -22,6 +25,7 @@ interface UserData {
   lastName?: string;
   displayName?: string;
   avatarFileId?: string;
+  avatarUrl?: string;
   role: string;
   status: string;
 }
@@ -49,10 +53,13 @@ export function UserHeader({ user }: UserHeaderProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Close mobile menu on route change
+  // Close mobile menu after navigation without a synchronous state update in the effect.
   useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [pathname]);
+    if (!isMobileMenuOpen) return;
+
+    const timeoutId = window.setTimeout(() => setIsMobileMenuOpen(false), 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [pathname, isMobileMenuOpen]);
 
   const handleLogout = async () => {
     try {
@@ -127,10 +134,8 @@ export function UserHeader({ user }: UserHeaderProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white font-bold text-xl shadow-lg">
-              C
-            </div>
+          <Link href="/ru" className="flex items-center gap-3">
+            <Image src="/Logo-CafeFlow.png" alt="CafeFlow" width={40} height={40} className="h-10 w-10 rounded-xl object-cover shadow-lg" />
             <span className="text-xl font-bold text-gray-900 dark:text-white">
               CaféFlow
             </span>
@@ -155,6 +160,7 @@ export function UserHeader({ user }: UserHeaderProps) {
 
           {/* User Menu or Auth Buttons */}
           <div className="flex items-center gap-4">
+            <LanguageSwitcher currentLocale={(locales.find((locale) => pathname.split('/')[1] === locale) || 'ru') as Locale} />
             {user ? (
               <>
                 {/* Desktop User Dropdown */}
@@ -164,9 +170,13 @@ export function UserHeader({ user }: UserHeaderProps) {
                     className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                   >
                     {/* Avatar */}
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white text-sm font-semibold">
-                      {user.firstName?.[0]?.toUpperCase() || 'U'}
-                    </div>
+                    {user.avatarUrl ? (
+                      <Image src={user.avatarUrl} alt="Аватар" width={32} height={32} className="h-8 w-8 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white text-sm font-semibold">
+                        {user.firstName?.[0]?.toUpperCase() || 'U'}
+                      </div>
+                    )}
                     
                     {/* User Info */}
                     <div className="text-left">
@@ -266,9 +276,13 @@ export function UserHeader({ user }: UserHeaderProps) {
           <div className="md:hidden border-t border-gray-200 dark:border-gray-800 py-4">
             {/* User Info */}
             <div className="flex items-center gap-3 px-4 py-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white text-sm font-semibold">
-                {user.firstName?.[0]?.toUpperCase() || 'U'}
-              </div>
+              {user.avatarUrl ? (
+                <Image src={user.avatarUrl} alt="Аватар" width={40} height={40} className="h-10 w-10 rounded-full object-cover" />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white text-sm font-semibold">
+                  {user.firstName?.[0]?.toUpperCase() || 'U'}
+                </div>
+              )}
               <div>
                 <div className="text-sm font-medium text-gray-900 dark:text-white">
                   {user.displayName || `${user.firstName} ${user.lastName || ''}`.trim()}

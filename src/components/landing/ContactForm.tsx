@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 export function ContactForm() {
@@ -182,9 +183,9 @@ export function ContactForm() {
 
           <p className="text-center text-sm text-zinc-500 dark:text-zinc-400">
             Нажимая кнопку, вы соглашаетесь с{" "}
-            <a href="/privacy" className="text-amber-600 hover:text-amber-700 underline">
+            <Link href="/privacy" className="text-amber-600 hover:text-amber-700 underline">
               политикой конфиденциальности
-            </a>
+            </Link>
           </p>
         </form>
       )}

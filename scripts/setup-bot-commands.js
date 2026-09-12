@@ -1,8 +1,14 @@
 #!/usr/bin/env node
 
 const https = require('https');
+require('dotenv/config');
 
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8944458761:AAHhZGPZNrDrzCxfOAPXE34QbBHzVkVjW8I';
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+
+if (!BOT_TOKEN) {
+  console.error('TELEGRAM_BOT_TOKEN is missing in .env');
+  process.exit(1);
+}
 
 function makeRequest(method, data) {
   return new Promise((resolve, reject) => {
@@ -69,7 +75,10 @@ async function setupBot() {
   const commandsResult = await makeRequest('setMyCommands', {
     commands: [
       { command: 'start', description: 'Привязать аккаунт к Telegram' },
+      { command: 'activate', description: 'Активировать аккаунт по ключу' },
+      { command: 'login', description: 'Получить ссылку для входа' },
       { command: 'status', description: 'Проверить статус привязки' },
+      { command: 'admin', description: 'Команды администратора' },
       { command: 'help', description: 'Справка по командам' }
     ]
   });

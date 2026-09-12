@@ -1,0 +1,37 @@
+{
+  "hero": {
+    "title": "Welcome",
+    "subtitle": "Enjoy delicious food and a warm atmosphere",
+    "cta": {
+      "menu": "View menu",
+      "reserve": "Book a table"
+    }
+  },
+  "menu": {
+    "title": "Our menu",
+    "subtitle": "Choose something for every taste",
+    "viewAll": "View full menu"
+  },
+  "about": {
+    "title": "About us",
+    "description": "We create memorable experiences with every visit"
+  },
+  "reservation": {
+    "title": "Book a table",
+    "subtitle": "We will reserve the best seat for you",
+    "button": "Reserve now"
+  },
+  "contact": {
+    "title": "Contact",
+    "address": "Address",
+    "phone": "Phone",
+    "hours": "Opening hours"
+  },
+  "footer": {
+    "menu": "Menu",
+    "reservation": "Reservations",
+    "about": "About us",
+    "contact": "Contact",
+    "rights": "All rights reserved"
+  }
+}

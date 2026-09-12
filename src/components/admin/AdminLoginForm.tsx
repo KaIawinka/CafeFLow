@@ -48,7 +48,7 @@ export default function AdminLoginForm() {
         router.push('/admin/dashboard');
         router.refresh();
       }
-    } catch (err) {
+    } catch {
       setError('Ошибка соединения с сервером');
     } finally {
       setLoading(false);
@@ -79,7 +79,7 @@ export default function AdminLoginForm() {
       // Success - redirect to dashboard
       router.push('/admin/dashboard');
       router.refresh();
-    } catch (err) {
+    } catch {
       setError('Ошибка соединения с сервером');
     } finally {
       setLoading(false);

@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import type { Update } from '@grammyjs/types';
 import { webhookHandler } from '@/lib/telegram/bot';
 import { logger } from '@/lib/logger';
 
@@ -28,16 +29,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get request body
-    const body = await request.json();
+    const body = await request.json() as Update;
+    const headers = Object.fromEntries(request.headers.entries());
+
+    type WebhookResponse = {
+      end: (callback?: () => void) => WebhookResponse;
+      status: (code: number) => WebhookResponse;
+      json: (data: string) => WebhookResponse;
+      send: (data: string) => WebhookResponse;
+    };
+
+    let responseStatus = 200;
+    let responseBody: string | undefined;
+    const response: WebhookResponse = {
+      end: (callback) => {
+        callback?.();
+        return response;
+      },
+      status: (code) => {
+        responseStatus = code;
+        return response;
+      },
+      json: (data) => {
+        responseBody = data;
+        return response;
+      },
+      send: (data) => {
+        responseBody = data;
+        return response;
+      },
+    };
 
     // Process update with grammy
-    await webhookHandler(request as any, {
-      status: (code: number) => ({ json: (data: any) => ({ code, data }) }),
-      json: (data: any) => data,
-    } as any);
+    await webhookHandler({ body, headers }, response);
 
-    return NextResponse.json({ ok: true });
+    return new NextResponse(responseBody, { status: responseStatus });
   } catch (error) {
     logger.error('Webhook error', error);
     return NextResponse.json(

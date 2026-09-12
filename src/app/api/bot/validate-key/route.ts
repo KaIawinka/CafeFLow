@@ -17,7 +17,7 @@ interface ValidateKeyRequest {
 export async function POST(request: NextRequest) {
   try {
     const body: ValidateKeyRequest = await request.json();
-    const { key, telegramChatId, telegramUsername } = body;
+    const { key, telegramChatId } = body;
 
     // Validation
     if (!key || !telegramChatId) {

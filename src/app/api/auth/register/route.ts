@@ -65,49 +65,51 @@ export async function POST(request: NextRequest) {
     // Hash password
     const passwordHash = await hashPassword(password);
 
-    // Create user
-    const user = await prisma.users.create({
-      data: {
-        email: email.toLowerCase(),
-        password_hash: passwordHash,
-        first_name: firstName,
-        last_name: lastName || null,
-        phone: phone || null,
-        display_name: `${firstName}${lastName ? ' ' + lastName : ''}`,
-        role: 'customer', // По умолчанию новый пользователь - клиент
-        status: 'active',
-        two_fa_enabled: false,
-        requires_approval: false,
-        language: 'ru',
-        timezone: 'Asia/Bishkek',
-        last_login_at: new Date(),
-        last_seen_at: new Date(),
-      },
-      select: {
-        id: true,
-        email: true,
-        first_name: true,
-        last_name: true,
-        display_name: true,
-        role: true,
-        status: true,
-      },
-    });
+    const user = await prisma.$transaction(async (transaction) => {
+      const createdUser = await transaction.users.create({
+        data: {
+          email: email.toLowerCase(),
+          password_hash: passwordHash,
+          first_name: firstName,
+          last_name: lastName || null,
+          phone: phone || null,
+          display_name: `${firstName}${lastName ? ' ' + lastName : ''}`,
+          role: 'customer',
+          status: 'active',
+          two_fa_enabled: false,
+          requires_approval: false,
+          language: 'ru',
+          timezone: 'Asia/Bishkek',
+          last_login_at: new Date(),
+          last_seen_at: new Date(),
+        },
+        select: {
+          id: true,
+          email: true,
+          first_name: true,
+          last_name: true,
+          display_name: true,
+          role: true,
+          status: true,
+        },
+      });
 
-    // Create user settings
-    await prisma.user_settings.create({
-      data: {
-        user_id: user.id,
-        email_notifications: true,
-        sms_notifications: false,
-        push_notifications: true,
-        telegram_notifications: true,
-        show_online_status: true,
-        show_phone: false,
-        show_email: false,
-        theme: 'light',
-        compact_mode: false,
-      },
+      await transaction.user_settings.create({
+        data: {
+          user_id: createdUser.id,
+          email_notifications: true,
+          sms_notifications: false,
+          push_notifications: true,
+          telegram_notifications: true,
+          show_online_status: true,
+          show_phone: false,
+          show_email: false,
+          theme: 'light',
+          compact_mode: false,
+        },
+      });
+
+      return createdUser;
     });
 
     logger.info('User registered successfully', { 

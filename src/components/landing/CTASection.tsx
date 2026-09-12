@@ -1,5 +1,7 @@
+import type { LandingTranslations } from './types';
+
 interface CTASectionProps {
-  t: any;
+  t: LandingTranslations;
 }
 
 export function CTASection({ t }: CTASectionProps) {

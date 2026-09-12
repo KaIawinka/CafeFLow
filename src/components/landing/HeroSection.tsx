@@ -1,7 +1,8 @@
 import Link from "next/link";
+import type { LandingTranslations } from './types';
 
 interface HeroSectionProps {
-  t: any;
+  t: LandingTranslations;
 }
 
 export function HeroSection({ t }: HeroSectionProps) {

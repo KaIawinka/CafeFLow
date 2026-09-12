@@ -30,6 +30,27 @@ class Logger {
     return output;
   }
 
+  private serializeError(error: unknown): unknown {
+    if (error instanceof Error) {
+      const prismaError = error as Error & {
+        code?: string;
+        meta?: unknown;
+        clientVersion?: string;
+      };
+
+      return {
+        name: error.name,
+        message: error.message,
+        code: prismaError.code,
+        meta: prismaError.meta,
+        clientVersion: prismaError.clientVersion,
+        stack: this.isDevelopment ? error.stack : undefined,
+      };
+    }
+
+    return error;
+  }
+
   info(message: string, context?: LogContext): void {
     console.log(this.formatMessage('info', message, context));
   }
@@ -41,10 +62,7 @@ class Logger {
   error(message: string, error?: unknown, context?: LogContext): void {
     const errorContext = {
       ...context,
-      error: error instanceof Error ? {
-        message: error.message,
-        stack: this.isDevelopment ? error.stack : undefined,
-      } : error,
+      error: this.serializeError(error),
     };
     console.error(this.formatMessage('error', message, errorContext));
   }

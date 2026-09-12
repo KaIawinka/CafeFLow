@@ -17,11 +17,15 @@ export function LanguageSwitcher({ currentLocale }: { currentLocale: Locale }) {
     }
     
     // Формируем новый путь с новой локалью
-    const newPath = `/${newLocale}${segments.length ? "/" + segments.join("/") : ""}`;
-    
     // Сохраняем выбранную локаль в cookie
     setLocaleCookie(newLocale);
-    
+
+    if (!locales.includes(pathname.split('/')[1] as Locale)) {
+      router.refresh();
+      return;
+    }
+
+    const newPath = `/${newLocale}${segments.length ? "/" + segments.join("/") : ""}`;
     router.push(newPath);
   };
 

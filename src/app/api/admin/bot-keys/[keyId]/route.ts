@@ -104,9 +104,10 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: RouteParams
+  context: RouteContext
 ) {
   try {
+    const { keyId } = await context.params;
     const token = request.cookies.get('accessToken')?.value;
 
     if (!token) {
@@ -130,7 +131,7 @@ export async function PATCH(
 
     // Check if key exists
     const existingKey = await prisma.bot_access_keys.findUnique({
-      where: { id: params.keyId },
+      where: { id: keyId },
     });
 
     if (!existingKey) {
@@ -142,7 +143,7 @@ export async function PATCH(
 
     // Update key
     const updatedKey = await prisma.bot_access_keys.update({
-      where: { id: params.keyId },
+      where: { id: keyId },
       data: {
         ...(description !== undefined && { description }),
         ...(maxUses !== undefined && { max_uses: maxUses }),
@@ -164,7 +165,7 @@ export async function PATCH(
     });
 
     logger.info('Bot key updated', { 
-      keyId: params.keyId, 
+      keyId,
       updatedBy: payload.userId 
     });
 
@@ -188,9 +189,10 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: RouteParams
+  context: RouteContext
 ) {
   try {
+    const { keyId } = await context.params;
     const token = request.cookies.get('accessToken')?.value;
 
     if (!token) {
@@ -211,7 +213,7 @@ export async function DELETE(
 
     // Check if key exists
     const existingKey = await prisma.bot_access_keys.findUnique({
-      where: { id: params.keyId },
+      where: { id: keyId },
     });
 
     if (!existingKey) {
@@ -223,11 +225,11 @@ export async function DELETE(
 
     // Delete key (cascade will delete activations)
     await prisma.bot_access_keys.delete({
-      where: { id: params.keyId },
+      where: { id: keyId },
     });
 
     logger.info('Bot key deleted', { 
-      keyId: params.keyId, 
+      keyId,
       deletedBy: payload.userId 
     });
 

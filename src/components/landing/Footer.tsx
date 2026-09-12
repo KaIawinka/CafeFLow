@@ -1,7 +1,8 @@
 import Link from "next/link";
+import type { LandingTranslations } from './types';
 
 interface FooterProps {
-  t: any;
+  t: LandingTranslations;
 }
 
 export function Footer({ t }: FooterProps) {

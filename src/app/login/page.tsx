@@ -1,17 +1,27 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { LogIn, Mail, Lock, AlertCircle, Loader2, ShieldCheck } from 'lucide-react';
+import Image from 'next/image';
+import { Eye, EyeOff, LogIn, Mail, Lock, AlertCircle, Loader2, ShieldCheck, ArrowLeft } from 'lucide-react';
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginContent />
+    </Suspense>
+  );
+}
+
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [code2FA, setCode2FA] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -63,7 +73,7 @@ export default function LoginPage() {
           router.push(redirectTo);
         }
       }
-    } catch (err) {
+    } catch {
       setError('Произошла ошибка. Попробуйте позже.');
       setIsLoading(false);
     }
@@ -106,20 +116,22 @@ export default function LoginPage() {
           router.push(redirectTo);
         }
       }
-    } catch (err) {
+    } catch {
       setError('Произошла ошибка. Попробуйте позже.');
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-amber-100 via-orange-50 to-red-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
+        <Link href="/ru" className="mb-6 inline-flex items-center gap-2 font-medium text-gray-800 hover:text-amber-700">
+          <ArrowLeft className="h-4 w-4" />
+          На главную
+        </Link>
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-block w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white font-bold text-3xl shadow-lg mb-4">
-            C
-          </div>
+          <Image src="/Logo-CafeFlow.png" alt="CafeFlow" width={64} height={64} className="mx-auto mb-4 h-16 w-16 rounded-2xl object-cover shadow-lg" />
           <h1 className="text-3xl font-bold text-gray-900">CaféFlow</h1>
           <p className="text-gray-600 mt-2">
             {requires2FA ? 'Подтверждение входа' : 'Добро пожаловать'}
@@ -127,7 +139,7 @@ export default function LoginPage() {
         </div>
 
         {/* Login Form */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white text-gray-900 rounded-2xl shadow-xl p-8 ring-1 ring-black/5">
           {!requires2FA ? (
             <form onSubmit={handleLogin} className="space-y-6">
               <div>
@@ -170,13 +182,16 @@ export default function LoginPage() {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
                     id="password"
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
+                    className="w-full pl-11 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
                     placeholder="••••••••"
                   />
+                  <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900">
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
                 </div>
               </div>
 

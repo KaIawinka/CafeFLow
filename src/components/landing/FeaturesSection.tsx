@@ -1,5 +1,7 @@
+import type { LandingTranslations } from './types';
+
 interface FeaturesSectionProps {
-  t: any;
+  t: LandingTranslations;
 }
 
 export function FeaturesSection({ t }: FeaturesSectionProps) {

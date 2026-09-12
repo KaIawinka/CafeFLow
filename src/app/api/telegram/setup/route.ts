@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { setWebhook, deleteWebhook, getWebhookInfo, getBotInfo } from '@/lib/telegram/bot';
+import { setWebhook, deleteWebhook, getWebhookInfo, getBotInfo, configureBotProfile } from '@/lib/telegram/bot';
 import { logger } from '@/lib/logger';
 
 /**
@@ -31,6 +31,14 @@ export async function POST(request: NextRequest) {
       const webhookUrl = body.url || `${process.env.NEXT_PUBLIC_APP_URL}/api/telegram/webhook`;
       const secretToken = process.env.TELEGRAM_WEBHOOK_SECRET;
 
+      if (!webhookUrl || !/^https:\/\//i.test(webhookUrl) || /localhost|127\.0\.0\.1/i.test(webhookUrl)) {
+        return NextResponse.json(
+          { error: 'Webhook URL must be a public HTTPS URL. Use ngrok for local development.' },
+          { status: 400 }
+        );
+      }
+
+      await configureBotProfile();
       const result = await setWebhook(webhookUrl, secretToken);
 
       if (result) {
@@ -84,11 +92,11 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    // Only allow with admin token in production
+    // Protect bot status in every environment when a setup token is configured.
     const authHeader = request.headers.get('authorization');
     const adminToken = process.env.ADMIN_SETUP_TOKEN;
 
-    if (process.env.NODE_ENV === 'production' && adminToken && authHeader !== `Bearer ${adminToken}`) {
+    if (adminToken && authHeader !== `Bearer ${adminToken}`) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

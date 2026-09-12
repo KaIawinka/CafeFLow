@@ -39,6 +39,152 @@ function clearUserState(chatId: string) {
   userStates.delete(chatId);
 }
 
+async function getTelegramAdmin(chatId: string) {
+  return prisma.users.findFirst({
+    where: { telegram_chat_id: chatId, role: 'admin', status: 'active' },
+    select: { id: true, first_name: true, email: true },
+  });
+}
+
+function getCommandArguments(ctx: BotContext): string {
+  const match = ctx.match;
+  if (typeof match === 'string') return match.trim();
+  if (Array.isArray(match)) return match.join(' ').trim();
+  return '';
+}
+
+bot.command('admin', async (ctx: BotContext) => {
+  const chatId = ctx.chat?.id.toString();
+  if (!chatId || !(await getTelegramAdmin(chatId))) {
+    await ctx.reply('⛔ Эта команда доступна только администраторам.');
+    return;
+  }
+
+  await ctx.reply(
+    '🛡 Админ-команды\n\n' +
+    '/users - список пользователей\n' +
+    '/user email - данные пользователя\n' +
+    '/setrole email роль - изменить роль\n' +
+    '/keys - активные ключи бота\n' +
+    '/help - общие команды'
+  );
+});
+
+bot.command('users', async (ctx: BotContext) => {
+  const chatId = ctx.chat?.id.toString();
+  if (!chatId || !(await getTelegramAdmin(chatId))) {
+    await ctx.reply('⛔ Эта команда доступна только администраторам.');
+    return;
+  }
+
+  const users = await prisma.users.findMany({
+    orderBy: { created_at: 'desc' },
+    take: 30,
+    select: { email: true, first_name: true, last_name: true, role: true, status: true, telegram_chat_id: true },
+  });
+
+  if (users.length === 0) {
+    await ctx.reply('Пользователей пока нет.');
+    return;
+  }
+
+  const lines = users.map((user, index) =>
+    `${index + 1}. ${user.first_name} ${user.last_name || ''}`.trim() +
+    `\n   ${user.email} | ${user.role} | ${user.status} | Telegram: ${user.telegram_chat_id ? 'да' : 'нет'}`
+  );
+  await ctx.reply(`👥 Последние пользователи (${users.length})\n\n${lines.join('\n')}`);
+});
+
+bot.command('user', async (ctx: BotContext) => {
+  const chatId = ctx.chat?.id.toString();
+  if (!chatId || !(await getTelegramAdmin(chatId))) {
+    await ctx.reply('⛔ Эта команда доступна только администраторам.');
+    return;
+  }
+
+  const email = getCommandArguments(ctx).toLowerCase();
+  if (!email) {
+    await ctx.reply('Использование: /user email@example.com');
+    return;
+  }
+
+  const user = await prisma.users.findUnique({
+    where: { email },
+    select: {
+      email: true,
+      first_name: true,
+      last_name: true,
+      role: true,
+      status: true,
+      phone: true,
+      telegram_username: true,
+      telegram_chat_id: true,
+      two_fa_enabled: true,
+      created_at: true,
+    },
+  });
+
+  if (!user) {
+    await ctx.reply('Пользователь не найден.');
+    return;
+  }
+
+  await ctx.reply(
+    `👤 ${user.first_name} ${user.last_name || ''}\n` +
+    `📧 ${user.email}\n` +
+    `🎭 Роль: ${user.role}\n` +
+    `📊 Статус: ${user.status}\n` +
+    `📱 Telegram: ${user.telegram_username ? `@${user.telegram_username}` : 'не привязан'}\n` +
+    `🔐 2FA: ${user.two_fa_enabled ? 'включена' : 'выключена'}\n` +
+    `📅 Создан: ${user.created_at.toLocaleDateString('ru-RU')}`
+  );
+});
+
+bot.command('setrole', async (ctx: BotContext) => {
+  const chatId = ctx.chat?.id.toString();
+  const admin = chatId ? await getTelegramAdmin(chatId) : null;
+  if (!admin) {
+    await ctx.reply('⛔ Эта команда доступна только администраторам.');
+    return;
+  }
+
+  const [email, role] = getCommandArguments(ctx).toLowerCase().split(/\s+/);
+  const roles = ['customer', 'employee', 'kitchen', 'manager', 'admin'] as const;
+  if (!email || !roles.includes(role as typeof roles[number])) {
+    await ctx.reply('Использование: /setrole email@example.com customer|employee|kitchen|manager|admin');
+    return;
+  }
+
+  const user = await prisma.users.findUnique({ where: { email }, select: { id: true, email: true } });
+  if (!user) {
+    await ctx.reply('Пользователь не найден.');
+    return;
+  }
+
+  await prisma.users.update({ where: { id: user.id }, data: { role: role as typeof roles[number] } });
+  logger.info('Telegram admin changed user role', { adminId: admin.id, userId: user.id, role });
+  await ctx.reply(`✅ Роль пользователя ${user.email} изменена на ${role}.`);
+});
+
+bot.command('keys', async (ctx: BotContext) => {
+  const chatId = ctx.chat?.id.toString();
+  if (!chatId || !(await getTelegramAdmin(chatId))) {
+    await ctx.reply('⛔ Эта команда доступна только администраторам.');
+    return;
+  }
+
+  const keys = await prisma.bot_access_keys.findMany({
+    where: { is_active: true },
+    orderBy: { created_at: 'desc' },
+    take: 20,
+    select: { key: true, key_type: true, uses_count: true, max_uses: true, expires_at: true },
+  });
+
+  await ctx.reply(keys.length
+    ? `🔑 Активные ключи\n\n${keys.map((key) => `${key.key} | ${key.key_type} | ${key.uses_count}/${key.max_uses ?? '∞'}`).join('\n')}`
+    : 'Активных ключей нет.');
+});
+
 /**
  * /start command handler
  * Welcome message and instructions
@@ -233,6 +379,7 @@ bot.command('help', async (ctx: BotContext) => {
     `🔹 /activate - Активировать аккаунт с ключом\n` +
     `🔹 /login - Войти в систему\n` +
     `🔹 /status - Проверить статус активации\n` +
+    `🔹 /admin - Админ-команды (только для админов)\n` +
     `🔹 /help - Показать эту справку\n\n` +
     `❓ Как это работает:\n\n` +
     `1️⃣ Получите ключ доступа от администратора\n` +
