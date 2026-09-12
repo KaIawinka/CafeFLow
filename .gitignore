@@ -43,3 +43,21 @@ next-env.d.ts
 # prisma generated
 /src/generated/prisma
 /generated
+
+# AI assistant configurations (Kiro, Claude, Windsurf, Cursor)
+.agents/
+.claude/
+.windsurf/
+.cursor/
+AGENTS.md
+CLAUDE.md
+skills-lock.json
+
+# Temporary design files
+*.excalidraw
+*.fig
+
+# Development docs (keep only essential docs)
+CHECKLIST.md
+LANDING*.md
+*_SUMMARY.md
