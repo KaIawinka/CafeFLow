@@ -4,6 +4,7 @@
  */
 
 import { SignJWT, jwtVerify, JWTPayload } from 'jose';
+import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 
 // JWT secret key
@@ -77,7 +78,34 @@ export async function verifyAccessToken(token: string): Promise<TokenPayload | n
       audience: 'cafeflow-admin',
     });
 
-    return payload as TokenPayload;
+    const jwtPayload = payload as TokenPayload;
+    if (!jwtPayload.userId) {
+      return null;
+    }
+
+    const currentUser = await prisma.users.findUnique({
+      where: { id: jwtPayload.userId },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        status: true,
+        requires_approval: true,
+      },
+    });
+
+    if (!currentUser) {
+      return null;
+    }
+
+    return {
+      ...jwtPayload,
+      userId: currentUser.id,
+      email: currentUser.email,
+      role: currentUser.role,
+      status: currentUser.status,
+      requiresApproval: currentUser.requires_approval,
+    };
   } catch (error) {
     logger.error('JWT verification failed', error);
     return null;
@@ -94,7 +122,34 @@ export async function verifyRefreshToken(token: string): Promise<TokenPayload | 
       audience: 'cafeflow-admin',
     });
 
-    return payload as TokenPayload;
+    const jwtPayload = payload as TokenPayload;
+    if (!jwtPayload.userId) {
+      return null;
+    }
+
+    const currentUser = await prisma.users.findUnique({
+      where: { id: jwtPayload.userId },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        status: true,
+        requires_approval: true,
+      },
+    });
+
+    if (!currentUser) {
+      return null;
+    }
+
+    return {
+      ...jwtPayload,
+      userId: currentUser.id,
+      email: currentUser.email,
+      role: currentUser.role,
+      status: currentUser.status,
+      requiresApproval: currentUser.requires_approval,
+    };
   } catch (error) {
     logger.error('Refresh token verification failed', error);
     return null;
