@@ -1,339 +1,277 @@
-# 🎯 CaféFlow - Автоматизация кафе и ресторанов
+# CaféFlow
 
-<div align="center">
+Система автоматизации для кафе и ресторанов с веб-админкой, Telegram-ботом и двухфакторной аутентификацией.
 
-![CaféFlow Logo](public/Logo-CafeFlow.png)
+## 🚀 Технологии
 
-**Современная white-label платформа для управления кафе, ресторанами и заведениями общественного питания**
+- **Next.js 16** - React framework
+- **TypeScript** - Type safety
+- **Prisma 7** - ORM with Neon adapter
+- **Neon PostgreSQL** - Serverless database
+- **Grammy** - Telegram bot framework
+- **Jose** - JWT authentication
+- **bcrypt** - Password hashing
+- **Tailwind CSS 4** - Styling
 
-[![Next.js](https://img.shields.io/badge/Next.js-16.3-black)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.0-38bdf8)](https://tailwindcss.com/)
-[![Prisma](https://img.shields.io/badge/Prisma-7.10-2D3748)](https://www.prisma.io/)
+## 📦 Установка
 
-[🚀 Демо](http://localhost:3000/ru) • [📖 Документация](./LANDING.md) • [🌍 Мультиязычность](#-мультиязычность)
-
-</div>
-
----
-
-## 📋 О проекте
-
-**CaféFlow** — тиражируемая веб-система для автоматизации основных процессов заведений общественного питания. Продукт создан как коммерческое white-label решение, которое можно развернуть для любого кафе, ресторана, кофейни или пекарни с минимальной настройкой.
-
-### 🎯 Ключевые возможности
-
-- 📱 **Онлайн-меню и заказы** - QR-коды, модификаторы, корзина
-- 🍽️ **Бронирование столиков** - автоматическая система с защитой от конфликтов
-- 👨‍🍳 **Модуль для кухни** - цифровой экран заказов с статусами
-- 🎁 **Программа лояльности** - бонусы, промокоды, история
-- 📊 **Аналитика** - детальная статистика продаж и выручки
-- ⚙️ **Админ-панель** - управление меню, персоналом, клиентами
-
-### 🏗️ Архитектура
-
-- **Multi-tenant** - один код для всех заведений
-- **White-label** - полная брендированность под клиента
-- **Модульная** - подключение только нужных функций
-- **Масштабируемая** - готова к росту
-
----
-
-## 🚀 Быстрый старт
-
-### Требования
-
-- Node.js 20+
-- PostgreSQL 14+
-- npm или yarn
-
-### Установка
+### 1. Clone репозиторий
 
 ```bash
-# Клонировать репозиторий
-git clone https://github.com/your-org/cafeflow.git
+git clone https://github.com/your-username/cafeflow.git
 cd cafeflow
+```
 
-# Установить зависимости
+### 2. Установите зависимости
+
+```bash
 npm install
+```
 
-# Настроить переменные окружения
+### 3. Настройте переменные окружения
+
+Скопируйте `.env.example` в `.env`:
+
+```bash
 cp .env.example .env
-# Отредактировать .env с вашими параметрами
+```
 
-# Запустить миграции базы данных
-npx prisma migrate dev
+Заполните переменные:
 
-# Запустить в режиме разработки
+```env
+# Neon PostgreSQL
+DATABASE_URL="postgresql://user:pass@ep-xxx.aws.neon.tech/neondb?sslmode=require"
+
+# JWT Secret (generate: openssl rand -base64 32)
+JWT_SECRET="your-generated-secret"
+
+# Telegram Bot (@BotFather)
+TELEGRAM_BOT_TOKEN="1234567890:ABCdefGHIjklMNOpqrsTUVwxyz"
+
+# Webhook Secret (generate: openssl rand -base64 32)
+TELEGRAM_WEBHOOK_SECRET="your-webhook-secret"
+
+# Admin Token (generate: openssl rand -base64 32)
+ADMIN_SETUP_TOKEN="your-admin-token"
+
+# App URL
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+```
+
+### 4. Примените миграции базы данных
+
+```bash
+npx prisma migrate deploy
+```
+
+### 5. Сгенерируйте Prisma Client
+
+```bash
+npx prisma generate
+```
+
+## 🏃 Запуск
+
+### Development
+
+```bash
 npm run dev
 ```
 
-Откройте [http://localhost:3000/ru](http://localhost:3000/ru) в браузере.
+Приложение будет доступно на `http://localhost:3000`
 
----
-
-## 🌍 Мультиязычность
-
-Проект полностью поддерживает несколько языков:
-
-- 🇷🇺 **Русский** (ru) - основной язык
-- 🇰🇬 **Кыргызский** (kg) - полная локализация
-
-**URL структура:**
-```
-/ru        - Русская версия лендинга
-/kg        - Кыргызская версия лендинга
-```
-
-**Добавление нового языка:**
-1. Добавить код языка в `src/app/i18n/config.ts`
-2. Создать папку `src/app/i18n/locales/[код]/`
-3. Скопировать и перевести `common.json` и `landing.json`
-
----
-
-## 📂 Структура проекта
-
-```
-cafeflow/
-├── prisma/
-│   └── schema.prisma          # Схема базы данных (26 таблиц)
-├── public/
-│   └── Logo-CafeFlow.png      # Лого проекта
-├── src/
-│   ├── app/
-│   │   ├── [locale]/
-│   │   │   ├── page.tsx       # Лендинг страница
-│   │   │   └── layout.tsx     # Layout с i18n
-│   │   ├── i18n/              # Система интернационализации
-│   │   │   ├── config.ts
-│   │   │   ├── utils.ts
-│   │   │   └── locales/
-│   │   │       ├── ru/
-│   │   │       └── kg/
-│   │   ├── globals.css        # Глобальные стили
-│   │   └── not-found.tsx      # 404 страница
-│   └── components/
-│       ├── Header.tsx         # Хедер с навигацией
-│       ├── LanguageSwitcher.tsx
-│       └── landing/           # Компоненты лендинга (9 штук)
-├── docs/
-│   ├── TZ-CafeFlow.md         # Техническое задание
-│   ├── CafeFlow_BD.md         # Описание БД
-│   └── Archetype.excalidraw   # Прототип интерфейса
-├── LANDING.md                 # Документация лендинга
-├── LANDING_SUMMARY.md         # Краткий обзор
-└── scripts/
-    └── landing-info.md        # Практическое руководство
-```
-
----
-
-## 🎨 Лендинг страница
-
-### Секции
-
-1. **Hero** - Главная секция с value proposition
-2. **Problems** - Боли целевой аудитории
-3. **Features** - 6 ключевых возможностей
-4. **Benefits** - Преимущества решения
-5. **Audience** - Для кого продукт
-6. **Tech** - Технологический стек
-7. **CTA** - Призыв к действию + форма
-8. **Footer** - Навигация и контакты
-
-### Дизайн
-
-- ✅ Адаптивный (mobile, tablet, desktop)
-- ✅ Темная и светлая тема
-- ✅ Современные градиенты и анимации
-- ✅ Профессиональный UI/UX
-
-**Подробнее:** [LANDING.md](./LANDING.md)
-
----
-
-## 🗄️ База данных
-
-### Схема
-
-26 таблиц, покрывающих все аспекты работы заведения:
-
-- **Заведения**: tenants, branches
-- **Пользователи**: users, roles, permissions
-- **Меню**: menu_categories, products, modifiers
-- **Заказы**: orders, order_items, carts
-- **Доставка**: delivery_zones, order_deliveries
-- **Бронирования**: reservations, restaurant_tables
-- **Лояльность**: loyalty, promotions
-- **Аналитика**: analytics_daily, reviews
-- **Контент**: content, business_hours
-
-**Подробнее:** [CafeFlow_BD.md](./CafeFlow_BD.md)
-
----
-
-## 🛠️ Технологический стек
-
-### Frontend
-- **Next.js 16.3** - React framework с App Router
-- **TypeScript** - Статическая типизация
-- **Tailwind CSS 4** - Utility-first CSS
-- **Geist Font** - Современная типографика
-
-### Backend
-- **Prisma 7.10** - ORM для PostgreSQL
-- **PostgreSQL** - Основная база данных
-- **Node.js** - Runtime
-
-### Инфраструктура
-- **Docker** - Контейнеризация
-- **Vercel** - Рекомендуемый хостинг
-- **S3-compatible storage** - Для файлов
-
----
-
-## 📜 Скрипты
-
-```bash
-# Разработка
-npm run dev              # Запуск dev сервера
-
-# Production
-npm run build            # Сборка для production
-npm start                # Запуск production сервера
-
-# База данных
-npx prisma migrate dev   # Создать миграцию
-npx prisma generate      # Генерация Prisma Client
-npx prisma studio        # Открыть Prisma Studio
-npx prisma db push       # Синхронизация с БД
-
-# Код
-npm run lint             # Проверка ESLint
-```
-
----
-
-## 📖 Документация
-
-- [📋 Техническое задание](./TZ-CafeFlow.md) - Полное ТЗ проекта
-- [🗄️ База данных](./CafeFlow_BD.md) - Описание схемы БД
-- [🎨 Лендинг](./LANDING.md) - Документация landing page
-- [📝 Quick Guide](./scripts/landing-info.md) - Практическое руководство
-- [✨ Summary](./LANDING_SUMMARY.md) - Краткий обзор
-
----
-
-## 🎯 Целевая аудитория
-
-### Конечные пользователи
-- Владельцы кафе и ресторанов
-- Управляющие заведениями
-- Сотрудники (официанты, кухня, кассиры)
-- Клиенты заведений
-
-### Покупатели продукта
-- Небольшие кафе и кофейни
-- Рестораны
-- Пекарни и кондитерские
-- Заведения с доставкой
-
----
-
-## 🚀 Деплой
-
-### Vercel (рекомендуется)
-
-```bash
-npm i -g vercel
-vercel
-```
-
-### Docker
-
-```bash
-docker build -t cafeflow .
-docker run -p 3000:3000 cafeflow
-```
-
-### Manual
+### Production
 
 ```bash
 npm run build
 npm start
 ```
 
----
+## 📚 Структура проекта
 
-## 🔐 Безопасность
+```
+src/
+├── app/
+│   ├── api/
+│   │   ├── auth/         # Auth endpoints (login, 2FA, session, logout)
+│   │   └── telegram/     # Telegram bot webhook & setup
+│   ├── [locale]/         # Multi-language pages
+│   └── i18n/            # Internationalization
+├── components/          # React components
+└── lib/
+    ├── auth/            # JWT & password utilities
+    ├── telegram/        # Bot handlers & messages
+    ├── logger.ts        # Centralized logging
+    └── prisma.ts        # Database client
+```
 
-- ✅ HTTPS обязателен в production
-- ✅ Хеширование паролей (bcrypt)
-- ✅ SQL инъекции (Prisma защита)
-- ✅ XSS защита
-- ✅ CSRF токены
-- ✅ RBAC (Role-Based Access Control)
-- ✅ Валидация на клиенте и сервере
+## 🔐 Аутентификация
 
----
+### Создание первого админа
 
-## 📊 Роадмап
+Выполните SQL в Neon Console:
 
-### MVP (Текущая версия) ✅
-- [x] Landing page (ru, kg)
-- [x] База данных (schema)
-- [x] Документация
-- [ ] Админ-панель
-- [ ] Клиентское приложение
-- [ ] API endpoints
+```sql
+INSERT INTO users (
+  id, email, password_hash, first_name, role, status, 
+  two_fa_enabled, created_at, updated_at
+) VALUES (
+  gen_random_uuid(),
+  'admin@cafeflow.com',
+  '$2b$10$YourHashedPasswordHere',  -- Use bcrypt to generate
+  'Admin',
+  'admin',
+  'active',
+  false,
+  NOW(),
+  NOW()
+);
+```
 
-### v1.0 (Ближайшие)
-- [ ] Онлайн-заказы
-- [ ] Бронирования
-- [ ] Модуль кухни
-- [ ] Базовая аналитика
-- [ ] Email уведомления
+Или используйте bcrypt CLI:
 
-### v2.0 (Будущее)
-- [ ] Мобильное приложение
-- [ ] AI рекомендации
-- [ ] Telegram Bot
-- [ ] Платежные системы
-- [ ] Расширенная аналитика
+```bash
+npx bcrypt-cli hash "your-password" 10
+```
 
----
+### API Endpoints
 
-## 🤝 Вклад в проект
+#### POST /api/auth/login
+Первый шаг входа - проверка email/password
 
-Мы приветствуем вклад в развитие проекта! Пожалуйста:
+```json
+{
+  "email": "user@example.com",
+  "password": "password"
+}
+```
 
-1. Fork репозитория
-2. Создайте feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit изменения (`git commit -m 'Add some AmazingFeature'`)
-4. Push в branch (`git push origin feature/AmazingFeature`)
-5. Откройте Pull Request
+#### POST /api/auth/verify-2fa
+Второй шаг - проверка 2FA кода
 
----
+```json
+{
+  "email": "user@example.com",
+  "code": "123456"
+}
+```
 
-## 📄 Лицензия
+#### GET /api/auth/session
+Проверка текущей сессии (требует JWT)
 
-Этот проект является коммерческим продуктом. Все права защищены.
+Headers: `Authorization: Bearer <token>`
 
----
+#### POST /api/auth/logout
+Выход из системы
 
-## 📞 Контакты
+## 🤖 Telegram Bot
 
-- **Email**: info@cafeflow.com
-- **Website**: [cafeflow.com](https://cafeflow.com)
-- **Telegram**: [@cafeflow_support](https://t.me/cafeflow_support)
+### Настройка бота
 
----
+1. Создайте бота через [@BotFather](https://t.me/botfather)
+2. Получите токен
+3. Добавьте токен в `.env`
+4. Настройте webhook:
 
-<div align="center">
+```bash
+curl -X POST https://your-domain.vercel.app/api/telegram/setup \
+  -H "Authorization: Bearer YOUR_ADMIN_SETUP_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"action":"set"}'
+```
 
-**Сделано с ❤️ командой CaféFlow**
+### Команды бота
 
-[⬆ Наверх](#-caféflow---автоматизация-кафе-и-ресторанов)
+- `/start` - Привязка аккаунта
+- `/status` - Статус привязки
+- `/help` - Справка
 
-</div>
+### Привязка Telegram
+
+1. Войдите в админку
+2. GET `/api/auth/telegram/link-code` (с JWT token)
+3. Откройте полученную ссылку
+4. Нажмите START в боте
+
+## 🚢 Деплой на Vercel
+
+### 1. Push в GitHub
+
+```bash
+git push origin main
+```
+
+### 2. Импортируйте проект в Vercel
+
+1. Зайдите на [vercel.com](https://vercel.com)
+2. Import Git Repository
+3. Выберите ваш репозиторий
+
+### 3. Добавьте переменные окружения
+
+В Vercel → Settings → Environment Variables добавьте:
+
+- `DATABASE_URL`
+- `JWT_SECRET`
+- `TELEGRAM_BOT_TOKEN`
+- `TELEGRAM_WEBHOOK_SECRET`
+- `ADMIN_SETUP_TOKEN`
+
+### 4. Deploy!
+
+Vercel автоматически задеплоит проект.
+
+### 5. Настройте webhook
+
+После первого деплоя:
+
+```bash
+curl -X POST https://your-project.vercel.app/api/telegram/setup \
+  -H "Authorization: Bearer YOUR_ADMIN_SETUP_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"action":"set"}'
+```
+
+## 🔧 Разработка
+
+### Prisma Studio
+
+Просмотр базы данных:
+
+```bash
+npx prisma studio
+```
+
+### Миграции
+
+Создать новую миграцию:
+
+```bash
+npx prisma migrate dev --name migration_name
+```
+
+### Логирование
+
+Используется централизованный logger (`src/lib/logger.ts`):
+
+```typescript
+import { logger } from '@/lib/logger';
+
+logger.info('Message', { context: 'data' });
+logger.warn('Warning', { userId: '123' });
+logger.error('Error occurred', error, { context: 'data' });
+logger.debug('Debug info'); // Only in development
+```
+
+## 📝 License
+
+MIT
+
+## 🤝 Contributing
+
+Contributions welcome! Please open an issue or PR.
+
+## 📞 Support
+
+- Email: support@cafeflow.com
+- Telegram: @cafeflow_support
