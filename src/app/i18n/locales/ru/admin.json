@@ -1,0 +1,45 @@
+{
+  "login": {
+    "title": "CaféFlow Admin",
+    "subtitle": "Вход в панель управления",
+    "email": "Email",
+    "password": "Пароль",
+    "emailPlaceholder": "admin@cafeflow.com",
+    "passwordPlaceholder": "••••••••",
+    "loginButton": "Войти",
+    "loggingIn": "Вход...",
+    "errors": {
+      "required": "Email и пароль обязательны",
+      "invalid": "Неверный email или пароль",
+      "blocked": "Аккаунт заблокирован",
+      "serverError": "Ошибка соединения с сервером"
+    }
+  },
+  "twoFa": {
+    "title": "Подтверждение входа",
+    "subtitle": "Код отправлен в Telegram",
+    "code": "Код подтверждения",
+    "codePlaceholder": "000000",
+    "codeHint": "Введите 6-значный код из Telegram",
+    "verifyButton": "Подтвердить",
+    "verifying": "Проверка...",
+    "backButton": "← Назад к вводу пароля",
+    "errors": {
+      "invalid": "Неверный код",
+      "expired": "Код истёк. Запросите новый код",
+      "attemptsExceeded": "Превышено количество попыток"
+    }
+  },
+  "dashboard": {
+    "title": "Панель управления",
+    "welcome": "Добро пожаловать в CaféFlow!",
+    "welcomeMessage": "Панель управления находится в разработке. Скоро здесь появятся все функции управления вашим заведением.",
+    "logout": "Выйти",
+    "stats": {
+      "ordersToday": "Заказы сегодня",
+      "revenue": "Выручка",
+      "customers": "Клиенты",
+      "products": "Товары"
+    }
+  }
+}

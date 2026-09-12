@@ -1,0 +1,45 @@
+{
+  "login": {
+    "title": "CaféFlow Admin",
+    "subtitle": "Башкаруу панелине кирүү",
+    "email": "Email",
+    "password": "Сыр сөз",
+    "emailPlaceholder": "admin@cafeflow.com",
+    "passwordPlaceholder": "••••••••",
+    "loginButton": "Кирүү",
+    "loggingIn": "Кирүү...",
+    "errors": {
+      "required": "Email жана сыр сөз керек",
+      "invalid": "Email же сыр сөз туура эмес",
+      "blocked": "Аккаунт бөгөттөлгөн",
+      "serverError": "Серверге туташуу катасы"
+    }
+  },
+  "twoFa": {
+    "title": "Кирүүнү ырастоо",
+    "subtitle": "Код Telegramга жөнөтүлдү",
+    "code": "Ырастоо коду",
+    "codePlaceholder": "000000",
+    "codeHint": "Telegramдан 6 сандуу кодду киргизиңиз",
+    "verifyButton": "Ырастоо",
+    "verifying": "Текшерүү...",
+    "backButton": "← Сыр сөзгө кайтуу",
+    "errors": {
+      "invalid": "Туура эмес код",
+      "expired": "Коддун мөөнөтү бүттү",
+      "attemptsExceeded": "Аракеттер саны ашты"
+    }
+  },
+  "dashboard": {
+    "title": "Башкаруу панели",
+    "welcome": "CaféFlow'го кош келиңиз!",
+    "welcomeMessage": "Башкаруу панели иштелип жатат. Жакында бардык функциялар жеткиликтүү болот.",
+    "logout": "Чыгуу",
+    "stats": {
+      "ordersToday": "Бүгүнкү заказдар",
+      "revenue": "Киреше",
+      "customers": "Кардарлар",
+      "products": "Азыктар"
+    }
+  }
+}

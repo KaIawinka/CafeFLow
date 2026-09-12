@@ -1,0 +1,45 @@
+{
+  "login": {
+    "title": "CaféFlow Admin",
+    "subtitle": "Management Panel Login",
+    "email": "Email",
+    "password": "Password",
+    "emailPlaceholder": "admin@cafeflow.com",
+    "passwordPlaceholder": "••••••••",
+    "loginButton": "Login",
+    "loggingIn": "Logging in...",
+    "errors": {
+      "required": "Email and password are required",
+      "invalid": "Invalid email or password",
+      "blocked": "Account blocked",
+      "serverError": "Server connection error"
+    }
+  },
+  "twoFa": {
+    "title": "Login Confirmation",
+    "subtitle": "Code sent to Telegram",
+    "code": "Verification Code",
+    "codePlaceholder": "000000",
+    "codeHint": "Enter 6-digit code from Telegram",
+    "verifyButton": "Verify",
+    "verifying": "Verifying...",
+    "backButton": "← Back to password",
+    "errors": {
+      "invalid": "Invalid code",
+      "expired": "Code expired. Request a new one",
+      "attemptsExceeded": "Too many attempts"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome to CaféFlow!",
+    "welcomeMessage": "Dashboard is under development. All management features will be available soon.",
+    "logout": "Logout",
+    "stats": {
+      "ordersToday": "Orders Today",
+      "revenue": "Revenue",
+      "customers": "Customers",
+      "products": "Products"
+    }
+  }
+}

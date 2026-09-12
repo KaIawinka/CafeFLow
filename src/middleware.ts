@@ -1,35 +1,28 @@
 /**
  * Next.js Middleware
- * Protects admin routes with JWT authentication
+ * Route protection with role-based access control
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyAccessToken, extractTokenFromHeader } from '@/lib/auth/jwt';
+import { verifyAccessToken } from '@/lib/auth/jwt';
 
-// Routes that require authentication
-const protectedPaths = [
-  '/admin',
-  '/api/admin',
-];
-
-// Public auth routes (no authentication needed)
-const publicAuthPaths = [
+// Public routes (no authentication needed)
+const publicPaths = [
+  '/',
+  '/ru',
+  '/en',
+  '/kg',
   '/admin/login',
-  '/admin/verify-2fa',
-  '/api/auth/login',
-  '/api/auth/verify-2fa',
+  '/api/admin/auth/login',
+  '/api/admin/auth/verify-2fa',
+  '/api/telegram/webhook',
+  '/api/telegram/setup',
 ];
-
-// API routes that require specific roles
-const roleBasedPaths = {
-  admin: ['/api/admin/users', '/api/admin/settings'],
-  manager: ['/api/admin/menu', '/api/admin/orders'],
-};
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Skip middleware for public paths
+  // Skip middleware for static files and Next.js internals
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/static') ||
@@ -39,77 +32,55 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check if route requires authentication
-  const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
-  const isPublicAuthPath = publicAuthPaths.some(path => pathname.startsWith(path));
+  // Check if it's a public path
+  const isPublicPath = publicPaths.some(path => 
+    pathname === path || pathname.startsWith(path + '/')
+  );
 
-  if (!isProtectedPath) {
+  if (isPublicPath) {
     return NextResponse.next();
   }
 
-  if (isPublicAuthPath) {
-    return NextResponse.next();
-  }
+  // Get token from cookie
+  const token = request.cookies.get('accessToken')?.value;
 
-  // Extract token from header or cookie
-  let token = extractTokenFromHeader(request.headers.get('authorization'));
-  
-  // If no Authorization header, try cookie
+  // No token - redirect to appropriate login
   if (!token) {
-    token = request.cookies.get('accessToken')?.value || null;
-  }
-
-  // No token provided
-  if (!token) {
-    // For API routes, return 401
-    if (pathname.startsWith('/api/')) {
-      return NextResponse.json(
-        { error: 'Требуется авторизация' },
-        { status: 401 }
-      );
+    if (pathname.startsWith('/admin')) {
+      const loginUrl = new URL('/admin/login', request.url);
+      return NextResponse.redirect(loginUrl);
     }
-
-    // For page routes, redirect to login
-    const loginUrl = new URL('/admin/login', request.url);
-    loginUrl.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(loginUrl);
+    
+    // For other protected routes (future customer area)
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   // Verify token
   const payload = await verifyAccessToken(token);
 
   if (!payload) {
-    // Invalid or expired token
-    if (pathname.startsWith('/api/')) {
-      return NextResponse.json(
-        { error: 'Недействительный или истёкший токен' },
-        { status: 401 }
-      );
-    }
-
-    const loginUrl = new URL('/admin/login', request.url);
-    loginUrl.searchParams.set('redirect', pathname);
-    loginUrl.searchParams.set('expired', 'true');
-    return NextResponse.redirect(loginUrl);
+    // Invalid token - clear cookies and redirect
+    const response = NextResponse.redirect(
+      pathname.startsWith('/admin') 
+        ? new URL('/admin/login', request.url)
+        : new URL('/', request.url)
+    );
+    
+    response.cookies.delete('accessToken');
+    response.cookies.delete('refreshToken');
+    
+    return response;
   }
 
   // Check role-based access
-  for (const [role, paths] of Object.entries(roleBasedPaths)) {
-    const requiresRole = paths.some(path => pathname.startsWith(path));
-    
-    if (requiresRole && payload.role !== role && payload.role !== 'admin') {
-      if (pathname.startsWith('/api/')) {
-        return NextResponse.json(
-          { error: 'Недостаточно прав доступа' },
-          { status: 403 }
-        );
-      }
-
-      return NextResponse.redirect(new URL('/admin/forbidden', request.url));
+  if (pathname.startsWith('/admin')) {
+    // Admin routes require admin role
+    if (payload.role !== 'admin') {
+      return NextResponse.redirect(new URL('/', request.url));
     }
   }
 
-  // Add user info to headers for downstream use
+  // Token is valid - allow access
   const response = NextResponse.next();
   response.headers.set('x-user-id', payload.userId);
   response.headers.set('x-user-email', payload.email);
