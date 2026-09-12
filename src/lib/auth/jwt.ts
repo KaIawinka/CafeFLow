@@ -4,6 +4,7 @@
  */
 
 import { SignJWT, jwtVerify, JWTPayload } from 'jose';
+import { logger } from '@/lib/logger';
 
 // JWT secret key
 const JWT_SECRET = new TextEncoder().encode(
@@ -74,7 +75,7 @@ export async function verifyAccessToken(token: string): Promise<TokenPayload | n
 
     return payload as TokenPayload;
   } catch (error) {
-    console.error('JWT verification failed:', error);
+    logger.error('JWT verification failed', error);
     return null;
   }
 }
@@ -91,7 +92,7 @@ export async function verifyRefreshToken(token: string): Promise<TokenPayload | 
 
     return payload as TokenPayload;
   } catch (error) {
-    console.error('Refresh token verification failed:', error);
+    logger.error('Refresh token verification failed', error);
     return null;
   }
 }

@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAccessToken, extractTokenFromHeader } from '@/lib/auth/jwt';
 import { generateTelegramLinkCode, getTelegramLinkUrl } from '@/lib/telegram/utils';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
   try {
@@ -64,7 +65,7 @@ export async function GET(request: NextRequest) {
     const code = await generateTelegramLinkCode(user.id);
     const linkUrl = getTelegramLinkUrl(code);
 
-    console.log(`📱 Generated Telegram link code for ${user.email}`);
+    logger.info('Generated Telegram link code', { email: user.email });
 
     return NextResponse.json({
       success: true,
@@ -80,7 +81,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('❌ Link code generation error:', error);
+    logger.error('Link code generation error', error);
     
     return NextResponse.json(
       { error: 'Внутренняя ошибка сервера' },

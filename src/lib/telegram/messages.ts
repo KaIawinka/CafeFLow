@@ -4,6 +4,7 @@
 
 import { bot } from './bot';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 /**
  * Send 2FA verification code to user
@@ -37,7 +38,7 @@ export async function sendVerificationCode(
 
     return { success: true };
   } catch (error) {
-    console.error('Error sending verification code:', error);
+    logger.error('Error sending verification code', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -85,7 +86,7 @@ export async function sendAccountLinkedNotification(
 
     return { success: true };
   } catch (error) {
-    console.error('Error sending linked notification:', error);
+    logger.error('Error sending linked notification:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -130,7 +131,7 @@ export async function sendLoginAlert(
 
     return { success: true };
   } catch (error) {
-    console.error('Error sending login alert:', error);
+    logger.error('Error sending login alert:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -182,7 +183,7 @@ export async function sendSecurityAlert(
 
     return { success: true };
   } catch (error) {
-    console.error('Error sending security alert:', error);
+    logger.error('Error sending security alert:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -233,7 +234,7 @@ export async function sendAdminNotification(
 
     return { success: true };
   } catch (error) {
-    console.error('Error sending admin notification:', error);
+    logger.error('Error sending admin notification:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -249,7 +250,7 @@ export async function testBotConnection(chatId: string): Promise<boolean> {
     await bot.api.sendMessage(chatId, '✅ Бот работает!');
     return true;
   } catch (error) {
-    console.error('Bot connection test failed:', error);
+    logger.error('Bot connection test failed:', error);
     return false;
   }
 }

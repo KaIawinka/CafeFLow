@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { webhookHandler } from '@/lib/telegram/bot';
+import { logger } from '@/lib/logger';
 
 // Import handlers to register commands
 import '@/lib/telegram/handlers';
@@ -20,7 +21,7 @@ export async function POST(request: NextRequest) {
     const expectedToken = process.env.TELEGRAM_WEBHOOK_SECRET;
 
     if (expectedToken && secretToken !== expectedToken) {
-      console.error('❌ Invalid webhook secret token');
+      logger.warn('Invalid webhook secret token');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error('❌ Webhook error:', error);
+    logger.error('Webhook error', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

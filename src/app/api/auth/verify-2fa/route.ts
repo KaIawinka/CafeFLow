@@ -8,6 +8,7 @@ import { prisma } from '@/lib/prisma';
 import { verifyCode } from '@/lib/telegram/utils';
 import { generateTokenPair } from '@/lib/auth/jwt';
 import { sendLoginAlert } from '@/lib/telegram/messages';
+import { logger } from '@/lib/logger';
 import crypto from 'crypto';
 
 interface Verify2FARequest {
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!user) {
-      console.warn(`❌ 2FA verification failed: User not found - ${email}`);
+      logger.warn('2FA verification failed: User not found', { email });
       
       return NextResponse.json(
         { error: 'Пользователь не найден' },
@@ -86,7 +87,11 @@ export async function POST(request: NextRequest) {
     const verification = await verifyCode(user.id, code, '2fa_login');
 
     if (!verification.valid) {
-      console.warn(`❌ Invalid 2FA code for ${user.email}: ${verification.error}`);
+      logger.warn('Invalid 2FA code', { 
+        email: user.email, 
+        error: verification.error,
+        attemptsLeft: verification.attemptsLeft 
+      });
       
       return NextResponse.json(
         { 
@@ -124,7 +129,7 @@ export async function POST(request: NextRequest) {
       request.headers.get('user-agent') || 'Unknown device'
     );
 
-    console.log(`✅ 2FA verification successful for ${user.email}`);
+    logger.info('2FA verification successful', { email: user.email, role: user.role });
 
     // Return tokens and user info
     return NextResponse.json({
@@ -142,7 +147,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('❌ 2FA verification error:', error);
+    logger.error('2FA verification error', error);
     
     return NextResponse.json(
       { error: 'Внутренняя ошибка сервера' },

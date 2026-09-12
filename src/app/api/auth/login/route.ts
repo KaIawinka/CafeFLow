@@ -9,6 +9,7 @@ import { verifyPassword } from '@/lib/auth/password';
 import { createVerificationCode, checkCodeGenerationRateLimit } from '@/lib/telegram/utils';
 import { sendVerificationCode } from '@/lib/telegram/messages';
 import { generateTokenPair } from '@/lib/auth/jwt';
+import { logger } from '@/lib/logger';
 import crypto from 'crypto';
 
 interface LoginRequest {
@@ -53,8 +54,7 @@ export async function POST(request: NextRequest) {
 
     // User not found
     if (!user) {
-      // Log failed attempt
-      console.warn(`❌ Login failed: User not found - ${email} from ${ipAddress}`);
+      logger.warn('Login failed: User not found', { email, ipAddress });
       
       return NextResponse.json(
         { error: 'Неверный email или пароль' },
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
 
     // Check if user is active
     if (user.status !== 'active') {
-      console.warn(`❌ Login failed: User inactive - ${email}`);
+      logger.warn('Login failed: User inactive', { email, status: user.status });
       
       return NextResponse.json(
         { error: 'Аккаунт заблокирован. Обратитесь к администратору.' },
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
 
     // Verify password
     if (!user.password_hash) {
-      console.warn(`❌ Login failed: No password hash - ${email}`);
+      logger.warn('Login failed: No password hash', { email });
       return NextResponse.json(
         { error: 'Неверный email или пароль' },
         { status: 401 }
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
     const isPasswordValid = await verifyPassword(password, user.password_hash);
 
     if (!isPasswordValid) {
-      console.warn(`❌ Login failed: Invalid password - ${email} from ${ipAddress}`);
+      logger.warn('Login failed: Invalid password', { email, ipAddress });
       
       return NextResponse.json(
         { error: 'Неверный email или пароль' },
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Password is correct
-    console.log(`✅ Password verified for ${user.email}`);
+    logger.info('Password verified', { email: user.email });
 
     // Check if 2FA is enabled
     if (user.two_fa_enabled && user.telegram_chat_id) {
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
       );
 
       if (!sent) {
-        console.error(`❌ Failed to send 2FA code to user ${user.id}`);
+        logger.error('Failed to send 2FA code', undefined, { userId: user.id });
         
         return NextResponse.json(
           { error: 'Не удалось отправить код подтверждения. Попробуйте позже.' },
@@ -133,10 +133,7 @@ export async function POST(request: NextRequest) {
       // Generate temporary session ID for 2FA verification
       const tempSessionId = crypto.randomUUID();
 
-      // Store temp session in memory or database (optional)
-      // For now, we'll just return it to the client
-
-      console.log(`📱 2FA code sent to Telegram for ${user.email}`);
+      logger.info('2FA code sent to Telegram', { email: user.email });
 
       return NextResponse.json({
         requires2FA: true,
@@ -164,7 +161,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log(`✅ User logged in without 2FA: ${user.email}`);
+    logger.info('User logged in without 2FA', { email: user.email, role: user.role });
 
     // Return tokens and user info
     return NextResponse.json({
@@ -182,7 +179,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('❌ Login error:', error);
+    logger.error('Login error', error);
     
     return NextResponse.json(
       { error: 'Внутренняя ошибка сервера' },

@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { setWebhook, deleteWebhook, getWebhookInfo, getBotInfo } from '@/lib/telegram/bot';
+import { logger } from '@/lib/logger';
 
 /**
  * POST /api/telegram/setup
@@ -12,7 +13,7 @@ import { setWebhook, deleteWebhook, getWebhookInfo, getBotInfo } from '@/lib/tel
  */
 export async function POST(request: NextRequest) {
   try {
-    // Only allow in development or with admin token
+    // Only allow with admin token
     const authHeader = request.headers.get('authorization');
     const adminToken = process.env.ADMIN_SETUP_TOKEN;
 
@@ -33,12 +34,14 @@ export async function POST(request: NextRequest) {
       const result = await setWebhook(webhookUrl, secretToken);
 
       if (result) {
+        logger.info('Webhook set successfully', { url: webhookUrl });
         return NextResponse.json({
           success: true,
           message: 'Webhook set successfully',
           url: webhookUrl,
         });
       } else {
+        logger.error('Failed to set webhook');
         return NextResponse.json(
           { error: 'Failed to set webhook' },
           { status: 500 }
@@ -48,11 +51,13 @@ export async function POST(request: NextRequest) {
       const result = await deleteWebhook();
 
       if (result) {
+        logger.info('Webhook deleted successfully');
         return NextResponse.json({
           success: true,
           message: 'Webhook deleted successfully',
         });
       } else {
+        logger.error('Failed to delete webhook');
         return NextResponse.json(
           { error: 'Failed to delete webhook' },
           { status: 500 }
@@ -65,7 +70,7 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
   } catch (error) {
-    console.error('Setup error:', error);
+    logger.error('Setup error', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -79,7 +84,7 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    // Only allow in development or with admin token
+    // Only allow with admin token in production
     const authHeader = request.headers.get('authorization');
     const adminToken = process.env.ADMIN_SETUP_TOKEN;
 
@@ -105,7 +110,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Get info error:', error);
+    logger.error('Get info error', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

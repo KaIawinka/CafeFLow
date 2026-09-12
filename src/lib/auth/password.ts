@@ -4,6 +4,7 @@
  */
 
 import bcrypt from 'bcrypt';
+import { logger } from '@/lib/logger';
 
 // Salt rounds for bcrypt (higher = more secure but slower)
 const SALT_ROUNDS = 12;
@@ -27,7 +28,7 @@ export async function verifyPassword(
     const isMatch = await bcrypt.compare(password, hash);
     return isMatch;
   } catch (error) {
-    console.error('Password verification error:', error);
+    logger.error('Password verification error', error);
     return false;
   }
 }

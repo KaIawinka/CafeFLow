@@ -5,6 +5,7 @@
 
 import { Bot, webhookCallback } from 'grammy';
 import type { Context } from 'grammy';
+import { logger } from '@/lib/logger';
 
 // Validate environment variables
 if (!process.env.TELEGRAM_BOT_TOKEN) {
@@ -14,9 +15,7 @@ if (!process.env.TELEGRAM_BOT_TOKEN) {
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
 // Custom context type for type safety
-export interface BotContext extends Context {
-  // Can extend with custom properties if needed
-}
+export interface BotContext extends Context {}
 
 // Create bot instance
 export const bot = new Bot<BotContext>(BOT_TOKEN);
@@ -52,10 +51,10 @@ export async function setWebhook(url: string, secretToken?: string) {
       secret_token: secretToken,
       allowed_updates: ['message', 'callback_query'],
     });
-    console.log(`✅ Webhook set to: ${url}`);
+    logger.info('Webhook set successfully', { url });
     return true;
   } catch (error) {
-    console.error('❌ Failed to set webhook:', error);
+    logger.error('Failed to set webhook', error);
     return false;
   }
 }
@@ -66,10 +65,10 @@ export async function setWebhook(url: string, secretToken?: string) {
 export async function deleteWebhook() {
   try {
     await bot.api.deleteWebhook();
-    console.log('✅ Webhook deleted');
+    logger.info('Webhook deleted');
     return true;
   } catch (error) {
-    console.error('❌ Failed to delete webhook:', error);
+    logger.error('Failed to delete webhook', error);
     return false;
   }
 }
@@ -82,7 +81,7 @@ export async function getWebhookInfo() {
     const info = await bot.api.getWebhookInfo();
     return info;
   } catch (error) {
-    console.error('❌ Failed to get webhook info:', error);
+    logger.error('Failed to get webhook info', error);
     return null;
   }
 }
@@ -96,7 +95,7 @@ export async function startPolling() {
   }
   
   await deleteWebhook();
-  console.log('🤖 Starting bot with long polling...');
+  logger.info('Starting bot with long polling');
   await bot.start();
 }
 
@@ -105,12 +104,12 @@ export async function startPolling() {
  */
 export async function stopBot() {
   await bot.stop();
-  console.log('🛑 Bot stopped');
+  logger.info('Bot stopped');
 }
 
 // Handle errors
 bot.catch((err) => {
-  console.error('Bot error:', err);
+  logger.error('Bot error', err);
 });
 
 export default bot;

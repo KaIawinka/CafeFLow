@@ -4,6 +4,7 @@
 
 import crypto from 'crypto';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 /**
  * Generate unique link code for Telegram account linking
@@ -195,7 +196,7 @@ export async function cleanupExpiredCodes(): Promise<number> {
   const totalDeleted = result[0].count + result[1].count;
   
   if (totalDeleted > 0) {
-    console.log(`🧹 Cleaned up ${totalDeleted} expired codes`);
+    logger.info(`🧹 Cleaned up ${totalDeleted} expired codes`);
   }
 
   return totalDeleted;

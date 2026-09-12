@@ -5,7 +5,7 @@
 
 import { bot, type BotContext } from './bot';
 import { prisma } from '@/lib/prisma';
-import { sendVerificationCode, formatVerificationMessage } from './messages';
+import { logger } from '@/lib/logger';
 
 /**
  * /start command handler
@@ -87,7 +87,7 @@ bot.command('start', async (ctx: BotContext) => {
       
       return;
     } catch (error) {
-      console.error('Error linking Telegram account:', error);
+      logger.error('Error linking Telegram account', error);
       await ctx.reply(
         '❌ Произошла ошибка при привязке аккаунта.\n\n' +
         'Попробуйте ещё раз или обратитесь к администратору.'
@@ -173,7 +173,7 @@ bot.command('status', async (ctx: BotContext) => {
       `Всё работает! Вы будете получать коды для входа в этот бот.`
     );
   } catch (error) {
-    console.error('Error checking status:', error);
+    logger.error('Error checking status', error);
     await ctx.reply('❌ Произошла ошибка при проверке статуса.');
   }
 });
@@ -226,6 +226,6 @@ bot.on('callback_query:data', async (ctx: BotContext) => {
   await ctx.answerCallbackQuery('Функция в разработке');
 });
 
-console.log('✅ Telegram handlers initialized');
+logger.info('Telegram handlers initialized');
 
 export default bot;

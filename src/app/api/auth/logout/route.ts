@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAccessToken, extractTokenFromHeader } from '@/lib/auth/jwt';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,16 +30,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // In a production system, you would:
-    // 1. Add token to blacklist (Redis/Database)
-    // 2. Delete session from session store
-    // 3. Log the logout event
-    
-    // For now, we'll just log it
-    console.log(`✅ User logged out: ${payload.email} (session: ${payload.sessionId})`);
-
-    // Optional: Add to token blacklist
-    // await addToBlacklist(token, payload.exp);
+    logger.info('User logged out', { 
+      email: payload.email, 
+      sessionId: payload.sessionId 
+    });
 
     return NextResponse.json({
       success: true,
@@ -46,7 +41,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('❌ Logout error:', error);
+    logger.error('Logout error', error);
     
     return NextResponse.json(
       { error: 'Внутренняя ошибка сервера' },
