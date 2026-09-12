@@ -21,7 +21,6 @@ import {
   Key,
   Calendar,
 } from 'lucide-react';
-import { UserHeaderWrapper } from '@/components/UserHeaderWrapper';
 
 interface UserProfile {
   id: string;
@@ -199,26 +198,20 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <>
-        <UserHeaderWrapper />
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-amber-600" />
-        </div>
-      </>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-amber-600" />
+      </div>
     );
   }
 
   if (!profile) {
     return (
-      <>
-        <UserHeaderWrapper />
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-          <div className="text-center">
-            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <p className="text-gray-700 dark:text-gray-300">Не удалось загрузить профиль</p>
-          </div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <p className="text-gray-700 dark:text-gray-300">Не удалось загрузить профиль</p>
         </div>
-      </>
+      </div>
     );
   }
 
@@ -232,10 +225,8 @@ export default function ProfilePage() {
   };
 
   return (
-    <>
-      <UserHeaderWrapper />
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 mb-6">
             <div className="flex items-start gap-6">
@@ -596,6 +587,5 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
-    </>
-  );
-}
+    );
+  }

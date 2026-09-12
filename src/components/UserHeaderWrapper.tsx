@@ -56,3 +56,6 @@ export async function UserHeaderWrapper() {
 
   return <UserHeader user={userData} />;
 }
+
+// Mark as async Server Component (no 'use client' directive)
+UserHeaderWrapper.displayName = 'UserHeaderWrapper';

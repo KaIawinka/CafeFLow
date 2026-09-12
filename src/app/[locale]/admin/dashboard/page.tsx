@@ -6,7 +6,6 @@
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { verifyAccessToken } from '@/lib/auth/jwt';
-import { UserHeaderWrapper } from '@/components/UserHeaderWrapper';
 
 export default async function AdminDashboard() {
   // Check authentication
@@ -24,9 +23,7 @@ export default async function AdminDashboard() {
   }
 
   return (
-    <>
-      <UserHeaderWrapper />
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         {/* Main Content */}
         <main className="container mx-auto px-6 py-8">
           <div className="mb-8">
@@ -100,6 +97,5 @@ export default async function AdminDashboard() {
           </div>
         </main>
       </div>
-    </>
-  );
-}
+    );
+  }

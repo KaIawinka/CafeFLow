@@ -10,10 +10,10 @@ import { prisma } from '@/lib/prisma';
 import { verifyAccessToken } from '@/lib/auth/jwt';
 import { logger } from '@/lib/logger';
 
-interface RouteParams {
-  params: {
+interface RouteContext {
+  params: Promise<{
     keyId: string;
-  };
+  }>;
 }
 
 /**
@@ -21,9 +21,10 @@ interface RouteParams {
  */
 export async function GET(
   request: NextRequest,
-  { params }: RouteParams
+  context: RouteContext
 ) {
   try {
+    const { keyId } = await context.params;
     const token = request.cookies.get('accessToken')?.value;
 
     if (!token) {
@@ -43,7 +44,7 @@ export async function GET(
     }
 
     const key = await prisma.bot_access_keys.findUnique({
-      where: { id: params.keyId },
+      where: { id: keyId },
       include: {
         creator: {
           select: {
