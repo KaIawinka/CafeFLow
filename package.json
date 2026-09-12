@@ -13,6 +13,7 @@
     "@grammyjs/types": "^5.0.0",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
+    "@prisma/extension-accelerate": "^3.0.1",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.4.2",
     "grammy": "^1.46.0",
