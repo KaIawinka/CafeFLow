@@ -44,10 +44,13 @@ export async function POST(request: NextRequest) {
         password_hash: true,
         first_name: true,
         last_name: true,
+        display_name: true,
+        avatar_file_id: true,
         role: true,
         status: true,
         two_fa_enabled: true,
         telegram_chat_id: true,
+        requires_approval: true,
         last_login_at: true,
       },
     });
@@ -148,16 +151,19 @@ export async function POST(request: NextRequest) {
       userId: user.id,
       email: user.email || '',
       role: user.role,
+      status: user.status,
+      requiresApproval: user.requires_approval,
       sessionId: crypto.randomUUID(),
     };
 
     const { accessToken, refreshToken } = await generateTokenPair(tokenPayload);
 
-    // Update last login
+    // Update last login and last seen
     await prisma.users.update({
       where: { id: user.id },
       data: {
         last_login_at: new Date(),
+        last_seen_at: new Date(),
       },
     });
 
@@ -173,7 +179,11 @@ export async function POST(request: NextRequest) {
         email: user.email,
         firstName: user.first_name,
         lastName: user.last_name,
+        displayName: user.display_name,
+        avatarFileId: user.avatar_file_id,
         role: user.role,
+        status: user.status,
+        requiresApproval: user.requires_approval,
         twoFAEnabled: user.two_fa_enabled,
       },
     });

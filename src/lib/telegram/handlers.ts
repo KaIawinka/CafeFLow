@@ -1,115 +1,161 @@
 /**
  * Telegram Bot Command Handlers
- * Handles /start, /status, /help commands
+ * Handles /start, /activate, /login, /status, /help commands
  */
 
 import { bot, type BotContext } from './bot';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
+import { verifyPassword } from '@/lib/auth/password';
+
+// User state management (in-memory for simplicity)
+interface UserState {
+  awaitingKey?: boolean;
+  awaitingEmail?: boolean;
+  awaitingPassword?: boolean;
+  keyValidated?: {
+    keyId: string;
+    keyType: string;
+  };
+  email?: string;
+}
+
+const userStates = new Map<string, UserState>();
+
+/**
+ * Get or create user state
+ */
+function getUserState(chatId: string): UserState {
+  if (!userStates.has(chatId)) {
+    userStates.set(chatId, {});
+  }
+  return userStates.get(chatId)!;
+}
+
+/**
+ * Clear user state
+ */
+function clearUserState(chatId: string) {
+  userStates.delete(chatId);
+}
 
 /**
  * /start command handler
- * Used for linking Telegram account to CaféFlow
+ * Welcome message and instructions
  */
 bot.command('start', async (ctx: BotContext) => {
   const chatId = ctx.chat?.id.toString();
-  const username = ctx.from?.username;
-  const firstName = ctx.from?.first_name || 'User';
+  const firstName = ctx.from?.first_name || 'Пользователь';
   
-  // Check if command has a parameter (link code)
-  const commandText = ctx.message?.text || '';
-  const parts = commandText.split(' ');
-  const linkCode = parts.length > 1 ? parts[1] : null;
-
   if (!chatId) {
     await ctx.reply('❌ Не удалось определить ваш чат. Попробуйте ещё раз.');
     return;
   }
 
-  // If link code provided - attempt to link account
-  if (linkCode) {
-    try {
-      // Find valid link code
-      const linkRecord = await prisma.telegram_link_codes.findFirst({
-        where: {
-          code: linkCode,
-          used_at: null,
-          expires_at: { gt: new Date() },
-        },
-      });
+  // Check if already linked
+  const existingUser = await prisma.users.findFirst({
+    where: { telegram_chat_id: chatId },
+    select: {
+      email: true,
+      first_name: true,
+      role: true,
+      telegram_activated_with_key: true,
+    },
+  });
 
-      if (!linkRecord) {
-        await ctx.reply(
-          '❌ Код недействителен или истёк.\n\n' +
-          'Запросите новый код в настройках админ-панели.'
-        );
-        return;
-      }
-
-      // Check if this Telegram already linked to another account
-      const existingUser = await prisma.users.findFirst({
-        where: { telegram_chat_id: chatId },
-      });
-
-      if (existingUser && existingUser.id !== linkRecord.user_id) {
-        await ctx.reply(
-          '❌ Этот Telegram аккаунт уже привязан к другому пользователю.\n\n' +
-          'Если это ошибка, обратитесь к администратору.'
-        );
-        return;
-      }
-
-      // Link account
-      await prisma.$transaction([
-        // Update user with Telegram info
-        prisma.users.update({
-          where: { id: linkRecord.user_id },
-          data: {
-            telegram_chat_id: chatId,
-            telegram_username: username || null,
-            two_fa_enabled: true,
-          },
-        }),
-        // Mark code as used
-        prisma.telegram_link_codes.update({
-          where: { id: linkRecord.id },
-          data: { used_at: new Date() },
-        }),
-      ]);
-
-      await ctx.reply(
-        `✅ Аккаунт успешно привязан!\n\n` +
-        `👤 Имя: ${firstName}\n` +
-        `🔐 2FA активирован\n\n` +
-        `Теперь вы будете получать коды для входа в CaféFlow Admin через этот бот.\n\n` +
-        `Используйте /status для проверки статуса или /help для помощи.`
-      );
-      
-      return;
-    } catch (error) {
-      logger.error('Error linking Telegram account', error);
-      await ctx.reply(
-        '❌ Произошла ошибка при привязке аккаунта.\n\n' +
-        'Попробуйте ещё раз или обратитесь к администратору.'
-      );
-      return;
-    }
+  if (existingUser) {
+    await ctx.reply(
+      `✅ Привет, ${existingUser.first_name}!\n\n` +
+      `Ваш аккаунт уже активирован.\n` +
+      `📧 Email: ${existingUser.email}\n` +
+      `🎭 Роль: ${existingUser.role}\n` +
+      `🔑 Активирован ключом: ${existingUser.telegram_activated_with_key}\n\n` +
+      `Используйте /login для входа или /help для помощи.`
+    );
+    return;
   }
 
-  // No link code - show welcome message
   await ctx.reply(
     `👋 Привет, ${firstName}!\n\n` +
-    `Я бот CaféFlow для двухфакторной аутентификации.\n\n` +
-    `📋 Что я умею:\n` +
-    `• Отправлять коды для входа в админ-панель\n` +
-    `• Подтверждать важные операции\n` +
-    `• Уведомлять о событиях\n\n` +
-    `🔗 Для привязки аккаунта:\n` +
-    `1. Войдите в админ-панель CaféFlow\n` +
-    `2. Перейдите в настройки Telegram\n` +
-    `3. Нажмите "Привязать Telegram"\n` +
-    `4. Перейдите по полученной ссылке\n\n` +
-    `Используйте /help для списка команд.`
+    `🤖 Я бот CaféFlow для управления рестораном.\n\n` +
+    `🔐 Для доступа к боту требуется ключ активации.\n` +
+    `Ключи выдаются только администраторами.\n\n` +
+    `📋 Команды:\n` +
+    `• /activate - Активировать аккаунт с ключом\n` +
+    `• /login - Войти в систему\n` +
+    `• /status - Проверить статус\n` +
+    `• /help - Справка\n\n` +
+    `Для начала используйте /activate`
+  );
+});
+
+/**
+ * /activate command handler
+ * Activate account with access key
+ */
+bot.command('activate', async (ctx: BotContext) => {
+  const chatId = ctx.chat?.id.toString();
+  
+  if (!chatId) {
+    await ctx.reply('❌ Не удалось определить ваш чат.');
+    return;
+  }
+
+  // Check if already activated
+  const existingUser = await prisma.users.findFirst({
+    where: { telegram_chat_id: chatId },
+  });
+
+  if (existingUser) {
+    await ctx.reply(
+      `✅ Вы уже активированы!\n\n` +
+      `Используйте /login для входа в систему.`
+    );
+    return;
+  }
+
+  // Set state to await key
+  const state = getUserState(chatId);
+  state.awaitingKey = true;
+
+  await ctx.reply(
+    `🔑 Активация аккаунта\n\n` +
+    `Введите ваш ключ доступа.\n` +
+    `Формат ключа: CAFEFLOW-XXX-XXXXXXXXXXXX\n\n` +
+    `Ключи выдаются администраторами системы.`
+  );
+});
+
+/**
+ * /login command handler
+ * Login to system
+ */
+bot.command('login', async (ctx: BotContext) => {
+  const chatId = ctx.chat?.id.toString();
+  
+  if (!chatId) {
+    await ctx.reply('❌ Не удалось определить ваш чат.');
+    return;
+  }
+
+  // Check if activated
+  const user = await prisma.users.findFirst({
+    where: { telegram_chat_id: chatId },
+  });
+
+  if (!user) {
+    await ctx.reply(
+      `❌ Аккаунт не активирован\n\n` +
+      `Сначала активируйте аккаунт с помощью /activate`
+    );
+    return;
+  }
+
+  await ctx.reply(
+    `🔐 Вход в систему\n\n` +
+    `Перейдите на сайт CaféFlow и войдите через форму логина.\n` +
+    `Код подтверждения придёт в этот бот автоматически.\n\n` +
+    `🌐 ${process.env.NEXT_PUBLIC_APP_URL || 'https://cafeflow.app'}/login`
   );
 });
 
@@ -133,44 +179,42 @@ bot.command('status', async (ctx: BotContext) => {
         id: true,
         email: true,
         display_name: true,
+        first_name: true,
         role: true,
         two_fa_enabled: true,
         telegram_username: true,
+        telegram_activated_with_key: true,
         created_at: true,
       },
     });
 
     if (!user) {
       await ctx.reply(
-        `❌ Аккаунт не привязан\n\n` +
+        `❌ Аккаунт не активирован\n\n` +
         `Этот Telegram не связан ни с одним аккаунтом CaféFlow.\n\n` +
-        `Для привязки:\n` +
-        `1. Войдите в админ-панель\n` +
-        `2. Перейдите в настройки\n` +
-        `3. Получите ссылку для привязки\n\n` +
-        `Используйте /help для помощи.`
+        `Для активации используйте /activate`
       );
       return;
     }
 
     // Account is linked - show info
-    const linkedDate = user.created_at.toLocaleDateString('ru-RU');
-    const roleEmoji = {
+    const roleEmoji: Record<string, string> = {
       admin: '👑',
       manager: '👔',
       employee: '👤',
       kitchen: '👨‍🍳',
       customer: '🙋',
+      guest: '👻',
     };
 
     await ctx.reply(
-      `✅ Аккаунт привязан\n\n` +
-      `${roleEmoji[user.role] || '👤'} ${user.display_name || user.email}\n` +
+      `✅ Аккаунт активирован\n\n` +
+      `${roleEmoji[user.role] || '👤'} ${user.display_name || user.first_name}\n` +
       `📧 ${user.email}\n` +
       `🎭 Роль: ${user.role}\n` +
       `🔐 2FA: ${user.two_fa_enabled ? 'Включен ✅' : 'Отключен ❌'}\n` +
-      `📅 Привязан: ${linkedDate}\n\n` +
-      `Всё работает! Вы будете получать коды для входа в этот бот.`
+      `🔑 Ключ: ${user.telegram_activated_with_key || 'Не указан'}\n\n` +
+      `Всё работает! Используйте /login для входа.`
     );
   } catch (error) {
     logger.error('Error checking status', error);
@@ -185,46 +229,235 @@ bot.command('status', async (ctx: BotContext) => {
 bot.command('help', async (ctx: BotContext) => {
   await ctx.reply(
     `📚 Справка по командам\n\n` +
-    `🔹 /start - Приветствие и инструкция по привязке\n` +
-    `🔹 /status - Проверить статус привязки аккаунта\n` +
+    `🔹 /start - Приветствие\n` +
+    `🔹 /activate - Активировать аккаунт с ключом\n` +
+    `🔹 /login - Войти в систему\n` +
+    `🔹 /status - Проверить статус активации\n` +
     `🔹 /help - Показать эту справку\n\n` +
     `❓ Как это работает:\n\n` +
-    `1️⃣ Привяжите свой аккаунт CaféFlow к этому боту\n` +
-    `2️⃣ При входе в админ-панель вам придёт код\n` +
-    `3️⃣ Введите код на сайте для завершения входа\n\n` +
+    `1️⃣ Получите ключ доступа от администратора\n` +
+    `2️⃣ Активируйте бота командой /activate\n` +
+    `3️⃣ Введите email и пароль от вашего аккаунта\n` +
+    `4️⃣ Бот будет связан с вашим аккаунтом\n` +
+    `5️⃣ Используйте /login для входа на сайт\n\n` +
     `🔐 Безопасность:\n` +
-    `• Коды действуют только 5 минут\n` +
-    `• Код можно использовать только один раз\n` +
-    `• Максимум 3 попытки ввода\n\n` +
-    `💡 Если у вас проблемы:\n` +
-    `• Убедитесь что аккаунт привязан (/status)\n` +
-    `• Проверьте срок действия кода\n` +
-    `• Обратитесь к администратору системы\n\n` +
-    `🌐 CaféFlow - Автоматизация кафе и ресторанов`
+    `• Ключи выдаются только админами\n` +
+    `• Один ключ = один аккаунт\n` +
+    `• Пароли не сохраняются в боте\n\n` +
+    `🌐 CaféFlow - Автоматизация ресторанов`
   );
 });
 
 /**
- * Handle unknown commands
+ * Handle text messages (for activation flow)
  */
 bot.on('message:text', async (ctx: BotContext) => {
-  // Ignore if it's a command (already handled)
-  if (ctx.message?.text?.startsWith('/')) {
+  const chatId = ctx.chat?.id.toString();
+  const text = ctx.message?.text;
+  const username = ctx.from?.username;
+  
+  if (!chatId || !text) return;
+  
+  // Ignore commands
+  if (text.startsWith('/')) return;
+  
+  const state = getUserState(chatId);
+  
+  // Step 1: Awaiting access key
+  if (state.awaitingKey) {
+    try {
+      // Validate key format
+      if (!text.startsWith('CAFEFLOW-')) {
+        await ctx.reply(
+          `❌ Неверный формат ключа.\n\n` +
+          `Ключ должен начинаться с CAFEFLOW-\n` +
+          `Пример: CAFEFLOW-MAS-A1B2C3D4E5F6`
+        );
+        return;
+      }
+      
+      // Check key validity
+      const accessKey = await prisma.bot_access_keys.findUnique({
+        where: { key: text.trim().toUpperCase() },
+      });
+      
+      if (!accessKey) {
+        await ctx.reply(
+          `❌ Ключ не найден.\n\n` +
+          `Проверьте правильность ввода или обратитесь к администратору.`
+        );
+        return;
+      }
+      
+      if (!accessKey.is_active) {
+        await ctx.reply(`❌ Ключ деактивирован.`);
+        return;
+      }
+      
+      if (accessKey.expires_at && new Date(accessKey.expires_at) < new Date()) {
+        await ctx.reply(`❌ Срок действия ключа истёк.`);
+        return;
+      }
+      
+      if (accessKey.max_uses !== null && accessKey.uses_count >= accessKey.max_uses) {
+        await ctx.reply(`❌ Достигнут лимит использований ключа.`);
+        return;
+      }
+      
+      // Key is valid - proceed to email
+      state.awaitingKey = false;
+      state.awaitingEmail = true;
+      state.keyValidated = {
+        keyId: accessKey.id,
+        keyType: accessKey.key_type,
+      };
+      
+      await ctx.reply(
+        `✅ Ключ принят!\n\n` +
+        `📧 Теперь введите ваш email от аккаунта CaféFlow:`
+      );
+      
+    } catch (error) {
+      logger.error('Error validating key', error);
+      await ctx.reply(`❌ Ошибка при проверке ключа.`);
+      clearUserState(chatId);
+    }
     return;
   }
-
-  // Reply to regular messages
+  
+  // Step 2: Awaiting email
+  if (state.awaitingEmail) {
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(text)) {
+      await ctx.reply(
+        `❌ Неверный формат email.\n\n` +
+        `Введите корректный email адрес.`
+      );
+      return;
+    }
+    
+    // Check if user exists
+    const user = await prisma.users.findFirst({
+      where: { email: text.toLowerCase() },
+    });
+    
+    if (!user) {
+      await ctx.reply(
+        `❌ Пользователь с таким email не найден.\n\n` +
+        `Сначала зарегистрируйтесь на сайте CaféFlow.`
+      );
+      clearUserState(chatId);
+      return;
+    }
+    
+    // Check if already activated
+    if (user.telegram_chat_id && user.telegram_activated_with_key) {
+      await ctx.reply(
+        `❌ Этот аккаунт уже активирован в Telegram.\n\n` +
+        `Если это ваш аккаунт, обратитесь к администратору.`
+      );
+      clearUserState(chatId);
+      return;
+    }
+    
+    // Email is valid - proceed to password
+    state.awaitingEmail = false;
+    state.awaitingPassword = true;
+    state.email = text.toLowerCase();
+    
+    await ctx.reply(
+      `✅ Email найден!\n\n` +
+      `🔐 Теперь введите ваш пароль:\n\n` +
+      `⚠️ Пароль будет проверен и НЕ сохранится в боте.`
+    );
+    return;
+  }
+  
+  // Step 3: Awaiting password
+  if (state.awaitingPassword && state.email && state.keyValidated) {
+    try {
+      // Find user
+      const user = await prisma.users.findFirst({
+        where: { email: state.email },
+      });
+      
+      if (!user || !user.password_hash) {
+        await ctx.reply(`❌ Ошибка аутентификации.`);
+        clearUserState(chatId);
+        return;
+      }
+      
+      // Verify password
+      const isValid = await verifyPassword(text, user.password_hash);
+      
+      if (!isValid) {
+        await ctx.reply(
+          `❌ Неверный пароль.\n\n` +
+          `Попробуйте ещё раз или начните заново с /activate`
+        );
+        clearUserState(chatId);
+        return;
+      }
+      
+      // Password correct - activate account
+      await prisma.$transaction(async (tx) => {
+        // Update user
+        await tx.users.update({
+          where: { id: user.id },
+          data: {
+            telegram_chat_id: chatId,
+            telegram_username: username || null,
+            telegram_activated_with_key: (await tx.bot_access_keys.findUnique({
+              where: { id: state.keyValidated!.keyId },
+            }))!.key,
+            two_fa_enabled: true,
+          },
+        });
+        
+        // Create activation record
+        await tx.bot_key_activations.create({
+          data: {
+            key_id: state.keyValidated!.keyId,
+            user_id: user.id,
+            telegram_chat_id: chatId,
+          },
+        });
+        
+        // Increment key usage
+        await tx.bot_access_keys.update({
+          where: { id: state.keyValidated!.keyId },
+          data: { uses_count: { increment: 1 } },
+        });
+      });
+      
+      await ctx.reply(
+        `🎉 Активация завершена!\n\n` +
+        `✅ Аккаунт привязан к Telegram\n` +
+        `✅ 2FA автоматически включен\n\n` +
+        `👤 ${user.first_name}\n` +
+        `📧 ${user.email}\n` +
+        `🎭 Роль: ${user.role}\n\n` +
+        `Теперь используйте /login для входа на сайт.`
+      );
+      
+      clearUserState(chatId);
+      
+    } catch (error) {
+      logger.error('Error activating account', error);
+      await ctx.reply(`❌ Ошибка при активации аккаунта.`);
+      clearUserState(chatId);
+    }
+    return;
+  }
+  
+  // No active state - show help
   await ctx.reply(
-    `Я понимаю только команды. Используйте /help для списка доступных команд.`
+    `Я понимаю только команды.\n\n` +
+    `Используйте /help для списка команд.`
   );
 });
 
-/**
- * Handle callback queries (for future buttons)
- */
-bot.on('callback_query:data', async (ctx: BotContext) => {
-  await ctx.answerCallbackQuery('Функция в разработке');
-});
 
 logger.info('Telegram handlers initialized');
 

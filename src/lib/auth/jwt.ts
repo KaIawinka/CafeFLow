@@ -22,6 +22,8 @@ export interface TokenPayload extends JWTPayload {
   userId: string;
   email: string;
   role: string;
+  status?: string;
+  requiresApproval?: boolean;
   sessionId?: string;
 }
 
@@ -33,6 +35,8 @@ export async function generateAccessToken(payload: TokenPayload): Promise<string
     userId: payload.userId,
     email: payload.email,
     role: payload.role,
+    status: payload.status,
+    requiresApproval: payload.requiresApproval,
     sessionId: payload.sessionId,
   })
     .setProtectedHeader({ alg: 'HS256' })

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { locales, type Locale } from "../i18n/config";
 import { getTranslations } from "../i18n/utils";
-import { Header } from "@/components/Header";
+import { UserHeaderWrapper } from "@/components/UserHeaderWrapper";
 import "../globals.css";
 
 const geistSans = Geist({
@@ -50,7 +50,7 @@ export default async function LocaleLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased scroll-smooth`}
     >
       <body className="min-h-full flex flex-col">
-        <Header locale={locale as Locale} />
+        <UserHeaderWrapper />
         <main className="flex-1">
           {children}
         </main>
