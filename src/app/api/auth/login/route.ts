@@ -30,9 +30,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Get client IP for logging
-    const ipAddress = request.headers.get('x-forwarded-for') || 
-                     request.headers.get('x-real-ip') || 
-                     'unknown';
+    const ipAddress: string = request.headers.get('x-forwarded-for') || 
+                              request.headers.get('x-real-ip') || 
+                              'unknown';
 
     // Find user by email
     const user = await prisma.users.findFirst({
@@ -73,6 +73,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify password
+    if (!user.password_hash) {
+      console.warn(`❌ Login failed: No password hash - ${email}`);
+      return NextResponse.json(
+        { error: 'Неверный email или пароль' },
+        { status: 401 }
+      );
+    }
+
     const isPasswordValid = await verifyPassword(password, user.password_hash);
 
     if (!isPasswordValid) {
@@ -103,7 +111,7 @@ export async function POST(request: NextRequest) {
       const verificationCode = await createVerificationCode(
         user.id,
         '2fa_login',
-        ipAddress ?? 'unknown'
+        ipAddress
       );
 
       // Send code via Telegram

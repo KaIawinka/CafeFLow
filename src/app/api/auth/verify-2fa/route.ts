@@ -38,9 +38,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Get client IP
-    const ipAddress = request.headers.get('x-forwarded-for') || 
-                     request.headers.get('x-real-ip') || 
-                     'unknown';
+    const ipAddress: string = request.headers.get('x-forwarded-for') || 
+                              request.headers.get('x-real-ip') || 
+                              'unknown';
 
     // Find user
     const user = await prisma.users.findFirst({
