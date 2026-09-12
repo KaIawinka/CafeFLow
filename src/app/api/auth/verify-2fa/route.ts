@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
                      'unknown';
 
     // Find user
-    const user = await prisma.users.findUnique({
+    const user = await prisma.users.findFirst({
       where: { email: email.toLowerCase() },
       select: {
         id: true,
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
     
     const tokenPayload = {
       userId: user.id,
-      email: user.email,
+      email: user.email || '',
       role: user.role,
       sessionId,
     };
@@ -114,7 +114,6 @@ export async function POST(request: NextRequest) {
       where: { id: user.id },
       data: {
         last_login_at: new Date(),
-        last_login_ip: ipAddress,
       },
     });
 

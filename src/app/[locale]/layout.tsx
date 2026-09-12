@@ -18,9 +18,9 @@ const geistMono = Geist_Mono({
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ locale: Locale }>;
+  params: { locale: Locale };
 }): Promise<Metadata> {
-  const { locale } = await params;
+  const { locale } = params;
   const t = await getTranslations(locale, "common");
 
   return {
@@ -38,9 +38,9 @@ export default async function LocaleLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ locale: Locale }>;
+  params: { locale: Locale };
 }) {
-  const { locale } = await params;
+  const { locale } = params;
 
   return (
     <html
@@ -48,7 +48,6 @@ export default async function LocaleLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased scroll-smooth`}
     >
       <body className="min-h-full flex flex-col">
-        {/* @ts-expect-error Async Server Component */}
         <Header locale={locale} />
         <main className="flex-1">
           {children}

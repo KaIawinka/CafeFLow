@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
                      'unknown';
 
     // Find user by email
-    const user = await prisma.users.findUnique({
+    const user = await prisma.users.findFirst({
       where: { email: email.toLowerCase() },
       select: {
         id: true,
@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
       const verificationCode = await createVerificationCode(
         user.id,
         '2fa_login',
-        ipAddress
+        ipAddress || 'unknown'
       );
 
       // Send code via Telegram
@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
     // No 2FA required - generate tokens immediately
     const tokenPayload = {
       userId: user.id,
-      email: user.email,
+      email: user.email || '',
       role: user.role,
       sessionId: crypto.randomUUID(),
     };
@@ -153,7 +153,6 @@ export async function POST(request: NextRequest) {
       where: { id: user.id },
       data: {
         last_login_at: new Date(),
-        last_login_ip: ipAddress,
       },
     });
 

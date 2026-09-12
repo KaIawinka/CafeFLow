@@ -41,7 +41,7 @@ export async function getBotInfo() {
 /**
  * Webhook callback for Next.js API route
  */
-export const webhookHandler = webhookCallback(bot, 'std-http');
+export const webhookHandler = webhookCallback(bot, 'next-js');
 
 /**
  * Set webhook URL

@@ -209,7 +209,7 @@ bot.command('help', async (ctx: BotContext) => {
  */
 bot.on('message:text', async (ctx: BotContext) => {
   // Ignore if it's a command (already handled)
-  if (ctx.message.text?.startsWith('/')) {
+  if (ctx.message?.text?.startsWith('/')) {
     return;
   }
 
