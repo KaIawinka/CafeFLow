@@ -4,11 +4,10 @@ import { Suspense, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { locales, type Locale } from '@/app/i18n/config';
-import { LanguageSwitcher } from '@/components/LanguageSwitcher';
-import { Eye, EyeOff, LogIn, Mail, Lock, AlertCircle, Loader2, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, LogIn, Mail, Lock, AlertCircle, Loader2, ShieldCheck } from 'lucide-react';
 import { RecaptchaProvider } from '@/components/RecaptchaProvider';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
+import { AuthHeader } from '@/components/AuthHeader';
 
 export default function LoginPage() {
   return (
@@ -25,8 +24,6 @@ function LoginContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/';
-  const localeFromPath = (pathname.split('/').filter(Boolean)[0] as Locale) || 'ru';
-  const currentLocale = locales.includes(localeFromPath) ? localeFromPath : 'ru';
   const { executeRecaptcha, isReady } = useRecaptcha();
 
   const [email, setEmail] = useState('');
@@ -146,13 +143,8 @@ function LoginContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-100 via-orange-50 to-red-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="mb-4 flex items-center justify-between gap-4">
-          <Link href="/ru" className="inline-flex items-center gap-2 font-medium text-gray-800 hover:text-amber-700">
-            <ArrowLeft className="h-4 w-4" />
-            На главную
-          </Link>
-          <LanguageSwitcher currentLocale={currentLocale} />
-        </div>
+        <AuthHeader backLink="/ru" backText="На главную" />
+        
         {/* Logo */}
         <div className="text-center mb-8">
           <Image src="/Logo-CafeFlow.png" alt="CafeFlow" width={64} height={64} className="mx-auto mb-4 h-16 w-16 rounded-2xl object-cover shadow-lg" />
