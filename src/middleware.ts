@@ -17,12 +17,23 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Получаем сохранённый язык из cookie
-  const savedLocale = request.cookies.get('preferredLanguage')?.value;
+  // Получаем сохранённый язык из cookie (проверяем оба варианта)
+  const savedLocale = 
+    request.cookies.get('preferredLanguage')?.value || 
+    request.cookies.get('NEXT_LOCALE')?.value;
+  
+  console.log('[Middleware] pathname:', pathname);
+  console.log('[Middleware] cookies:', {
+    preferredLanguage: request.cookies.get('preferredLanguage')?.value,
+    NEXT_LOCALE: request.cookies.get('NEXT_LOCALE')?.value,
+    savedLocale
+  });
   
   // Проверяем текущий язык в URL
   const segments = pathname.split('/').filter(Boolean);
   const currentLocale = segments[0];
+
+  console.log('[Middleware] currentLocale from URL:', currentLocale);
 
   // Если в URL есть валидный язык
   if (locales.includes(currentLocale)) {
@@ -32,12 +43,15 @@ export function middleware(request: NextRequest) {
       segments[0] = savedLocale;
       const newPathname = '/' + segments.join('/');
       
+      console.log('[Middleware] Redirecting to:', newPathname);
+      
       const url = request.nextUrl.clone();
       url.pathname = newPathname;
       
       return NextResponse.redirect(url);
     }
     
+    console.log('[Middleware] Locale matches, passing through');
     // Язык совпадает - пропускаем
     return NextResponse.next();
   }
@@ -45,6 +59,8 @@ export function middleware(request: NextRequest) {
   // Если в URL нет языка - добавляем сохранённый или дефолтный
   const localeToUse = (savedLocale && locales.includes(savedLocale)) ? savedLocale : defaultLocale;
   const newPathname = `/${localeToUse}${pathname}`;
+  
+  console.log('[Middleware] No locale in URL, adding:', localeToUse);
   
   const url = request.nextUrl.clone();
   url.pathname = newPathname;
