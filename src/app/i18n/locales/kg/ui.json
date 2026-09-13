@@ -1,0 +1,106 @@
+{
+  "header": {
+    "home": "Башкы бет",
+    "adminPanel": "Админ панели",
+    "kitchen": "Ашкана",
+    "orders": "Заказдар",
+    "profile": "Профиль",
+    "settings": "Жөндөөлөр",
+    "logout": "Чыгуу",
+    "logoutConfirm": "Чыгууну ырастоо",
+    "loggingOut": "Чыгуу...",
+    "login": "Кирүү",
+    "register": "Катталуу",
+    "language": "Тил",
+    "theme": "Тема",
+    "themeLight": "Ачык",
+    "themeDark": "Караңгы",
+    "themeAuto": "Авто"
+  },
+  "profile": {
+    "title": "Профиль",
+    "welcome": "CaféFlow'го кош келиңиз!",
+    "welcomeMessage": "Сиздин аккаунт ийгиликтүү түзүлдү.",
+    "awaitingApproval": "Сиздин аккаунт администратордун тастыкташын күтүүдө.",
+    "loadingError": "Профилди жүктөө катасы",
+    "profileTab": "Профиль",
+    "settingsTab": "Жөндөөлөр",
+    "updatePhoto": "Сүрөт",
+    "uploading": "Жүктөлүүдө...",
+    "roles": {
+      "admin": "Администратор",
+      "manager": "Менеджер",
+      "kitchen": "Ашкана",
+      "employee": "Кызматкер",
+      "customer": "Кардар",
+      "guest": "Конок"
+    },
+    "fields": {
+      "firstName": "Аты",
+      "lastName": "Фамилиясы",
+      "displayName": "Көрүнүүчү аты",
+      "bio": "Өзү жөнүндө",
+      "bioPlaceholder": "Өзүңүз жөнүндө айтыңыз...",
+      "phone": "Телефон",
+      "timezone": "Убакыт алкагы",
+      "email": "Email",
+      "createdAt": "Каттоо",
+      "lastLogin": "Акыркы кирүү"
+    },
+    "telegram": {
+      "connected": "Telegram туташтырылган",
+      "username": "Колдонуучу аты",
+      "key": "Ачкыч"
+    },
+    "notifications": {
+      "title": "Билдирүүлөр",
+      "email": "Email билдирүүлөр",
+      "sms": "SMS билдирүүлөр",
+      "push": "Push билдирүүлөр",
+      "telegram": "Telegram билдирүүлөр"
+    },
+    "privacy": {
+      "title": "Купуялуулук",
+      "showOnlineStatus": "Онлайн статусту көрсөтүү",
+      "showPhone": "Телефонду көрсөтүү",
+      "showEmail": "Email көрсөтүү",
+      "compactMode": "Интерфейстин компакт режими"
+    },
+    "buttons": {
+      "save": "Профилди сактоо",
+      "saveSettings": "Жөндөөлөрдү сактоо",
+      "saving": "Сакталууда..."
+    },
+    "messages": {
+      "profileUpdated": "Профиль ийгиликтүү жаңыртылды",
+      "settingsUpdated": "Жөндөөлөр ийгиликтүү жаңыртылды",
+      "avatarUpdated": "Аватар жаңыртылды",
+      "avatarError": "Аватарды жүктөө мүмкүн эмес",
+      "saveError": "Сактоо катасы",
+      "genericError": "Ката кетти"
+    }
+  },
+  "notFound": {
+    "title": "Бет табылган жок",
+    "message": "Тилектүү бет жок же жылдырылган",
+    "goHome": "Башкы бетке",
+    "contact": "Биз менен байланышуу"
+  },
+  "common": {
+    "loading": "Жүктөлүүдө...",
+    "error": "Ката",
+    "success": "Ийгиликтүү",
+    "save": "Сактоо",
+    "cancel": "Жокко чыгаруу",
+    "delete": "Өчүрүү",
+    "edit": "Өзгөртүү",
+    "close": "Жабуу",
+    "confirm": "Ырастоо",
+    "back": "Артка",
+    "next": "Кийинки",
+    "submit": "Жөнөтүү",
+    "search": "Издөө",
+    "filter": "Чыпка",
+    "allRightsReserved": "Бардык укуктар корголгон"
+  }
+}

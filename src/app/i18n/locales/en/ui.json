@@ -1,0 +1,106 @@
+{
+  "header": {
+    "home": "Home",
+    "adminPanel": "Admin Panel",
+    "kitchen": "Kitchen",
+    "orders": "Orders",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout",
+    "logoutConfirm": "Confirm logout",
+    "loggingOut": "Logging out...",
+    "login": "Sign in",
+    "register": "Sign up",
+    "language": "Language",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeAuto": "Auto"
+  },
+  "profile": {
+    "title": "Profile",
+    "welcome": "Welcome to CaféFlow!",
+    "welcomeMessage": "Your account has been successfully created.",
+    "awaitingApproval": "Your account is awaiting administrator approval.",
+    "loadingError": "Failed to load profile",
+    "profileTab": "Profile",
+    "settingsTab": "Settings",
+    "updatePhoto": "Photo",
+    "uploading": "Uploading...",
+    "roles": {
+      "admin": "Administrator",
+      "manager": "Manager",
+      "kitchen": "Kitchen",
+      "employee": "Employee",
+      "customer": "Customer",
+      "guest": "Guest"
+    },
+    "fields": {
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "displayName": "Display Name",
+      "bio": "Bio",
+      "bioPlaceholder": "Tell us about yourself...",
+      "phone": "Phone",
+      "timezone": "Timezone",
+      "email": "Email",
+      "createdAt": "Registered",
+      "lastLogin": "Last login"
+    },
+    "telegram": {
+      "connected": "Telegram connected",
+      "username": "Username",
+      "key": "Key"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "email": "Email notifications",
+      "sms": "SMS notifications",
+      "push": "Push notifications",
+      "telegram": "Telegram notifications"
+    },
+    "privacy": {
+      "title": "Privacy",
+      "showOnlineStatus": "Show online status",
+      "showPhone": "Show phone",
+      "showEmail": "Show email",
+      "compactMode": "Compact interface mode"
+    },
+    "buttons": {
+      "save": "Save profile",
+      "saveSettings": "Save settings",
+      "saving": "Saving..."
+    },
+    "messages": {
+      "profileUpdated": "Profile updated successfully",
+      "settingsUpdated": "Settings updated successfully",
+      "avatarUpdated": "Avatar updated",
+      "avatarError": "Failed to upload avatar",
+      "saveError": "Save error",
+      "genericError": "An error occurred"
+    }
+  },
+  "notFound": {
+    "title": "Page not found",
+    "message": "Sorry, the requested page does not exist or has been moved",
+    "goHome": "Go home",
+    "contact": "Contact us"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "search": "Search",
+    "filter": "Filter",
+    "allRightsReserved": "All rights reserved"
+  }
+}
