@@ -1,12 +1,13 @@
 'use client';
 
-import { Suspense, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useState, useEffect } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Eye, EyeOff, LogIn, Mail, Lock, AlertCircle, Loader2, ShieldCheck } from 'lucide-react';
 import { RecaptchaProvider } from '@/components/RecaptchaProvider';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
+import { getTranslation, type Locale } from '@/lib/translations';
 
 export default function LoginPage() {
   return (
@@ -20,9 +21,20 @@ export default function LoginPage() {
 
 function LoginContent() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/';
   const { executeRecaptcha, isReady } = useRecaptcha();
+
+  // Get current locale from pathname
+  const getCurrentLocale = (): Locale => {
+    const segments = pathname.split('/').filter(Boolean);
+    const locale = segments[0] as Locale;
+    return ['ru', 'en', 'kg'].includes(locale) ? locale : 'ru';
+  };
+
+  const currentLocale = getCurrentLocale();
+  const t = getTranslation(currentLocale);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -44,7 +56,7 @@ function LoginContent() {
       if (isReady) {
         recaptchaToken = await executeRecaptcha('login');
         if (!recaptchaToken) {
-          setError('Ошибка проверки безопасности. Попробуйте позже.');
+          setError(t.login.errors.securityCheck);
           setIsLoading(false);
           return;
         }
@@ -59,7 +71,7 @@ function LoginContent() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || 'Ошибка входа');
+        setError(data.error || t.login.errors.serverError);
         setIsLoading(false);
         return;
       }
@@ -90,7 +102,7 @@ function LoginContent() {
         }
       }
     } catch {
-      setError('Произошла ошибка. Попробуйте позже.');
+      setError(t.login.errors.serverError);
       setIsLoading(false);
     }
   };
@@ -113,7 +125,7 @@ function LoginContent() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || 'Неверный код');
+        setError(data.error || t.login.errors.invalidCode);
         setIsLoading(false);
         return;
       }
@@ -133,7 +145,7 @@ function LoginContent() {
         }
       }
     } catch {
-      setError('Произошла ошибка. Попробуйте позже.');
+      setError(t.login.errors.serverError);
       setIsLoading(false);
     }
   };
@@ -144,9 +156,9 @@ function LoginContent() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Image src="/Logo-CafeFlow.png" alt="CafeFlow" width={64} height={64} className="mx-auto mb-4 h-16 w-16 rounded-2xl object-cover shadow-lg" />
-          <h1 className="text-3xl font-bold text-gray-900">CaféFlow</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t.common.cafeflow}</h1>
           <p className="text-gray-600 mt-2">
-            {requires2FA ? 'Подтверждение входа' : 'Добро пожаловать'}
+            {requires2FA ? t.common.twoFaConfirmation : t.common.welcome}
           </p>
         </div>
 
@@ -155,9 +167,9 @@ function LoginContent() {
           {!requires2FA ? (
             <form onSubmit={handleLogin} className="space-y-6">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Вход</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{t.login.title}</h2>
                 <p className="text-sm text-gray-600">
-                  Войдите в свой аккаунт для продолжения
+                  {t.login.subtitle}
                 </p>
               </div>
 
@@ -170,7 +182,7 @@ function LoginContent() {
 
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email
+                  {t.login.email}
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -181,14 +193,14 @@ function LoginContent() {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
-                    placeholder="your@email.com"
+                    placeholder={t.login.emailPlaceholder}
                   />
                 </div>
               </div>
 
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                  Пароль
+                  {t.login.password}
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -199,9 +211,9 @@ function LoginContent() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     className="w-full pl-11 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
-                    placeholder="••••••••"
+                    placeholder={t.login.passwordPlaceholder}
                   />
-                  <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900">
+                  <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900">
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
@@ -215,20 +227,20 @@ function LoginContent() {
                 {isLoading ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Вход...
+                    {t.login.loggingIn}
                   </>
                 ) : (
                   <>
                     <LogIn className="w-5 h-5" />
-                    Войти
+                    {t.login.loginButton}
                   </>
                 )}
               </button>
 
               <div className="text-center text-sm text-gray-600">
-                Нет аккаунта?{' '}
+                {t.login.noAccount}{' '}
                 <Link href="/register" className="text-amber-600 hover:text-amber-700 font-medium">
-                  Зарегистрироваться
+                  {t.login.register}
                 </Link>
               </div>
             </form>
