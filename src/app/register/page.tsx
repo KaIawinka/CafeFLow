@@ -1,16 +1,28 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Eye, EyeOff, UserPlus, Mail, Lock, User, AlertCircle, Loader2, CheckCircle, Phone } from 'lucide-react';
 import { RecaptchaProvider } from '@/components/RecaptchaProvider';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
+import { getTranslation, type Locale } from '@/lib/translations';
 
 function RegisterForm() {
   const router = useRouter();
+  const pathname = usePathname();
   const { executeRecaptcha, isReady } = useRecaptcha();
+
+  // Get current locale from pathname
+  const getCurrentLocale = (): Locale => {
+    const segments = pathname.split('/').filter(Boolean);
+    const locale = segments[0] as Locale;
+    return ['ru', 'en', 'kg'].includes(locale) ? locale : 'ru';
+  };
+
+  const currentLocale = getCurrentLocale();
+  const t = getTranslation(currentLocale);
 
   const [formData, setFormData] = useState({
     email: '',
@@ -48,12 +60,12 @@ function RegisterForm() {
 
     // Validation
     if (formData.password !== formData.confirmPassword) {
-      setError('Пароли не совпадают');
+      setError(t.register.errors.passwordMismatch);
       return;
     }
 
     if (formData.password.length < 8) {
-      setError('Пароль должен быть минимум 8 символов');
+      setError(t.register.errors.passwordTooShort);
       return;
     }
 
@@ -65,7 +77,7 @@ function RegisterForm() {
       if (isReady) {
         recaptchaToken = await executeRecaptcha('register');
         if (!recaptchaToken) {
-          setError('Ошибка проверки безопасности. Попробуйте позже.');
+          setError(t.register.errors.securityCheck);
           setIsLoading(false);
           return;
         }
@@ -87,7 +99,7 @@ function RegisterForm() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || 'Ошибка регистрации');
+        setError(data.error || t.register.errors.serverError);
         setIsLoading(false);
         return;
       }
@@ -101,15 +113,15 @@ function RegisterForm() {
         router.push(`/verify-email?userId=${data.user.id}&email=${encodeURIComponent(data.user.email)}`);
       }
     } catch {
-      setError('Произошла ошибка. Попробуйте позже.');
+      setError(t.register.errors.serverError);
       setIsLoading(false);
     }
   };
 
   const strengthConfig = {
-    weak: { color: 'bg-red-500', text: 'Слабый', width: 'w-1/3' },
-    medium: { color: 'bg-yellow-500', text: 'Средний', width: 'w-2/3' },
-    strong: { color: 'bg-green-500', text: 'Сильный', width: 'w-full' },
+    weak: { color: 'bg-red-500', text: t.register.weak, width: 'w-1/3' },
+    medium: { color: 'bg-yellow-500', text: t.register.medium, width: 'w-2/3' },
+    strong: { color: 'bg-green-500', text: t.register.strong, width: 'w-full' },
   };
 
   return (
@@ -118,17 +130,17 @@ function RegisterForm() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Image src="/Logo-CafeFlow.png" alt="CafeFlow" width={64} height={64} className="mx-auto mb-4 h-16 w-16 rounded-2xl object-cover shadow-lg" />
-          <h1 className="text-3xl font-bold text-gray-900">CaféFlow</h1>
-          <p className="text-gray-600 mt-2">Создайте аккаунт</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t.common.cafeflow}</h1>
+          <p className="text-gray-600 mt-2">{t.common.createAccount}</p>
         </div>
 
         {/* Registration Form */}
         <div className="bg-white text-gray-900 rounded-2xl shadow-xl p-8 ring-1 ring-black/5">
           <form onSubmit={handleRegister} className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Регистрация</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{t.register.title}</h2>
               <p className="text-sm text-gray-600">
-                Заполните данные для создания аккаунта
+                {t.register.subtitle}
               </p>
             </div>
 
@@ -142,7 +154,7 @@ function RegisterForm() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
-                  Имя *
+                  {t.register.firstName} *
                 </label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -154,14 +166,14 @@ function RegisterForm() {
                     onChange={handleChange}
                     required
                     className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
-                    placeholder="Иван"
+                    placeholder={t.register.firstNamePlaceholder}
                   />
                 </div>
               </div>
 
               <div>
                 <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
-                  Фамилия
+                  {t.register.lastName}
                 </label>
                 <input
                   id="lastName"
@@ -170,14 +182,14 @@ function RegisterForm() {
                   value={formData.lastName}
                   onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
-                  placeholder="Иванов"
+                  placeholder={t.register.lastNamePlaceholder}
                 />
               </div>
             </div>
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email *
+                {t.register.email} *
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -189,14 +201,14 @@ function RegisterForm() {
                   onChange={handleChange}
                   required
                   className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
-                  placeholder="your@email.com"
+                  placeholder={t.register.emailPlaceholder}
                 />
               </div>
             </div>
 
             <div>
               <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                Телефон
+                {t.register.phone}
               </label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -207,14 +219,14 @@ function RegisterForm() {
                   value={formData.phone}
                   onChange={handleChange}
                   className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
-                  placeholder="+996 XXX XXX XXX"
+                  placeholder={t.register.phonePlaceholder}
                 />
               </div>
             </div>
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Пароль *
+                {t.register.password} *
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -226,9 +238,9 @@ function RegisterForm() {
                   onChange={handleChange}
                   required
                   className="w-full pl-11 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
-                  placeholder="Минимум 8 символов"
+                  placeholder={t.register.passwordPlaceholder}
                 />
-                <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900">
+                <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900">
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
@@ -237,7 +249,7 @@ function RegisterForm() {
               {formData.password && passwordStrength && (
                 <div className="mt-2">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-gray-600">Надёжность пароля</span>
+                    <span className="text-xs text-gray-600">{t.register.passwordStrength}</span>
                     <span className="text-xs font-medium text-gray-700">
                       {strengthConfig[passwordStrength].text}
                     </span>
@@ -253,7 +265,7 @@ function RegisterForm() {
 
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                Подтвердите пароль *
+                {t.register.confirmPassword} *
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -265,9 +277,9 @@ function RegisterForm() {
                   onChange={handleChange}
                   required
                   className="w-full pl-11 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all"
-                  placeholder="Повторите пароль"
+                  placeholder={t.register.confirmPasswordPlaceholder}
                 />
-                <button type="button" onClick={() => setShowConfirmPassword((visible) => !visible)} aria-label={showConfirmPassword ? 'Скрыть пароль' : 'Показать пароль'} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900">
+                <button type="button" onClick={() => setShowConfirmPassword((visible) => !visible)} aria-label={showConfirmPassword ? 'Hide password' : 'Show password'} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900">
                   {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
                 {formData.confirmPassword && formData.password === formData.confirmPassword && (
@@ -284,20 +296,20 @@ function RegisterForm() {
               {isLoading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Создание аккаунта...
+                  {t.register.registering}
                 </>
               ) : (
                 <>
                   <UserPlus className="w-5 h-5" />
-                  Зарегистрироваться
+                  {t.register.registerButton}
                 </>
               )}
             </button>
 
             <div className="text-center text-sm text-gray-600">
-              Уже есть аккаунт?{' '}
+              {t.register.haveAccount}{' '}
               <Link href="/login" className="text-amber-600 hover:text-amber-700 font-medium">
-                Войти
+                {t.register.login}
               </Link>
             </div>
           </form>
