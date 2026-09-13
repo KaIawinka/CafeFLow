@@ -1,13 +1,12 @@
 'use client';
 
 import { Suspense, useState } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Eye, EyeOff, LogIn, Mail, Lock, AlertCircle, Loader2, ShieldCheck } from 'lucide-react';
 import { RecaptchaProvider } from '@/components/RecaptchaProvider';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
-import { AuthHeader } from '@/components/AuthHeader';
 
 export default function LoginPage() {
   return (
@@ -21,7 +20,6 @@ export default function LoginPage() {
 
 function LoginContent() {
   const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/';
   const { executeRecaptcha, isReady } = useRecaptcha();
@@ -143,8 +141,6 @@ function LoginContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-100 via-orange-50 to-red-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <AuthHeader backLink="/ru" backText="На главную" />
-        
         {/* Logo */}
         <div className="text-center mb-8">
           <Image src="/Logo-CafeFlow.png" alt="CafeFlow" width={64} height={64} className="mx-auto mb-4 h-16 w-16 rounded-2xl object-cover shadow-lg" />

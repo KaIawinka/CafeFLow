@@ -26,22 +26,20 @@ export async function verifyRecaptcha(token: string, expectedAction?: string): P
   score?: number;
   error?: string;
 }> {
-  // Skip verification in development if no secret key
+  // ALWAYS skip in development
+  if (process.env.NODE_ENV === 'development') {
+    logger.warn('reCAPTCHA: Skipping verification in development mode');
+    return { success: true, score: 1.0 };
+  }
+
+  // Skip verification if no secret key in production
   if (!RECAPTCHA_SECRET_KEY) {
-    if (process.env.NODE_ENV === 'development') {
-      logger.warn('reCAPTCHA not configured. Skipping verification in development mode.');
-      return { success: true, score: 1.0 };
-    }
     logger.error('reCAPTCHA secret key not configured');
     return { success: false, error: 'reCAPTCHA not configured' };
   }
 
-  // Skip verification in development if no token (reCAPTCHA not loaded)
+  // Skip if no token in production
   if (!token) {
-    if (process.env.NODE_ENV === 'development') {
-      logger.warn('reCAPTCHA token missing. Skipping verification in development mode.');
-      return { success: true, score: 1.0 };
-    }
     return { success: false, error: 'reCAPTCHA token missing' };
   }
 

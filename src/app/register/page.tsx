@@ -1,17 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Eye, EyeOff, UserPlus, Mail, Lock, User, AlertCircle, Loader2, CheckCircle, Phone } from 'lucide-react';
 import { RecaptchaProvider } from '@/components/RecaptchaProvider';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
-import { AuthHeader } from '@/components/AuthHeader';
 
 function RegisterForm() {
   const router = useRouter();
-  const pathname = usePathname();
   const { executeRecaptcha, isReady } = useRecaptcha();
 
   const [formData, setFormData] = useState({
@@ -117,8 +115,6 @@ function RegisterForm() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-100 via-orange-50 to-red-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <AuthHeader backLink="/ru" backText="На главную" />
-        
         {/* Logo */}
         <div className="text-center mb-8">
           <Image src="/Logo-CafeFlow.png" alt="CafeFlow" width={64} height={64} className="mx-auto mb-4 h-16 w-16 rounded-2xl object-cover shadow-lg" />
