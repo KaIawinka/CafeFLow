@@ -62,15 +62,6 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
       setTheme(savedTheme);
       applyTheme(savedTheme);
     }
-    
-    // Load saved language
-    const savedLang = localStorage.getItem('preferredLanguage');
-    if (savedLang && locales.includes(savedLang as Locale)) {
-      const currentLangInPath = pathname.split('/')[1];
-      if (currentLangInPath !== savedLang && locales.includes(currentLangInPath as Locale)) {
-        // Don't auto-redirect, just keep the saved preference for next manual change
-      }
-    }
   }, []);
 
   // Close dropdowns when clicking outside

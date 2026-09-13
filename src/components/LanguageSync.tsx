@@ -7,7 +7,7 @@ const VALID_LOCALES = ['ru', 'en', 'kg'];
 
 /**
  * Компонент для синхронизации языка из localStorage с URL
- * Автоматически перенаправляет на сохранённый язык при загрузке страницы
+ * Автоматически перенаправляет на сохранённый язык при каждом изменении pathname
  */
 export function LanguageSync() {
   const router = useRouter();
@@ -17,8 +17,14 @@ export function LanguageSync() {
     // Получаем сохранённый язык
     const savedLanguage = localStorage.getItem('preferredLanguage');
     
-    // Если нет сохранённого языка, ничего не делаем
-    if (!savedLanguage || !VALID_LOCALES.includes(savedLanguage)) {
+    // Если нет сохранённого языка, устанавливаем ru по умолчанию
+    if (!savedLanguage) {
+      localStorage.setItem('preferredLanguage', 'ru');
+      return;
+    }
+    
+    // Проверяем валидность сохранённого языка
+    if (!VALID_LOCALES.includes(savedLanguage)) {
       return;
     }
 
@@ -32,14 +38,19 @@ export function LanguageSync() {
       segments[0] = savedLanguage;
       const newPath = '/' + segments.join('/');
       
+      console.log(`[LanguageSync] Redirecting from ${pathname} to ${newPath}`);
+      
       // Перенаправляем (replace, чтобы не добавлять в историю)
       router.replace(newPath);
     } else if (!VALID_LOCALES.includes(currentLocale)) {
       // Если в URL вообще нет языка, добавляем сохранённый
       const newPath = `/${savedLanguage}${pathname}`;
+      
+      console.log(`[LanguageSync] Adding locale to path: ${newPath}`);
+      
       router.replace(newPath);
     }
-  }, []); // Выполняется только один раз при монтировании
+  }, [pathname, router]); // Срабатывает при каждом изменении pathname
 
   return null; // Компонент невидимый
 }
