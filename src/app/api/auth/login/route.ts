@@ -32,8 +32,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify reCAPTCHA
-    if (recaptchaToken) {
+    // Verify reCAPTCHA only in production
+    if (process.env.NODE_ENV === 'production' && recaptchaToken) {
       const recaptchaResult = await verifyRecaptcha(recaptchaToken, 'login');
       if (!recaptchaResult.success) {
         logger.warn('Login blocked by reCAPTCHA', { 

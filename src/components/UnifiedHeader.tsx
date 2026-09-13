@@ -45,7 +45,7 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutConfirm, setLogoutConfirm] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark' | 'auto'>('light');
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   
   const dropdownRef = useRef<HTMLDivElement>(null);
   const langDropdownRef = useRef<HTMLDivElement>(null);
@@ -57,10 +57,19 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
 
   // Load theme from localStorage
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | 'auto' | null;
+    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
     if (savedTheme) {
       setTheme(savedTheme);
       applyTheme(savedTheme);
+    }
+    
+    // Load saved language
+    const savedLang = localStorage.getItem('preferredLanguage');
+    if (savedLang && locales.includes(savedLang as Locale)) {
+      const currentLangInPath = pathname.split('/')[1];
+      if (currentLangInPath !== savedLang && locales.includes(currentLangInPath as Locale)) {
+        // Don't auto-redirect, just keep the saved preference for next manual change
+      }
     }
   }, []);
 
@@ -89,18 +98,12 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
     return () => window.clearTimeout(timeoutId);
   }, [pathname, isMobileMenuOpen]);
 
-  const applyTheme = (newTheme: 'light' | 'dark' | 'auto') => {
+  const applyTheme = (newTheme: 'light' | 'dark') => {
     const root = document.documentElement;
-    
-    if (newTheme === 'auto') {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      root.classList.toggle('dark', prefersDark);
-    } else {
-      root.classList.toggle('dark', newTheme === 'dark');
-    }
+    root.classList.toggle('dark', newTheme === 'dark');
   };
 
-  const handleThemeChange = (newTheme: 'light' | 'dark' | 'auto') => {
+  const handleThemeChange = (newTheme: 'light' | 'dark') => {
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
     applyTheme(newTheme);
@@ -198,13 +201,11 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
   const themeIcons = {
     light: <Sun className="w-4 h-4" />,
     dark: <Moon className="w-4 h-4" />,
-    auto: <Monitor className="w-4 h-4" />,
   };
 
   const themeLabels = {
     light: 'Светлая',
     dark: 'Тёмная',
-    auto: 'Авто',
   };
 
   // Get localized language names
@@ -260,7 +261,7 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
 
               {isThemeDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2">
-                  {(['light', 'dark', 'auto'] as const).map((themeOption) => (
+                  {(['light', 'dark'] as const).map((themeOption) => (
                     <button
                       key={themeOption}
                       onClick={() => handleThemeChange(themeOption)}
@@ -400,6 +401,12 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
               </>
             ) : (
               <div className="flex items-center gap-3">
+                <Link
+                  href={`/${currentLocale}`}
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-500 transition-colors"
+                >
+                  Главная
+                </Link>
                 <Link
                   href="/login"
                   className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-500 transition-colors"
