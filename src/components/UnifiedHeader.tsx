@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { locales, localeNames, type Locale } from '@/app/i18n/config';
-import { setLocaleCookie } from '@/app/i18n/utils';
 import { 
   User, 
   Settings, 
@@ -102,15 +101,13 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
   };
 
   const switchLocale = (newLocale: Locale) => {
-    // Save to localStorage AND cookie
-    localStorage.setItem('preferredLanguage', newLocale);
+    // Save to cookie (используется middleware для авто-применения)
     document.cookie = `preferredLanguage=${newLocale}; path=/; max-age=31536000`; // 1 год
     
     const segments = pathname.split('/').filter(Boolean);
     if (locales.includes(segments[0] as Locale)) {
       segments.shift();
     }
-    setLocaleCookie(newLocale);
     const newPath = `/${newLocale}${segments.length ? '/' + segments.join('/') : ''}`;
     router.push(newPath);
     setIsLangDropdownOpen(false);
