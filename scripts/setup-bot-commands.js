@@ -43,7 +43,7 @@ function makeRequest(method, data) {
 }
 
 async function setupBot() {
-  console.log('🤖 Настройка Telegram бота...\n');
+  console.log('🤖 Настройка Telegram бота CaféFlow...\n');
 
   // 1. Проверка бота
   console.log('1️⃣ Проверка подключения...');
@@ -56,17 +56,25 @@ async function setupBot() {
     process.exit(1);
   }
 
-  // 2. Установка описания
+  // 2. Установка полного описания (видно в профиле бота)
   console.log('2️⃣ Установка описания...');
   const descResult = await makeRequest('setMyDescription', {
-    description: 'Бот для двухфакторной аутентификации в CaféFlow Admin Panel.\n\nОтправляет коды для входа в систему управления рестораном.\n\nБезопасно. Коды действуют 5 минут.'
+    description: '🍽 CaféFlow — система управления рестораном\n\n' +
+      '✨ Возможности:\n' +
+      '• Безопасная авторизация через Telegram\n' +
+      '• Двухфакторная аутентификация (2FA)\n' +
+      '• Управление пользователями и ролями\n' +
+      '• Уведомления о заказах и бронированиях\n' +
+      '• Доступ к админ-панели\n\n' +
+      '🔐 Безопасность превыше всего!\n' +
+      'Коды действуют только 5 минут.'
   });
   console.log(descResult.ok ? '✅ Описание установлено\n' : `❌ Ошибка: ${descResult.description}\n`);
 
-  // 3. Установка короткого описания
+  // 3. Установка короткого описания (видно в поиске)
   console.log('3️⃣ Установка короткого описания...');
   const shortDescResult = await makeRequest('setMyShortDescription', {
-    short_description: 'Бот 2FA для CaféFlow Admin'
+    short_description: '🍽 CaféFlow — управление рестораном и безопасная авторизация'
   });
   console.log(shortDescResult.ok ? '✅ Короткое описание установлено\n' : `❌ Ошибка: ${shortDescResult.description}\n`);
 
@@ -74,24 +82,34 @@ async function setupBot() {
   console.log('4️⃣ Установка команд...');
   const commandsResult = await makeRequest('setMyCommands', {
     commands: [
-      { command: 'start', description: 'Привязать аккаунт к Telegram' },
-      { command: 'activate', description: 'Активировать аккаунт по ключу' },
-      { command: 'login', description: 'Получить ссылку для входа' },
-      { command: 'status', description: 'Проверить статус привязки' },
-      { command: 'admin', description: 'Команды администратора' },
-      { command: 'help', description: 'Справка по командам' }
+      { command: 'start', description: '🏠 Начать работу с ботом' },
+      { command: 'activate', description: '🔑 Активировать аккаунт по ключу' },
+      { command: 'login', description: '🔐 Получить ссылку для входа' },
+      { command: 'status', description: '📊 Проверить статус активации' },
+      { command: 'admin', description: '👑 Команды администратора' },
+      { command: 'help', description: '❓ Справка по командам' }
     ]
   });
   console.log(commandsResult.ok ? '✅ Команды установлены\n' : `❌ Ошибка: ${commandsResult.description}\n`);
 
-  // 5. Информация
+  // 5. Установка имени бота
+  console.log('5️⃣ Установка имени бота...');
+  const nameResult = await makeRequest('setMyName', {
+    name: '🍽 CaféFlow Bot'
+  });
+  console.log(nameResult.ok ? '✅ Имя установлено\n' : `❌ Ошибка: ${nameResult.description}\n`);
+
+  // 6. Информация
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log('🎉 Настройка завершена!\n');
   console.log('📱 Ваш бот: https://t.me/' + botInfo.result.username);
   console.log('\n💡 Что дальше:');
   console.log('   1. Откройте бота в Telegram');
   console.log('   2. Нажмите START');
-  console.log('   3. Бот готов к работе!');
+  console.log('   3. Для установки логотипа бота отправьте команду:');
+  console.log('      /setuserpic @' + botInfo.result.username);
+  console.log('      затем загрузите изображение Logo-CafeFlow.png');
+  console.log('   4. Бот готов к работе!');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 }
 

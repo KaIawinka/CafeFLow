@@ -60,17 +60,26 @@ export async function setWebhook(url: string, secretToken?: string) {
 }
 
 export async function configureBotProfile() {
+  await bot.api.setMyName('🍽 CaféFlow Bot');
   await bot.api.setMyDescription(
-    'CaféFlow: безопасный вход, уведомления и управление рестораном через Telegram.'
+    '🍽 CaféFlow — система управления рестораном\n\n' +
+    '✨ Возможности:\n' +
+    '• Безопасная авторизация через Telegram\n' +
+    '• Двухфакторная аутентификация (2FA)\n' +
+    '• Управление пользователями и ролями\n' +
+    '• Уведомления о заказах и бронированиях\n' +
+    '• Доступ к админ-панели\n\n' +
+    '🔐 Безопасность превыше всего!\n' +
+    'Коды действуют только 5 минут.'
   );
-  await bot.api.setMyShortDescription('CaféFlow: вход и управление рестораном');
+  await bot.api.setMyShortDescription('🍽 CaféFlow — управление рестораном и безопасная авторизация');
   await bot.api.setMyCommands([
-    { command: 'start', description: 'Начать работу с ботом' },
-    { command: 'activate', description: 'Привязать аккаунт по ключу' },
-    { command: 'login', description: 'Получить ссылку для входа' },
-    { command: 'status', description: 'Проверить статус аккаунта' },
-    { command: 'admin', description: 'Команды администратора' },
-    { command: 'help', description: 'Показать справку' },
+    { command: 'start', description: '🏠 Начать работу с ботом' },
+    { command: 'activate', description: '🔑 Активировать аккаунт по ключу' },
+    { command: 'login', description: '🔐 Получить ссылку для входа' },
+    { command: 'status', description: '📊 Проверить статус активации' },
+    { command: 'admin', description: '👑 Команды администратора' },
+    { command: 'help', description: '❓ Справка по командам' },
   ]);
   logger.info('Telegram bot profile configured');
 }
