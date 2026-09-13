@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
-import { LanguageSync } from '@/components/LanguageSync';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -26,7 +25,6 @@ export default function RootLayout({
   return (
     <html lang="ru" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased scroll-smooth`}>
       <body className="min-h-full flex flex-col">
-        <LanguageSync />
         {children}
       </body>
     </html>

@@ -102,8 +102,9 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
   };
 
   const switchLocale = (newLocale: Locale) => {
-    // Save to localStorage
+    // Save to localStorage AND cookie
     localStorage.setItem('preferredLanguage', newLocale);
+    document.cookie = `preferredLanguage=${newLocale}; path=/; max-age=31536000`; // 1 год
     
     const segments = pathname.split('/').filter(Boolean);
     if (locales.includes(segments[0] as Locale)) {

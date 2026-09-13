@@ -1,56 +1,60 @@
-/**
- * Next.js Middleware
- *
- * NOTE:
- * This middleware must stay edge-safe. It must not import Prisma,
- * PostgreSQL adapters, pg, crypto, or JWT verification helpers,
- * otherwise Next.js edge bundling will pull in Node.js runtime modules
- * and fail with:
- *   "The edge runtime does not support Node.js 'crypto' module"
- *   or "Failed to load external module node:util/types"
- */
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-import { NextRequest, NextResponse } from 'next/server';
-
-const publicPaths = [
-  '/',
-  '/ru',
-  '/en',
-  '/kg',
-  '/login',
-  '/register',
-  '/api/auth/login',
-  '/api/auth/register',
-  '/api/telegram/webhook',
-];
+const locales = ['ru', 'en', 'kg'];
+const defaultLocale = 'ru';
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const pathname = request.nextUrl.pathname;
 
+  // Игнорируем статические файлы и API
   if (
     pathname.startsWith('/_next') ||
+    pathname.startsWith('/api') ||
     pathname.startsWith('/static') ||
-    pathname.includes('.') ||
-    pathname === '/favicon.ico'
+    pathname.includes('.') // файлы с расширениями
   ) {
     return NextResponse.next();
   }
 
-  const isPublicPath = publicPaths.some(path =>
-    pathname === path || pathname.startsWith(path + '/')
-  );
+  // Получаем сохранённый язык из cookie
+  const savedLocale = request.cookies.get('preferredLanguage')?.value;
+  
+  // Проверяем текущий язык в URL
+  const segments = pathname.split('/').filter(Boolean);
+  const currentLocale = segments[0];
 
-  if (isPublicPath) {
+  // Если в URL есть валидный язык
+  if (locales.includes(currentLocale)) {
+    // Если есть сохранённый язык и он отличается от текущего
+    if (savedLocale && locales.includes(savedLocale) && savedLocale !== currentLocale) {
+      // Заменяем язык в URL
+      segments[0] = savedLocale;
+      const newPathname = '/' + segments.join('/');
+      
+      const url = request.nextUrl.clone();
+      url.pathname = newPathname;
+      
+      return NextResponse.redirect(url);
+    }
+    
+    // Язык совпадает - пропускаем
     return NextResponse.next();
   }
 
-  // Do not perform DB/JWT checks in edge middleware.
-  // Route-level auth stays in API/server route handlers and page loaders.
-  return NextResponse.next();
+  // Если в URL нет языка - добавляем сохранённый или дефолтный
+  const localeToUse = (savedLocale && locales.includes(savedLocale)) ? savedLocale : defaultLocale;
+  const newPathname = `/${localeToUse}${pathname}`;
+  
+  const url = request.nextUrl.clone();
+  url.pathname = newPathname;
+  
+  return NextResponse.redirect(url);
 }
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|public).*)',
+    // Применяем middleware ко всем путям кроме:
+    '/((?!_next|api|static|.*\\..*).*)',
   ],
 };
