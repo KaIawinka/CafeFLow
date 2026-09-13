@@ -36,7 +36,12 @@ export async function verifyRecaptcha(token: string, expectedAction?: string): P
     return { success: false, error: 'reCAPTCHA not configured' };
   }
 
+  // Skip verification in development if no token (reCAPTCHA not loaded)
   if (!token) {
+    if (process.env.NODE_ENV === 'development') {
+      logger.warn('reCAPTCHA token missing. Skipping verification in development mode.');
+      return { success: true, score: 1.0 };
+    }
     return { success: false, error: 'reCAPTCHA token missing' };
   }
 

@@ -108,6 +108,9 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
   };
 
   const switchLocale = (newLocale: Locale) => {
+    // Save to localStorage
+    localStorage.setItem('preferredLanguage', newLocale);
+    
     const segments = pathname.split('/').filter(Boolean);
     if (locales.includes(segments[0] as Locale)) {
       segments.shift();

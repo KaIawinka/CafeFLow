@@ -59,12 +59,22 @@ export function AuthHeader({ backLink = '/ru', backText = 'На главную' 
   }, []);
 
   const handleLanguageChange = (newLocale: string) => {
+    // Save to localStorage
+    localStorage.setItem('preferredLanguage', newLocale);
+    
     // Replace current locale in pathname with new locale
     const segments = pathname.split('/').filter(Boolean);
-    segments[0] = newLocale;
-    const newPath = '/' + segments.join('/');
     
-    router.push(newPath);
+    // If we're on an auth page (login, register), update the locale
+    if (segments.length > 0) {
+      segments[0] = newLocale;
+      const newPath = '/' + segments.join('/');
+      router.push(newPath);
+    } else {
+      // If no segments, just go to home with new locale
+      router.push(`/${newLocale}`);
+    }
+    
     setIsOpen(false);
   };
 
