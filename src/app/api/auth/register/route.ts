@@ -9,6 +9,8 @@ import { hashPassword } from '@/lib/auth/password';
 import { generateTokenPair } from '@/lib/auth/jwt';
 import { logger } from '@/lib/logger';
 import crypto from 'crypto';
+import { validateEmailAddress, createVerificationCode } from '@/lib/email/verification';
+import { sendVerificationEmail } from '@/lib/email/client';
 
 interface RegisterRequest {
   email: string;
@@ -32,10 +34,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    const emailValidation = await validateEmailAddress(email);
+    if (!emailValidation.valid) {
       return NextResponse.json(
-        { error: 'Неверный формат email' },
+        { error: emailValidation.error },
         { status: 400 }
       );
     }
@@ -117,6 +119,27 @@ export async function POST(request: NextRequest) {
       role: user.role 
     });
 
+    // Get client IP for verification code
+    const ipAddress = request.headers.get('x-forwarded-for') || 
+                     request.headers.get('x-real-ip') || 
+                     'unknown';
+
+    // Create and send verification code
+    try {
+      const code = await createVerificationCode(user.id, 'email_verification', ipAddress);
+      const emailSent = await sendVerificationEmail(user.email, code, user.first_name);
+      
+      if (emailSent) {
+        logger.info('Verification email sent after registration', { userId: user.id });
+      } else if (process.env.NODE_ENV === 'development') {
+        // In development mode, log the code
+        logger.info('Verification code (dev mode)', { code });
+      }
+    } catch (emailError) {
+      // Don't fail registration if email fails, user can request it later
+      logger.error('Failed to send verification email during registration', emailError);
+    }
+
     // Generate tokens
     const tokenPayload = {
       userId: user.id,
@@ -143,6 +166,7 @@ export async function POST(request: NextRequest) {
         role: user.role,
         status: user.status,
       },
+      requiresEmailVerification: true,
     }, { status: 201 });
 
   } catch (error) {
