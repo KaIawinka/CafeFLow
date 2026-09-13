@@ -11,16 +11,18 @@ import { sendVerificationCode } from '@/lib/telegram/messages';
 import { generateTokenPair } from '@/lib/auth/jwt';
 import { logger } from '@/lib/logger';
 import crypto from 'crypto';
+import { verifyRecaptcha } from '@/lib/recaptcha';
 
 interface LoginRequest {
   email: string;
   password: string;
+  recaptchaToken?: string;
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body: LoginRequest = await request.json();
-    const { email, password } = body;
+    const { email, password, recaptchaToken } = body;
 
     // Validation
     if (!email || !password) {
@@ -28,6 +30,25 @@ export async function POST(request: NextRequest) {
         { error: 'Email и пароль обязательны' },
         { status: 400 }
       );
+    }
+
+    // Verify reCAPTCHA
+    if (recaptchaToken) {
+      const recaptchaResult = await verifyRecaptcha(recaptchaToken, 'login');
+      if (!recaptchaResult.success) {
+        logger.warn('Login blocked by reCAPTCHA', { 
+          email, 
+          score: recaptchaResult.score 
+        });
+        return NextResponse.json(
+          { error: 'Проверка безопасности не пройдена. Попробуйте позже.' },
+          { status: 403 }
+        );
+      }
+      logger.info('reCAPTCHA passed for login', { 
+        email, 
+        score: recaptchaResult.score 
+        });
     }
 
     // Get client IP for logging

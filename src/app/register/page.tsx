@@ -1,18 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { locales, type Locale } from '@/app/i18n/config';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { Eye, EyeOff, UserPlus, Mail, Lock, User, AlertCircle, Loader2, CheckCircle, Phone, ArrowLeft } from 'lucide-react';
+import { RecaptchaProvider } from '@/components/RecaptchaProvider';
+import { useRecaptcha } from '@/hooks/useRecaptcha';
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
   const pathname = usePathname();
   const localeFromPath = (pathname.split('/').filter(Boolean)[0] as Locale) || 'ru';
   const currentLocale = locales.includes(localeFromPath) ? localeFromPath : 'ru';
+  const { executeRecaptcha, isReady } = useRecaptcha();
 
   const [formData, setFormData] = useState({
     email: '',
@@ -62,6 +65,17 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
+      // Execute reCAPTCHA
+      let recaptchaToken: string | null = null;
+      if (isReady) {
+        recaptchaToken = await executeRecaptcha('register');
+        if (!recaptchaToken) {
+          setError('Ошибка проверки безопасности. Попробуйте позже.');
+          setIsLoading(false);
+          return;
+        }
+      }
+
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -71,6 +85,7 @@ export default function RegisterPage() {
           firstName: formData.firstName,
           lastName: formData.lastName || undefined,
           phone: formData.phone || undefined,
+          recaptchaToken,
         }),
       });
 
@@ -306,5 +321,13 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <RecaptchaProvider>
+      <RegisterForm />
+    </RecaptchaProvider>
   );
 }

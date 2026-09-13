@@ -7,12 +7,16 @@ import Image from 'next/image';
 import { locales, type Locale } from '@/app/i18n/config';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { Eye, EyeOff, LogIn, Mail, Lock, AlertCircle, Loader2, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { RecaptchaProvider } from '@/components/RecaptchaProvider';
+import { useRecaptcha } from '@/hooks/useRecaptcha';
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={null}>
-      <LoginContent />
-    </Suspense>
+    <RecaptchaProvider>
+      <Suspense fallback={null}>
+        <LoginContent />
+      </Suspense>
+    </RecaptchaProvider>
   );
 }
 
@@ -23,6 +27,7 @@ function LoginContent() {
   const redirectTo = searchParams.get('redirect') || '/';
   const localeFromPath = (pathname.split('/').filter(Boolean)[0] as Locale) || 'ru';
   const currentLocale = locales.includes(localeFromPath) ? localeFromPath : 'ru';
+  const { executeRecaptcha, isReady } = useRecaptcha();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -39,10 +44,21 @@ function LoginContent() {
     setIsLoading(true);
 
     try {
+      // Execute reCAPTCHA
+      let recaptchaToken: string | null = null;
+      if (isReady) {
+        recaptchaToken = await executeRecaptcha('login');
+        if (!recaptchaToken) {
+          setError('Ошибка проверки безопасности. Попробуйте позже.');
+          setIsLoading(false);
+          return;
+        }
+      }
+
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, recaptchaToken }),
       });
 
       const data = await response.json();

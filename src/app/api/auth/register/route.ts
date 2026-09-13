@@ -11,6 +11,7 @@ import { logger } from '@/lib/logger';
 import crypto from 'crypto';
 import { validateEmailAddress, createVerificationCode } from '@/lib/email/verification';
 import { sendVerificationEmail } from '@/lib/email/client';
+import { verifyRecaptcha } from '@/lib/recaptcha';
 
 interface RegisterRequest {
   email: string;
@@ -18,12 +19,13 @@ interface RegisterRequest {
   firstName: string;
   lastName?: string;
   phone?: string;
+  recaptchaToken?: string;
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body: RegisterRequest = await request.json();
-    const { email, password, firstName, lastName, phone } = body;
+    const { email, password, firstName, lastName, phone, recaptchaToken } = body;
 
     // Validation
     if (!email || !password || !firstName) {
@@ -31,6 +33,25 @@ export async function POST(request: NextRequest) {
         { error: 'Email, пароль и имя обязательны' },
         { status: 400 }
       );
+    }
+
+    // Verify reCAPTCHA
+    if (recaptchaToken) {
+      const recaptchaResult = await verifyRecaptcha(recaptchaToken, 'register');
+      if (!recaptchaResult.success) {
+        logger.warn('Registration blocked by reCAPTCHA', { 
+          email, 
+          score: recaptchaResult.score 
+        });
+        return NextResponse.json(
+          { error: 'Проверка безопасности не пройдена. Попробуйте позже.' },
+          { status: 403 }
+        );
+      }
+      logger.info('reCAPTCHA passed for registration', { 
+        email, 
+        score: recaptchaResult.score 
+      });
     }
 
     // Email format validation
