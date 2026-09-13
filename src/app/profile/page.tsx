@@ -8,11 +8,9 @@ import {
   Mail,
   Phone,
   Clock,
-  Globe,
   Shield,
   Bell,
   Eye,
-  Palette,
   Save,
   Loader2,
   CheckCircle,
@@ -92,7 +90,6 @@ function ProfileContent() {
     displayName: '',
     bio: '',
     phone: '',
-    language: 'ru',
     timezone: 'Asia/Bishkek',
   });
 
@@ -104,7 +101,6 @@ function ProfileContent() {
     showOnlineStatus: true,
     showPhone: false,
     showEmail: false,
-    theme: 'light',
     compactMode: false,
   });
 
@@ -121,7 +117,6 @@ function ProfileContent() {
           displayName: data.user.display_name || '',
           bio: data.user.bio || '',
           phone: data.user.phone || '',
-          language: data.user.language || 'ru',
           timezone: data.user.timezone || 'Asia/Bishkek',
         });
 
@@ -134,7 +129,6 @@ function ProfileContent() {
             showOnlineStatus: data.user.user_settings.show_online_status,
             showPhone: data.user.user_settings.show_phone,
             showEmail: data.user.user_settings.show_email,
-            theme: data.user.user_settings.theme,
             compactMode: data.user.user_settings.compact_mode,
           });
         }
@@ -428,24 +422,6 @@ function ProfileContent() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Язык
-                      </label>
-                      <div className="relative">
-                        <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <select
-                          value={formData.language}
-                          onChange={(e) => setFormData({ ...formData, language: e.target.value })}
-                          className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 dark:bg-gray-700 dark:text-white"
-                        >
-                          <option value="ru">Русский</option>
-                          <option value="en">English</option>
-                          <option value="kg">Кыргызча</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Часовой пояс
                       </label>
                       <div className="relative">
@@ -570,6 +546,7 @@ function ProfileContent() {
                         { key: 'showOnlineStatus', label: 'Показывать статус онлайн' },
                         { key: 'showPhone', label: 'Показывать телефон' },
                         { key: 'showEmail', label: 'Показывать email' },
+                        { key: 'compactMode', label: 'Компактный режим интерфейса' },
                       ].map((item) => (
                         <label key={item.key} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600">
                           <span className="text-sm text-gray-700 dark:text-gray-300">{item.label}</span>
@@ -581,38 +558,6 @@ function ProfileContent() {
                           />
                         </label>
                       ))}
-                    </div>
-                  </div>
-
-                  {/* Appearance */}
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                      <Palette className="w-5 h-5" />
-                      Внешний вид
-                    </h3>
-                    <div className="space-y-3">
-                      <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Тема</label>
-                        <select
-                          value={settings.theme}
-                          onChange={(e) => setSettings({ ...settings, theme: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 dark:bg-gray-600 dark:text-white"
-                        >
-                          <option value="light">Светлая</option>
-                          <option value="dark">Тёмная</option>
-                          <option value="auto">Автоматически</option>
-                        </select>
-                      </div>
-
-                      <label className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600">
-                        <span className="text-sm text-gray-700 dark:text-gray-300">Компактный режим</span>
-                        <input
-                          type="checkbox"
-                          checked={settings.compactMode}
-                          onChange={(e) => setSettings({ ...settings, compactMode: e.target.checked })}
-                          className="w-5 h-5 text-amber-600 focus:ring-amber-500 rounded"
-                        />
-                      </label>
                     </div>
                   </div>
 
