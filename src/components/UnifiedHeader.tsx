@@ -208,13 +208,19 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg">
+    <header className="sticky top-0 z-50 w-full border-b border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-gray-900/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-14 sm:h-16">
           {/* Logo */}
-          <Link href={`/${currentLocale}`} className="flex items-center gap-3">
-            <Image src="/Logo-CafeFlow.png" alt="CafeFlow" width={40} height={40} className="h-10 w-10 rounded-xl object-cover shadow-lg" />
-            <span className="text-xl font-bold text-gray-900 dark:text-white">
+          <Link href={`/${currentLocale}`} className="flex items-center gap-2 sm:gap-3">
+            <Image 
+              src="/Logo-CafeFlow.png" 
+              alt="CafeFlow" 
+              width={40} 
+              height={40} 
+              className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl object-cover shadow-lg" 
+            />
+            <span className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
               CaféFlow
             </span>
           </Link>
@@ -237,12 +243,12 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
           </nav>
 
           {/* Right Section */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Theme Switcher */}
             <div className="hidden md:block relative" ref={themeDropdownRef}>
               <button
                 onClick={() => setIsThemeDropdownOpen(!isThemeDropdownOpen)}
-                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300 touch-manipulation"
                 aria-label="Переключить тему"
               >
                 {themeIcons[theme]}
@@ -272,10 +278,10 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
             <div className="hidden md:block relative" ref={langDropdownRef}>
               <button
                 onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
+                className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300 touch-manipulation"
               >
                 <Globe className="w-4 h-4" />
-                <span className="text-sm font-medium">{localeNames[currentLocale]}</span>
+                <span className="text-xs sm:text-sm font-medium hidden sm:inline">{localeNames[currentLocale]}</span>
                 <ChevronDown className={`w-4 h-4 transition-transform ${isLangDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
