@@ -238,9 +238,9 @@ function ProfileContent() {
               {/* Avatar */}
               <div className="relative shrink-0">
                 {profile.avatar_file?.storage_key ? (
-                  <Image src={profile.avatar_file.storage_key} alt="Аватар профиля" width={96} height={96} className="h-24 w-24 rounded-full object-cover shadow-lg" />
+                  <Image src={profile.avatar_file.storage_key} alt="Аватар профиля" width={96} height={96} className="h-20 w-20 sm:h-24 sm:w-24 rounded-full object-cover shadow-lg" />
                 ) : (
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white text-3xl font-bold shadow-lg">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold shadow-lg">
                     {profile.first_name[0]?.toUpperCase()}
                   </div>
                 )}
@@ -283,7 +283,7 @@ function ProfileContent() {
 
               {/* Info */}
               <div className="flex-1">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
                   {profile.display_name || `${profile.first_name} ${profile.last_name || ''}`}
                 </h1>
                 <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
@@ -353,9 +353,9 @@ function ProfileContent() {
 
             <div className="p-6">
               {activeTab === 'profile' ? (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {/* Profile Form */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Имя
@@ -462,7 +462,7 @@ function ProfileContent() {
                   )}
 
                   {/* Account Info */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-700">
                     <div className="flex items-center gap-3 text-sm">
                       <Calendar className="w-4 h-4 text-gray-400" />
                       <div>
