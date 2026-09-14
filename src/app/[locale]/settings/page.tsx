@@ -1,0 +1,497 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  User,
+  Shield,
+  Bell,
+  Eye,
+  Globe,
+  Palette,
+  Save,
+  Loader2,
+  CheckCircle,
+  AlertCircle,
+  Lock,
+  Mail,
+  Phone,
+  MessageSquare,
+  Moon,
+  Sun,
+  Smartphone,
+  Key,
+  LogOut,
+} from 'lucide-react';
+
+interface UserSettings {
+  // Profile
+  language: string;
+  timezone: string;
+  
+  // Security
+  twoFAEnabled: boolean;
+  emailVerified: boolean;
+  phoneVerified: boolean;
+  
+  // Notifications
+  emailNotifications: boolean;
+  smsNotifications: boolean;
+  pushNotifications: boolean;
+  telegramNotifications: boolean;
+  
+  // Privacy
+  showOnlineStatus: boolean;
+  showPhone: boolean;
+  showEmail: boolean;
+  
+  // Appearance
+  theme: 'light' | 'dark' | 'system';
+  compactMode: boolean;
+  language_ui: string;
+}
+
+export default function SettingsPage() {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'notifications' | 'privacy' | 'appearance'>('profile');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
+
+  const [settings, setSettings] = useState<UserSettings>({
+    language: 'ru',
+    timezone: 'Asia/Bishkek',
+    twoFAEnabled: false,
+    emailVerified: false,
+    phoneVerified: false,
+    emailNotifications: true,
+    smsNotifications: false,
+    pushNotifications: true,
+    telegramNotifications: true,
+    showOnlineStatus: true,
+    showPhone: false,
+    showEmail: false,
+    theme: 'system',
+    compactMode: false,
+    language_ui: 'ru',
+  });
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      const response = await fetch('/api/user/settings');
+      const data = await response.json();
+      
+      if (response.ok && data.settings) {
+        setSettings({
+          ...settings,
+          ...data.settings,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to load settings', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    setError('');
+    setSuccess('');
+    setIsSaving(true);
+
+    try {
+      const response = await fetch('/api/user/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSuccess('Настройки успешно сохранены');
+        setTimeout(() => setSuccess(''), 3000);
+      } else {
+        setError(data.error || 'Ошибка сохранения');
+      }
+    } catch (err) {
+      setError('Произошла ошибка при сохранении');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const tabs = [
+    { id: 'profile', label: 'Профиль', icon: User },
+    { id: 'security', label: 'Безопасность', icon: Shield },
+    { id: 'notifications', label: 'Уведомления', icon: Bell },
+    { id: 'privacy', label: 'Приватность', icon: Eye },
+    { id: 'appearance', label: 'Оформление', icon: Palette },
+  ];
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-amber-600" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            Настройки
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Управление вашим аккаунтом и предпочтениями
+          </p>
+        </div>
+
+        {/* Messages */}
+        {error && (
+          <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+          </div>
+        )}
+
+        {success && (
+          <div className="mb-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 flex items-start gap-3">
+            <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-green-700 dark:text-green-300">{success}</p>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-2 sticky top-8">
+              <nav className="space-y-1">
+                {tabs.map((tab) => {
+                  const Icon = tab.icon;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id as any)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all ${
+                        activeTab === tab.id
+                          ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      <Icon className="w-5 h-5" />
+                      <span className="font-medium">{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="lg:col-span-3">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+              {/* Profile Tab */}
+              {activeTab === 'profile' && (
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                      <User className="w-6 h-6" />
+                      Настройки профиля
+                    </h2>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <Globe className="w-4 h-4 inline mr-2" />
+                        Язык интерфейса
+                      </label>
+                      <select
+                        value={settings.language_ui}
+                        onChange={(e) => setSettings({ ...settings, language_ui: e.target.value })}
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      >
+                        <option value="ru">Русский</option>
+                        <option value="en">English</option>
+                        <option value="kg">Кыргызча</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <Globe className="w-4 h-4 inline mr-2" />
+                        Часовой пояс
+                      </label>
+                      <select
+                        value={settings.timezone}
+                        onChange={(e) => setSettings({ ...settings, timezone: e.target.value })}
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      >
+                        <option value="Asia/Bishkek">Бишкек (GMT+6)</option>
+                        <option value="Europe/Moscow">Москва (GMT+3)</option>
+                        <option value="Europe/London">Лондон (GMT+0)</option>
+                        <option value="America/New_York">Нью-Йорк (GMT-5)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Security Tab */}
+              {activeTab === 'security' && (
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                      <Shield className="w-6 h-6" />
+                      Безопасность
+                    </h2>
+                  </div>
+
+                  {/* 2FA */}
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-start gap-3">
+                        <div className="bg-blue-500 p-3 rounded-xl">
+                          <Key className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            Двухфакторная аутентификация
+                          </h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            Дополнительный уровень защиты через Telegram
+                          </p>
+                        </div>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={settings.twoFAEnabled}
+                          onChange={(e) => setSettings({ ...settings, twoFAEnabled: e.target.checked })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 dark:peer-focus:ring-amber-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-amber-600"></div>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Verification Status */}
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Статус верификации</h3>
+                    
+                    <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                      <div className="flex items-center gap-3">
+                        <Mail className={`w-5 h-5 ${settings.emailVerified ? 'text-green-600' : 'text-gray-400'}`} />
+                        <span className="text-gray-700 dark:text-gray-300">Email адрес</span>
+                      </div>
+                      {settings.emailVerified ? (
+                        <span className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 rounded-full text-sm font-medium">
+                          Подтверждён
+                        </span>
+                      ) : (
+                        <button className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-medium">
+                          Подтвердить
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                      <div className="flex items-center gap-3">
+                        <Phone className={`w-5 h-5 ${settings.phoneVerified ? 'text-green-600' : 'text-gray-400'}`} />
+                        <span className="text-gray-700 dark:text-gray-300">Номер телефона</span>
+                      </div>
+                      {settings.phoneVerified ? (
+                        <span className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 rounded-full text-sm font-medium">
+                          Подтверждён
+                        </span>
+                      ) : (
+                        <button className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-medium">
+                          Подтвердить
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Change Password */}
+                  <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <button className="flex items-center gap-2 text-amber-600 hover:text-amber-700 font-medium">
+                      <Lock className="w-5 h-5" />
+                      Изменить пароль
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Notifications Tab */}
+              {activeTab === 'notifications' && (
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                      <Bell className="w-6 h-6" />
+                      Уведомления
+                    </h2>
+                  </div>
+
+                  <div className="space-y-3">
+                    {[
+                      { key: 'emailNotifications', label: 'Email уведомления', icon: Mail, desc: 'Получать уведомления на почту' },
+                      { key: 'smsNotifications', label: 'SMS уведомления', icon: Phone, desc: 'Получать SMS сообщения' },
+                      { key: 'pushNotifications', label: 'Push уведомления', icon: Smartphone, desc: 'Уведомления в браузере' },
+                      { key: 'telegramNotifications', label: 'Telegram уведомления', icon: MessageSquare, desc: 'Уведомления в Telegram боте' },
+                    ].map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <label key={item.key} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                          <div className="flex items-start gap-3">
+                            <Icon className="w-5 h-5 text-gray-600 dark:text-gray-400 mt-1" />
+                            <div>
+                              <span className="block font-medium text-gray-900 dark:text-white">{item.label}</span>
+                              <span className="block text-sm text-gray-500 dark:text-gray-400 mt-0.5">{item.desc}</span>
+                            </div>
+                          </div>
+                          <input
+                            type="checkbox"
+                            checked={settings[item.key as keyof UserSettings] as boolean}
+                            onChange={(e) => setSettings({ ...settings, [item.key]: e.target.checked })}
+                            className="w-5 h-5 text-amber-600 focus:ring-amber-500 rounded"
+                          />
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Privacy Tab */}
+              {activeTab === 'privacy' && (
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                      <Eye className="w-6 h-6" />
+                      Приватность
+                    </h2>
+                  </div>
+
+                  <div className="space-y-3">
+                    {[
+                      { key: 'showOnlineStatus', label: 'Показывать статус онлайн', desc: 'Другие пользователи видят когда вы в сети' },
+                      { key: 'showPhone', label: 'Показывать номер телефона', desc: 'Телефон виден в профиле' },
+                      { key: 'showEmail', label: 'Показывать email адрес', desc: 'Email виден в профиле' },
+                    ].map((item) => (
+                      <label key={item.key} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                        <div>
+                          <span className="block font-medium text-gray-900 dark:text-white">{item.label}</span>
+                          <span className="block text-sm text-gray-500 dark:text-gray-400 mt-0.5">{item.desc}</span>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={settings[item.key as keyof UserSettings] as boolean}
+                          onChange={(e) => setSettings({ ...settings, [item.key]: e.target.checked })}
+                          className="w-5 h-5 text-amber-600 focus:ring-amber-500 rounded"
+                        />
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Appearance Tab */}
+              {activeTab === 'appearance' && (
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                      <Palette className="w-6 h-6" />
+                      Оформление
+                    </h2>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                      Тема оформления
+                    </label>
+                    <div className="grid grid-cols-3 gap-4">
+                      {[
+                        { value: 'light', label: 'Светлая', icon: Sun },
+                        { value: 'dark', label: 'Тёмная', icon: Moon },
+                        { value: 'system', label: 'Системная', icon: Smartphone },
+                      ].map((theme) => {
+                        const Icon = theme.icon;
+                        return (
+                          <button
+                            key={theme.value}
+                            onClick={() => setSettings({ ...settings, theme: theme.value as any })}
+                            className={`p-6 rounded-xl border-2 transition-all ${
+                              settings.theme === theme.value
+                                ? 'border-amber-600 bg-amber-50 dark:bg-amber-900/20'
+                                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                            }`}
+                          >
+                            <Icon className={`w-8 h-8 mx-auto mb-2 ${
+                              settings.theme === theme.value ? 'text-amber-600' : 'text-gray-400'
+                            }`} />
+                            <span className={`block text-sm font-medium ${
+                              settings.theme === theme.value
+                                ? 'text-amber-600'
+                                : 'text-gray-700 dark:text-gray-300'
+                            }`}>
+                              {theme.label}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                    <div>
+                      <span className="block font-medium text-gray-900 dark:text-white">Компактный режим</span>
+                      <span className="block text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                        Уменьшенные отступы и размеры элементов
+                      </span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={settings.compactMode}
+                      onChange={(e) => setSettings({ ...settings, compactMode: e.target.checked })}
+                      className="w-5 h-5 text-amber-600 focus:ring-amber-500 rounded"
+                    />
+                  </label>
+                </div>
+              )}
+
+              {/* Save Button */}
+              <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 disabled:from-gray-400 disabled:to-gray-400 text-white font-semibold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl disabled:cursor-not-allowed"
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Сохранение...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-5 h-5" />
+                      Сохранить изменения
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
