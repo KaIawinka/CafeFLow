@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { locales, localeNames, type Locale } from '@/app/i18n/config';
+import { useTheme } from '@/components/ThemeProvider';
 import { 
   User, 
   Settings, 
@@ -44,7 +45,7 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutConfirm, setLogoutConfirm] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const { theme, setTheme } = useTheme();
   
   const dropdownRef = useRef<HTMLDivElement>(null);
   const langDropdownRef = useRef<HTMLDivElement>(null);
@@ -53,15 +54,6 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
   const router = useRouter();
 
   const currentLocale = (locales.find((locale) => pathname.split('/')[1] === locale) || 'ru') as Locale;
-
-  // Load theme from localStorage
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      applyTheme(savedTheme);
-    }
-  }, []);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -88,15 +80,8 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
     return () => window.clearTimeout(timeoutId);
   }, [pathname, isMobileMenuOpen]);
 
-  const applyTheme = (newTheme: 'light' | 'dark') => {
-    const root = document.documentElement;
-    root.classList.toggle('dark', newTheme === 'dark');
-  };
-
   const handleThemeChange = (newTheme: 'light' | 'dark') => {
     setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    applyTheme(newTheme);
     setIsThemeDropdownOpen(false);
   };
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { locales, type Locale } from "../i18n/config";
 import { getTranslations } from "../i18n/utils";
 import { UnifiedHeaderWrapper } from "@/components/UnifiedHeaderWrapper";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const dynamic = "force-dynamic";
 
@@ -30,9 +31,9 @@ export default async function LocaleLayout({
   children: React.ReactNode;
 }) {
   return (
-    <>
+    <ThemeProvider>
       <UnifiedHeaderWrapper />
       <main className="flex-1">{children}</main>
-    </>
+    </ThemeProvider>
   );
 }
