@@ -187,9 +187,10 @@ export default function AdminPage() {
                   </div>
                 </div>
 
-                {/* Users Table */}
+                {/* Users Table/Cards */}
                 <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
-                  <div className="overflow-x-auto">
+                  {/* Desktop Table View */}
+                  <div className="hidden md:block overflow-x-auto">
                     <table className="w-full">
                       <thead className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                         <tr>
@@ -247,7 +248,7 @@ export default function AdminPage() {
                               {new Date(user.created_at).toLocaleDateString('ru-RU')}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right">
-                              <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                              <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 min-h-[44px] min-w-[44px] flex items-center justify-center ml-auto">
                                 <MoreVertical className="w-5 h-5" />
                               </button>
                             </td>
@@ -255,6 +256,45 @@ export default function AdminPage() {
                         ))}
                       </tbody>
                     </table>
+                  </div>
+
+                  {/* Mobile Card View */}
+                  <div className="md:hidden divide-y divide-gray-200 dark:divide-gray-700">
+                    {filteredUsers.map((user) => (
+                      <div key={user.id} className="p-4 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors">
+                        <div className="flex items-start gap-3 mb-3">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white font-semibold flex-shrink-0">
+                            {user.first_name[0]?.toUpperCase()}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-gray-900 dark:text-white truncate">
+                              {user.first_name} {user.last_name}
+                            </h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                              {user.email}
+                            </p>
+                          </div>
+                          <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 min-h-[44px] min-w-[44px] flex items-center justify-center">
+                            <MoreVertical className="w-5 h-5" />
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${roleColors[user.role]}`}>
+                            {roleLabels[user.role]}
+                          </span>
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                            user.status === 'active'
+                              ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                              : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
+                          }`}>
+                            {user.status === 'active' ? 'Активен' : 'Заблокирован'}
+                          </span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            {new Date(user.created_at).toLocaleDateString('ru-RU')}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
