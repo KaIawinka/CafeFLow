@@ -14,27 +14,27 @@ export function FeaturesSection({ t }: FeaturesSectionProps) {
   ];
 
   return (
-    <section id="menu" className="py-24 bg-white dark:bg-gray-900">
+    <section id="menu" className="py-24 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent mb-4">
+          <h2 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent mb-4">
             {t.menu.title}
           </h2>
-          <p className="text-xl text-gray-600 dark:text-gray-400">
+          <p className="text-xl text-gray-600">
             {t.menu.subtitle}
           </p>
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {dishes.map((dish, i) => (
-            <div 
-              key={i} 
-              className="group bg-gradient-to-br from-white to-amber-50 dark:from-gray-800 dark:to-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2 transform border border-amber-100 dark:border-gray-700"
+            <div
+              key={i}
+              className="group bg-gradient-to-br from-white to-amber-50 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2 transform border border-amber-100"
             >
               <div className="text-6xl mb-4 text-center group-hover:scale-110 transition-transform">{dish.image}</div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 text-center">{dish.name}</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-3">{dish.description}</p>
-              <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 text-center">{dish.price}</p>
+              <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">{dish.name}</h3>
+              <p className="text-sm text-gray-600 text-center mb-3">{dish.description}</p>
+              <p className="text-2xl font-bold text-amber-600 text-center">{dish.price}</p>
             </div>
           ))}
         </div>

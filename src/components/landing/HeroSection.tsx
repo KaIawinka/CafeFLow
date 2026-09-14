@@ -7,19 +7,19 @@ interface HeroSectionProps {
 
 export function HeroSection({ t }: HeroSectionProps) {
   return (
-    <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100">
       {/* Decorative patterns */}
-      <div className="absolute inset-0 bg-grid-slate-100 dark:bg-grid-slate-700/25 opacity-30" />
-      <div className="absolute inset-0 bg-gradient-to-t from-white/50 dark:from-gray-900/80 via-transparent to-transparent" />
-      
+      <div className="absolute inset-0 bg-grid-slate-100 opacity-30" />
+      <div className="absolute inset-0 bg-gradient-to-t from-white/50 via-transparent to-transparent" />
+
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 text-center">
-        <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 dark:from-amber-400 dark:via-orange-400 dark:to-amber-500 bg-clip-text text-transparent mb-6 animate-float">
+        <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 bg-clip-text text-transparent mb-6 animate-float">
           {t.hero.title}
         </h1>
-        <p className="text-xl sm:text-2xl text-gray-700 dark:text-gray-300 mb-12 max-w-3xl mx-auto font-medium">
+        <p className="text-xl sm:text-2xl text-gray-700 mb-12 max-w-3xl mx-auto font-medium">
           {t.hero.subtitle}
         </p>
-        
+
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link
             href="#menu"
@@ -32,7 +32,7 @@ export function HeroSection({ t }: HeroSectionProps) {
           </Link>
           <Link
             href="#reservation"
-            className="group px-8 py-4 rounded-xl bg-white dark:bg-gray-800 text-amber-600 dark:text-amber-400 border-2 border-amber-600 dark:border-amber-500 font-semibold text-lg hover:bg-amber-50 dark:hover:bg-gray-700 transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 transform"
+            className="group px-8 py-4 rounded-xl bg-white text-amber-600 border-2 border-amber-600 font-semibold text-lg hover:bg-amber-50 transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 transform"
           >
             <span className="flex items-center justify-center gap-2">
               {t.hero.cta.reserve}

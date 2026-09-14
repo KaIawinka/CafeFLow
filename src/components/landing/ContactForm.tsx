@@ -36,21 +36,21 @@ export function ContactForm() {
   };
 
   return (
-    <div id="contact" className="bg-white dark:bg-zinc-800 rounded-3xl shadow-2xl p-8 md:p-12 border border-zinc-200 dark:border-zinc-700">
-      <h3 className="text-3xl font-bold text-zinc-900 dark:text-white mb-2">
+    <div id="contact" className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 border border-zinc-200">
+      <h3 className="text-3xl font-bold text-zinc-900 mb-2">
         Запросить демо
       </h3>
-      <p className="text-zinc-600 dark:text-zinc-400 mb-8">
+      <p className="text-zinc-600 mb-8">
         Заполните форму и мы свяжемся с вами в течение 24 часов
       </p>
 
       {status === "success" ? (
-        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-6 text-center">
+        <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-center">
           <div className="text-4xl mb-4">✅</div>
-          <h4 className="text-xl font-semibold text-green-900 dark:text-green-100 mb-2">
+          <h4 className="text-xl font-semibold text-green-900 mb-2">
             Спасибо за заявку!
           </h4>
-          <p className="text-green-700 dark:text-green-300">
+          <p className="text-green-700">
             Мы свяжемся с вами в ближайшее время
           </p>
         </div>
@@ -60,7 +60,7 @@ export function ContactForm() {
             <div>
               <label
                 htmlFor="name"
-                className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
+                className="block text-sm font-medium text-zinc-700 mb-2"
               >
                 Ваше имя *
               </label>
@@ -71,7 +71,7 @@ export function ContactForm() {
                 required
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full px-4 py-3 rounded-xl border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-zinc-300 bg-white text-zinc-900 focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
                 placeholder="Иван Иванов"
               />
             </div>
@@ -79,7 +79,7 @@ export function ContactForm() {
             <div>
               <label
                 htmlFor="phone"
-                className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
+                className="block text-sm font-medium text-zinc-700 mb-2"
               >
                 Телефон *
               </label>
@@ -90,7 +90,7 @@ export function ContactForm() {
                 required
                 value={formData.phone}
                 onChange={handleChange}
-                className="w-full px-4 py-3 rounded-xl border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-zinc-300 bg-white text-zinc-900 focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
                 placeholder="+7 (999) 123-45-67"
               />
             </div>
@@ -99,7 +99,7 @@ export function ContactForm() {
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
+              className="block text-sm font-medium text-zinc-700 mb-2"
             >
               Email *
             </label>
@@ -110,7 +110,7 @@ export function ContactForm() {
               required
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-zinc-300 bg-white text-zinc-900 focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
               placeholder="ivan@example.com"
             />
           </div>
@@ -118,7 +118,7 @@ export function ContactForm() {
           <div>
             <label
               htmlFor="company"
-              className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
+              className="block text-sm font-medium text-zinc-700 mb-2"
             >
               Название заведения
             </label>
@@ -128,7 +128,7 @@ export function ContactForm() {
               name="company"
               value={formData.company}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-zinc-300 bg-white text-zinc-900 focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
               placeholder="Кафе 'Уют'"
             />
           </div>
@@ -136,7 +136,7 @@ export function ContactForm() {
           <div>
             <label
               htmlFor="message"
-              className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
+              className="block text-sm font-medium text-zinc-700 mb-2"
             >
               Комментарий
             </label>
@@ -146,7 +146,7 @@ export function ContactForm() {
               rows={4}
               value={formData.message}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all resize-none"
+              className="w-full px-4 py-3 rounded-xl border border-zinc-300 bg-white text-zinc-900 focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all resize-none"
               placeholder="Расскажите о вашем заведении..."
             />
           </div>
@@ -181,7 +181,7 @@ export function ContactForm() {
             )}
           </button>
 
-          <p className="text-center text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="text-center text-sm text-zinc-500">
             Нажимая кнопку, вы соглашаетесь с{" "}
             <Link href="/privacy" className="text-amber-600 hover:text-amber-700 underline">
               политикой конфиденциальности

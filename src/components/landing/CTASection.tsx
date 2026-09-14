@@ -6,7 +6,7 @@ interface CTASectionProps {
 
 export function CTASection({ t }: CTASectionProps) {
   return (
-    <section id="reservation" className="py-24 bg-white dark:bg-black">
+    <section id="reservation" className="py-24 bg-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-3xl p-12 text-center text-white shadow-2xl">
           <h2 className="text-4xl font-bold mb-4">{t.reservation.title}</h2>

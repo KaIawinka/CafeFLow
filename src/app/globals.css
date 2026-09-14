@@ -18,8 +18,30 @@
   --input: #e5e7eb;
   --ring: #f59e0b;
   --radius: 0.75rem;
-  
+
   /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+  --gradient-secondary: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  --gradient-bg: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+}
+
+.light {
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --primary: #f59e0b;
+  --primary-foreground: #ffffff;
+  --secondary: #f3f4f6;
+  --secondary-foreground: #1f2937;
+  --muted: #f3f4f6;
+  --muted-foreground: #6b7280;
+  --accent: #fef3c7;
+  --accent-foreground: #92400e;
+  --border: #e5e7eb;
+  --input: #e5e7eb;
+  --ring: #f59e0b;
+
   --gradient-primary: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
   --gradient-secondary: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
   --gradient-bg: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
@@ -49,7 +71,7 @@
   --border: #334155;
   --input: #334155;
   --ring: #f59e0b;
-  
+
   /* Gradients */
   --gradient-primary: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
   --gradient-secondary: linear-gradient(135deg, #422006 0%, #78350f 100%);
