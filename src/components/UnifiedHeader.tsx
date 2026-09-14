@@ -20,6 +20,7 @@ import {
   Sun,
   Moon,
   Monitor,
+  Palette,
 } from 'lucide-react';
 
 interface UserData {
@@ -430,7 +431,7 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`block px-4 py-2 text-sm font-medium ${
+                  className={`block px-4 py-3 text-sm font-medium transition-colors min-h-[44px] flex items-center ${
                     pathname === link.href
                       ? 'text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/20'
                       : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
@@ -440,34 +441,87 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
                 </Link>
               ))}
 
-              <Link
-                href="/profile"
-                className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-              >
-                <User className="w-4 h-4" />
-                Профиль
-              </Link>
+              {/* Mobile Theme Selector */}
+              <div className="border-t border-gray-200 dark:border-gray-700 my-2 pt-2">
+                <div className="px-4 py-2">
+                  <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2">
+                    <Palette className="w-4 h-4" />
+                    <span className="font-medium">Тема</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(['light', 'dark'] as const).map((themeOption) => (
+                      <button
+                        key={themeOption}
+                        onClick={() => handleThemeChange(themeOption)}
+                        className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all min-h-[44px] ${
+                          theme === themeOption
+                            ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                        }`}
+                      >
+                        {themeIcons[themeOption]}
+                        <span>{themeLabels[themeOption]}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
 
-              <Link
-                href="/profile#settings"
-                className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-              >
-                <Settings className="w-4 h-4" />
-                Настройки
-              </Link>
+              {/* Mobile Language Selector */}
+              <div className="border-t border-gray-200 dark:border-gray-700 my-2 pt-2">
+                <div className="px-4 py-2">
+                  <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2">
+                    <Globe className="w-4 h-4" />
+                    <span className="font-medium">Язык</span>
+                  </div>
+                  <div className="space-y-1">
+                    {locales.map((locale) => (
+                      <button
+                        key={locale}
+                        onClick={() => switchLocale(locale)}
+                        className={`w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-all min-h-[44px] flex items-center ${
+                          currentLocale === locale
+                            ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                        }`}
+                      >
+                        {getLocalizedLanguageName(locale, currentLocale)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
 
-              <button
-                onClick={handleLogout}
-                disabled={isLoggingOut}
-                className={`flex items-center gap-3 px-4 py-2 text-sm w-full ${
-                  logoutConfirm
-                    ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
-                    : 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'
-                } disabled:opacity-50`}
-              >
-                <LogOut className="w-4 h-4" />
-                {isLoggingOut ? 'Выход...' : logoutConfirm ? 'Подтвердить выход' : 'Выйти'}
-              </button>
+              <div className="border-t border-gray-200 dark:border-gray-700 my-2 pt-2">
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 min-h-[44px] transition-colors"
+                >
+                  <User className="w-4 h-4" />
+                  Профиль
+                </Link>
+
+                <Link
+                  href="/profile#settings"
+                  className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 min-h-[44px] transition-colors"
+                >
+                  <Settings className="w-4 h-4" />
+                  Настройки
+                </Link>
+
+                <button
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className={`flex items-center gap-3 px-4 py-3 text-sm w-full min-h-[44px] transition-all ${
+                    logoutConfirm
+                      ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
+                      : 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'
+                  } disabled:opacity-50`}
+                >
+                  <LogOut className="w-4 h-4" />
+                  {isLoggingOut ? 'Выход...' : logoutConfirm ? 'Подтвердить выход' : 'Выйти'}
+                </button>
+              </div>
             </div>
           </div>
         )}
