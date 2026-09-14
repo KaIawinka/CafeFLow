@@ -146,11 +146,11 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
             Настройки
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
             Управление вашим аккаунтом и предпочтениями
           </p>
         </div>
@@ -170,10 +170,34 @@ export default function SettingsPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
+          {/* Sidebar - horizontal on mobile, vertical on desktop */}
           <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-2 sticky top-8">
+            {/* Mobile: horizontal scrollable tabs */}
+            <div className="lg:hidden bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-2 mb-4">
+              <nav className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide">
+                {tabs.map((tab) => {
+                  const Icon = tab.icon;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id as any)}
+                      className={`flex-shrink-0 flex flex-col items-center gap-1.5 px-4 py-3 rounded-xl transition-all touch-manipulation ${
+                        activeTab === tab.id
+                          ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg'
+                          : 'text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700'
+                      }`}
+                    >
+                      <Icon className="w-5 h-5" />
+                      <span className="text-xs font-medium whitespace-nowrap">{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
+
+            {/* Desktop: vertical sidebar */}
+            <div className="hidden lg:block bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-2 sticky top-8">
               <nav className="space-y-1">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
@@ -198,18 +222,18 @@ export default function SettingsPage() {
 
           {/* Content */}
           <div className="lg:col-span-3">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 sm:p-6">
               {/* Profile Tab */}
               {activeTab === 'profile' && (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   <div>
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                      <User className="w-6 h-6" />
+                    <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                      <User className="w-5 h-5 sm:w-6 sm:h-6" />
                       Настройки профиля
                     </h2>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         <Globe className="w-4 h-4 inline mr-2" />
@@ -218,7 +242,7 @@ export default function SettingsPage() {
                       <select
                         value={settings.language_ui}
                         onChange={(e) => setSettings({ ...settings, language_ui: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white touch-manipulation"
                       >
                         <option value="ru">Русский</option>
                         <option value="en">English</option>
@@ -234,7 +258,7 @@ export default function SettingsPage() {
                       <select
                         value={settings.timezone}
                         onChange={(e) => setSettings({ ...settings, timezone: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white touch-manipulation"
                       >
                         <option value="Asia/Bishkek">Бишкек (GMT+6)</option>
                         <option value="Europe/Moscow">Москва (GMT+3)</option>
