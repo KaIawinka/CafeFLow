@@ -272,31 +272,31 @@ export default function SettingsPage() {
 
               {/* Security Tab */}
               {activeTab === 'security' && (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   <div>
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                      <Shield className="w-6 h-6" />
+                    <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                      <Shield className="w-5 h-5 sm:w-6 sm:h-6" />
                       Безопасность
                     </h2>
                   </div>
 
                   {/* 2FA */}
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-start gap-3">
-                        <div className="bg-blue-500 p-3 rounded-xl">
-                          <Key className="w-6 h-6 text-white" />
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-start justify-between gap-4 mb-4">
+                      <div className="flex items-start gap-3 flex-1">
+                        <div className="bg-blue-500 p-2 sm:p-3 rounded-xl flex-shrink-0">
+                          <Key className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                          <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
                             Двухфакторная аутентификация
                           </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
                             Дополнительный уровень защиты через Telegram
                           </p>
                         </div>
                       </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
+                      <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
                         <input
                           type="checkbox"
                           checked={settings.twoFAEnabled}
@@ -309,36 +309,36 @@ export default function SettingsPage() {
                   </div>
 
                   {/* Verification Status */}
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Статус верификации</h3>
+                  <div className="space-y-3 sm:space-y-4">
+                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">Статус верификации</h3>
                     
-                    <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
                       <div className="flex items-center gap-3">
-                        <Mail className={`w-5 h-5 ${settings.emailVerified ? 'text-green-600' : 'text-gray-400'}`} />
-                        <span className="text-gray-700 dark:text-gray-300">Email адрес</span>
+                        <Mail className={`w-5 h-5 flex-shrink-0 ${settings.emailVerified ? 'text-green-600 dark:text-green-400' : 'text-gray-400'}`} />
+                        <span className="text-sm sm:text-base text-gray-700 dark:text-gray-300">Email адрес</span>
                       </div>
                       {settings.emailVerified ? (
-                        <span className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 rounded-full text-sm font-medium">
+                        <span className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap">
                           Подтверждён
                         </span>
                       ) : (
-                        <button className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-medium">
+                        <button className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-medium min-h-[44px] transition-colors">
                           Подтвердить
                         </button>
                       )}
                     </div>
 
-                    <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
                       <div className="flex items-center gap-3">
-                        <Phone className={`w-5 h-5 ${settings.phoneVerified ? 'text-green-600' : 'text-gray-400'}`} />
-                        <span className="text-gray-700 dark:text-gray-300">Номер телефона</span>
+                        <Phone className={`w-5 h-5 flex-shrink-0 ${settings.phoneVerified ? 'text-green-600 dark:text-green-400' : 'text-gray-400'}`} />
+                        <span className="text-sm sm:text-base text-gray-700 dark:text-gray-300">Номер телефона</span>
                       </div>
                       {settings.phoneVerified ? (
-                        <span className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 rounded-full text-sm font-medium">
+                        <span className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap">
                           Подтверждён
                         </span>
                       ) : (
-                        <button className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-medium">
+                        <button className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-medium min-h-[44px] transition-colors">
                           Подтвердить
                         </button>
                       )}
@@ -346,10 +346,10 @@ export default function SettingsPage() {
                   </div>
 
                   {/* Change Password */}
-                  <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
-                    <button className="flex items-center gap-2 text-amber-600 hover:text-amber-700 font-medium">
+                  <div className="pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <button className="flex items-center gap-2 text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 font-medium min-h-[44px] transition-colors">
                       <Lock className="w-5 h-5" />
-                      Изменить пароль
+                      <span className="text-sm sm:text-base">Изменить пароль</span>
                     </button>
                   </div>
                 </div>
