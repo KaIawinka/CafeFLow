@@ -25,23 +25,28 @@ function getInitialTheme(): Theme {
   return 'light';
 }
 
+function applyTheme(newTheme: Theme) {
+  if (typeof document === 'undefined') {
+    return;
+  }
+
+  const root = document.documentElement;
+  root.classList.remove('light', 'dark');
+  root.classList.add(newTheme);
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => getInitialTheme());
 
-  const applyTheme = (newTheme: Theme) => {
-    const root = document.documentElement;
-    root.classList.remove('light', 'dark');
-    root.classList.add(newTheme);
-  };
-
   useEffect(() => {
     applyTheme(theme);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('theme', theme);
+    }
   }, [theme]);
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem('theme', newTheme);
-    applyTheme(newTheme);
   };
 
   const toggleTheme = () => {

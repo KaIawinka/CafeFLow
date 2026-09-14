@@ -150,16 +150,16 @@ export default function VerifyEmailPage() {
 
   if (!userId || !email) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-100 via-orange-50 to-red-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
-          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Ошибка</h2>
-          <p className="text-gray-600 mb-6">
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 max-w-md w-full text-center border border-gray-100 dark:border-gray-700">
+          <AlertCircle className="w-16 h-16 text-red-500 dark:text-red-400 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Ошибка</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
             Отсутствуют необходимые параметры. Пожалуйста, войдите в систему заново.
           </p>
           <Link
             href="/login"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors min-h-[44px]"
           >
             Перейти к входу
           </Link>
@@ -169,10 +169,10 @@ export default function VerifyEmailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-100 via-orange-50 to-red-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="mb-4">
-          <Link href="/profile" className="inline-flex items-center gap-2 font-medium text-gray-800 hover:text-amber-700">
+          <Link href="/profile" className="inline-flex items-center gap-2 font-medium text-gray-800 dark:text-gray-200 hover:text-amber-700 dark:hover:text-amber-400 transition-colors min-h-[44px]">
             <ArrowLeft className="h-4 w-4" />
             К профилю
           </Link>
@@ -180,30 +180,30 @@ export default function VerifyEmailPage() {
 
         <div className="text-center mb-8">
           <Image src="/Logo-CafeFlow.png" alt="CafeFlow" width={64} height={64} className="mx-auto mb-4 h-16 w-16 rounded-2xl object-cover shadow-lg" />
-          <h1 className="text-3xl font-bold text-gray-900">CaféFlow</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">CaféFlow</h1>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100 dark:border-gray-700">
           {success ? (
             <div className="text-center">
-              <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Email подтверждён!</h2>
-              <p className="text-gray-600 mb-6">
+              <CheckCircle className="w-16 h-16 text-green-500 dark:text-green-400 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Email подтверждён!</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
                 Ваш email успешно подтверждён. Перенаправление...
               </p>
-              <Loader2 className="w-8 h-8 text-amber-600 animate-spin mx-auto" />
+              <Loader2 className="w-8 h-8 text-amber-600 dark:text-amber-400 animate-spin mx-auto" />
             </div>
           ) : (
             <>
               <div className="text-center mb-8">
-                <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Mail className="w-8 h-8 text-amber-600" />
+                <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Mail className="w-8 h-8 text-amber-600 dark:text-amber-400" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Подтвердите email</h2>
-                <p className="text-gray-600">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Подтвердите email</h2>
+                <p className="text-gray-600 dark:text-gray-400">
                   Мы отправили код подтверждения на
                 </p>
-                <p className="text-amber-600 font-medium">{email}</p>
+                <p className="text-amber-600 dark:text-amber-400 font-medium">{email}</p>
               </div>
 
               {error && (
@@ -214,7 +214,7 @@ export default function VerifyEmailPage() {
               )}
 
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-4 text-center">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4 text-center">
                   Введите 6-значный код
                 </label>
                 <div className="flex gap-2 justify-center" onPaste={handlePaste}>
@@ -229,14 +229,14 @@ export default function VerifyEmailPage() {
                       onChange={(e) => handleInputChange(index, e.target.value)}
                       onKeyDown={(e) => handleKeyDown(index, e)}
                       disabled={isVerifying}
-                      className="w-12 h-14 text-center text-2xl font-bold border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none transition-all disabled:bg-gray-100"
+                      className="w-11 sm:w-12 h-12 sm:h-14 text-center text-xl sm:text-2xl font-bold border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:border-amber-500 dark:focus:border-amber-400 focus:ring-2 focus:ring-amber-200 dark:focus:ring-amber-800 outline-none transition-all disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-400"
                     />
                   ))}
                 </div>
               </div>
 
               {isVerifying && (
-                <div className="flex items-center justify-center gap-2 text-amber-600 mb-4">
+                <div className="flex items-center justify-center gap-2 text-amber-600 dark:text-amber-400 mb-4">
                   <Loader2 className="w-5 h-5 animate-spin" />
                   <span className="text-sm font-medium">Проверка кода...</span>
                 </div>
@@ -246,7 +246,7 @@ export default function VerifyEmailPage() {
                 <button
                   onClick={handleResend}
                   disabled={resendCooldown > 0}
-                  className="inline-flex items-center gap-2 text-sm text-amber-600 hover:text-amber-700 font-medium disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+                  className="inline-flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 font-medium disabled:text-gray-400 dark:disabled:text-gray-600 disabled:cursor-not-allowed transition-colors min-h-[44px]"
                 >
                   <RefreshCw className="w-4 h-4" />
                   {resendCooldown > 0 

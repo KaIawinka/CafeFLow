@@ -1,6 +1,6 @@
 import { ThemeProvider } from '@/components/ThemeProvider';
 
-export default function AccessDeniedLayout({
+export default function VerifyEmailLayout({
   children,
 }: {
   children: React.ReactNode;

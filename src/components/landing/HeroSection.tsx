@@ -9,7 +9,6 @@ export function HeroSection({ t }: HeroSectionProps) {
   return (
     <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100">
       {/* Decorative patterns */}
-      <div className="absolute inset-0 bg-grid-slate-100 opacity-30" />
       <div className="absolute inset-0 bg-gradient-to-t from-white/50 via-transparent to-transparent" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 text-center">
