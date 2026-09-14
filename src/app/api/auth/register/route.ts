@@ -145,20 +145,31 @@ export async function POST(request: NextRequest) {
                      request.headers.get('x-real-ip') || 
                      'unknown';
 
-    // Create and send verification code
+    // Create and send verification code (don't fail registration if email fails)
+    let verificationCode: string | null = null;
     try {
       const code = await createVerificationCode(user.id, 'email_verification', ipAddress);
+      verificationCode = code;
+      
       const emailSent = await sendVerificationEmail(user.email, code, user.first_name);
       
       if (emailSent) {
         logger.info('Verification email sent after registration', { userId: user.id });
-      } else if (process.env.NODE_ENV === 'development') {
-        // In development mode, log the code
-        logger.info('Verification code (dev mode)', { code });
+      } else {
+        // Email service not configured or failed
+        logger.warn('Verification email not sent (service unavailable)', { userId: user.id });
+        if (process.env.NODE_ENV === 'development') {
+          // In development mode, log the code so user can verify manually
+          console.log('\n🔐 VERIFICATION CODE (dev mode):', code, '\n');
+          logger.info('Verification code (dev mode)', { code, userId: user.id });
+        }
       }
     } catch (emailError) {
-      // Don't fail registration if email fails, user can request it later
+      // Don't fail registration if email service fails
       logger.error('Failed to send verification email during registration', emailError);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('\n⚠️  Email service error (registration continues anyway)\n');
+      }
     }
 
     // Generate tokens
