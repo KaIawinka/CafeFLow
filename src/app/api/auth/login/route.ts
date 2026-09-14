@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
     // Password is correct
     logger.info('Password verified', { email: user.email });
 
-    // Check if 2FA is enabled
+    // Check if 2FA is enabled and Telegram is connected
     if (user.two_fa_enabled && user.telegram_chat_id) {
       // Check rate limit
       const rateLimitCheck = await checkCodeGenerationRateLimit(user.id);
@@ -139,32 +139,55 @@ export async function POST(request: NextRequest) {
       );
 
       // Send code via Telegram
-      const sent = await sendVerificationCode(
-        user.id,
-        verificationCode,
-        5 // 5 minutes expiry
-      );
-
-      if (!sent) {
-        logger.error('Failed to send 2FA code', undefined, { userId: user.id });
-        
-        return NextResponse.json(
-          { error: 'Не удалось отправить код подтверждения. Попробуйте позже.' },
-          { status: 500 }
+      try {
+        const sent = await sendVerificationCode(
+          user.id,
+          verificationCode,
+          5 // 5 minutes expiry
         );
+
+        if (!sent) {
+          logger.error('Failed to send 2FA code', undefined, { userId: user.id });
+          
+          // In development, allow login without 2FA if Telegram fails
+          if (process.env.NODE_ENV === 'development') {
+            logger.warn('Telegram 2FA bypassed in development mode', { userId: user.id });
+            console.log('\n⚠️  2FA bypassed (Telegram unavailable in dev mode)\n');
+            // Continue to generate tokens below
+          } else {
+            return NextResponse.json(
+              { error: 'Не удалось отправить код подтверждения. Попробуйте позже.' },
+              { status: 500 }
+            );
+          }
+        } else {
+          // Generate temporary session ID for 2FA verification
+          const tempSessionId = crypto.randomUUID();
+
+          logger.info('2FA code sent to Telegram', { email: user.email });
+
+          return NextResponse.json({
+            requires2FA: true,
+            tempSessionId,
+            message: 'Код подтверждения отправлен в Telegram',
+            expiresInMinutes: 5,
+          });
+        }
+      } catch (telegramError) {
+        logger.error('Telegram 2FA error', telegramError);
+        
+        // In development, allow login without 2FA if Telegram fails
+        if (process.env.NODE_ENV === 'development') {
+          logger.warn('Telegram 2FA bypassed due to error in development', { userId: user.id });
+          console.log('\n⚠️  2FA bypassed (Telegram error in dev mode)\n');
+          // Continue to generate tokens below
+        } else {
+          return NextResponse.json(
+            { error: 'Ошибка отправки кода. Попробуйте позже.' },
+            { status: 500 }
+          );
+        }
       }
-
-      // Generate temporary session ID for 2FA verification
-      const tempSessionId = crypto.randomUUID();
-
-      logger.info('2FA code sent to Telegram', { email: user.email });
-
-      return NextResponse.json({
-        requires2FA: true,
-        tempSessionId,
-        message: 'Код подтверждения отправлен в Telegram',
-        expiresInMinutes: 5,
-      });
     }
 
     // No 2FA required - generate tokens immediately
