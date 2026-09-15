@@ -25,7 +25,12 @@ interface RegisterRequest {
 export async function POST(request: NextRequest) {
   try {
     const body: RegisterRequest = await request.json();
-    const { email, password, firstName, lastName, phone, recaptchaToken } = body;
+    const email = body.email?.trim().toLowerCase();
+    const password = body.password;
+    const firstName = body.firstName?.trim();
+    const lastName = body.lastName?.trim();
+    const phone = body.phone?.trim();
+    const recaptchaToken = body.recaptchaToken;
 
     // Validation
     if (!email || !password || !firstName) {
@@ -71,6 +76,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (firstName.length > 100 || (lastName && lastName.length > 100) || (phone && phone.length > 40)) {
+      return NextResponse.json(
+        { error: 'Проверьте длину имени, фамилии и телефона' },
+        { status: 400 }
+      );
+    }
+
     // Check if user already exists
     const existingUser = await prisma.users.findFirst({
       where: { 
@@ -91,7 +103,7 @@ export async function POST(request: NextRequest) {
     const user = await prisma.$transaction(async (transaction) => {
       const createdUser = await transaction.users.create({
         data: {
-          email: email.toLowerCase(),
+          email,
           password_hash: passwordHash,
           first_name: firstName,
           last_name: lastName || null,
@@ -200,8 +212,26 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
 
   } catch (error) {
-    logger.error('Registration error', error);
-    
+    logger.error('Registration error', error, {
+      errorCode: error && typeof error === 'object' && 'code' in error ? String(error.code) : undefined,
+    });
+
+    if (error && typeof error === 'object' && 'code' in error) {
+      const prismaCode = String(error.code);
+      if (prismaCode === 'P2002') {
+        return NextResponse.json(
+          { error: 'Пользователь с таким email уже существует' },
+          { status: 409 }
+        );
+      }
+      if (prismaCode === 'P1001' || prismaCode === 'P1002' || prismaCode === 'P2021') {
+        return NextResponse.json(
+          { error: 'База данных временно недоступна. Проверьте DATABASE_URL и примененные миграции.' },
+          { status: 503 }
+        );
+      }
+    }
+
     return NextResponse.json(
       { error: 'Внутренняя ошибка сервера' },
       { status: 500 }
