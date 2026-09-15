@@ -1,0 +1,58 @@
+'use client';
+
+import { FormEvent, useState } from 'react';
+import Link from 'next/link';
+import { ArrowLeft, CheckCircle, KeyRound, Loader2, Mail } from 'lucide-react';
+import type { Locale } from '@/app/i18n/config';
+
+type Copy = { title: string; subtitle: string; email: string; send: string; code: string; password: string; confirm: string; reset: string; back: string; sent: string; mismatch: string; generic: string; success: string; invalid: string };
+const copy: Record<Locale, Copy> = {
+  ru: { title: 'Восстановление пароля', subtitle: 'Введите email, и мы отправим код для смены пароля.', email: 'Email', send: 'Отправить код', code: 'Код из письма', password: 'Новый пароль', confirm: 'Повторите пароль', reset: 'Изменить пароль', back: 'Вернуться ко входу', sent: 'Код отправлен на почту', mismatch: 'Пароли не совпадают', generic: 'Если аккаунт существует, код отправлен на почту.', success: 'Пароль изменен. Теперь можно войти.', invalid: 'Введите корректный email' },
+  en: { title: 'Reset password', subtitle: 'Enter your email and we will send a reset code.', email: 'Email', send: 'Send code', code: 'Email code', password: 'New password', confirm: 'Confirm password', reset: 'Change password', back: 'Back to login', sent: 'Code sent to your email', mismatch: 'Passwords do not match', generic: 'If an account exists, a code was sent to the email.', success: 'Password changed. You can now log in.', invalid: 'Enter a valid email' },
+  kg: { title: 'Сыр сөздү калыбына келтирүү', subtitle: 'Email киргизиңиз, код жөнөтөбүз.', email: 'Email', send: 'Код жөнөтүү', code: 'Email коду', password: 'Жаңы сыр сөз', confirm: 'Сыр сөздү кайталаңыз', reset: 'Сыр сөздү өзгөртүү', back: 'Кирүүгө кайтуу', sent: 'Код email дарегиңизге жөнөтүлдү', mismatch: 'Сыр сөздөр дал келген жок', generic: 'Аккаунт болсо, код email дарегине жөнөтүлдү.', success: 'Сыр сөз өзгөртүлдү. Эми кирсеңиз болот.', invalid: 'Туура email киргизиңиз' },
+};
+
+export default function ForgotPasswordPage({ params }: { params: Promise<{ locale: Locale }> }) {
+  const [locale, setLocale] = useState<Locale>('ru');
+  const [initialized, setInitialized] = useState(false);
+  if (!initialized) { void params.then(({ locale: nextLocale }) => { setLocale(nextLocale); setInitialized(true); }); }
+  return <ForgotPasswordForm locale={locale} />;
+}
+
+function ForgotPasswordForm({ locale }: { locale: Locale }) {
+  const t = copy[locale] || copy.ru;
+  const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [step, setStep] = useState<'email' | 'reset' | 'done'>('email');
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const requestCode = async (event: FormEvent) => {
+    event.preventDefault(); setError(''); setMessage('');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) { setError(t.invalid); return; }
+    setLoading(true);
+    try {
+      const response = await fetch('/api/auth/forgot-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || t.invalid);
+      setMessage(data.devCode ? `${t.sent}: ${data.devCode}` : t.generic); setStep('reset');
+    } catch (requestError) { setError(requestError instanceof Error ? requestError.message : t.invalid); } finally { setLoading(false); }
+  };
+
+  const resetPassword = async (event: FormEvent) => {
+    event.preventDefault(); setError(''); setMessage('');
+    if (password !== confirm) { setError(t.mismatch); return; }
+    setLoading(true);
+    try {
+      const response = await fetch('/api/auth/reset-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, code, password }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || t.invalid);
+      setMessage(t.success); setStep('done');
+    } catch (resetError) { setError(resetError instanceof Error ? resetError.message : t.invalid); } finally { setLoading(false); }
+  };
+
+  return <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 p-4 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950"><section className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-7 shadow-xl dark:border-gray-800 dark:bg-gray-900 sm:p-9"><div className="mb-7 text-center"><div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"><KeyRound className="h-7 w-7" /></div><h1 className="text-2xl font-black text-gray-900 dark:text-white">{t.title}</h1><p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{t.subtitle}</p></div>{message && <div className="mb-4 flex gap-2 rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-800 dark:border-green-900 dark:bg-green-950/30 dark:text-green-300"><CheckCircle className="h-5 w-5 shrink-0" />{message}</div>}{error && <p className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300">{error}</p>}{step === 'email' && <form onSubmit={requestCode} className="space-y-4"><label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">{t.email}<div className="relative mt-2"><Mail className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" /><input required type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} className="h-12 w-full rounded-xl border border-gray-300 bg-white pl-11 pr-4 outline-none focus:border-amber-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white" /></div></label><button disabled={loading} className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-amber-600 font-bold text-white hover:bg-amber-700 disabled:opacity-50">{loading && <Loader2 className="h-4 w-4 animate-spin" />}{t.send}</button></form>}{step === 'reset' && <form onSubmit={resetPassword} className="space-y-4"><input required inputMode="numeric" pattern="[0-9]{6}" maxLength={6} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, ''))} placeholder={t.code} className="h-12 w-full rounded-xl border border-gray-300 bg-white px-4 text-center text-xl tracking-[0.4em] outline-none focus:border-amber-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white" /><input required minLength={8} type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder={t.password} className="h-12 w-full rounded-xl border border-gray-300 bg-white px-4 outline-none focus:border-amber-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white" /><input required minLength={8} type="password" autoComplete="new-password" value={confirm} onChange={(event) => setConfirm(event.target.value)} placeholder={t.confirm} className="h-12 w-full rounded-xl border border-gray-300 bg-white px-4 outline-none focus:border-amber-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white" /><button disabled={loading} className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-amber-600 font-bold text-white hover:bg-amber-700 disabled:opacity-50">{loading && <Loader2 className="h-4 w-4 animate-spin" />}{t.reset}</button></form>}{step === 'done' && <Link href={`/${locale}/login`} className="flex h-12 items-center justify-center rounded-xl bg-amber-600 font-bold text-white">{t.back}</Link>}<Link href={`/${locale}/login`} className="mt-6 flex items-center justify-center gap-2 text-sm font-semibold text-amber-700 hover:underline dark:text-amber-400"><ArrowLeft className="h-4 w-4" />{t.back}</Link></section></main>;
+}

@@ -226,6 +226,11 @@ function LoginContent() {
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
+                <div className="mt-2 text-right">
+                  <Link href={`/${currentLocale}/forgot-password`} className="text-sm font-medium text-amber-600 hover:text-amber-700 dark:text-amber-400">
+                    {t.login.forgotPassword}
+                  </Link>
+                </div>
               </div>
 
               <button
