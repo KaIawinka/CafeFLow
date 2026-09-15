@@ -166,7 +166,7 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
     const links = [];
     
     if (user.role === 'admin' || user.role === 'manager') {
-      links.push({ href: `/${currentLocale}/admin/dashboard`, label: ui.header.admin });
+      links.push({ href: `/${currentLocale}/admin`, label: ui.header.admin });
     }
     
     if (user.role === 'kitchen') {
