@@ -6,9 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { hashPassword } from '@/lib/auth/password';
-import { generateTokenPair } from '@/lib/auth/jwt';
 import { logger } from '@/lib/logger';
-import crypto from 'crypto';
 import { validateEmailAddress, createVerificationCode } from '@/lib/email/verification';
 import { sendVerificationEmail } from '@/lib/email/client';
 import { verifyRecaptcha } from '@/lib/recaptcha';
@@ -110,7 +108,7 @@ export async function POST(request: NextRequest) {
           phone: phone || null,
           display_name: `${firstName}${lastName ? ' ' + lastName : ''}`,
           role: 'customer',
-          status: 'active',
+          status: 'pending',
           two_fa_enabled: false,
           requires_approval: false,
           language: 'ru',
@@ -157,7 +155,7 @@ export async function POST(request: NextRequest) {
                      request.headers.get('x-real-ip') || 
                      'unknown';
 
-    // Create and send verification code (don't fail registration if email fails)
+    // The account stays pending until the email verification code is accepted.
     try {
       const code = await createVerificationCode(user.id, 'email_verification', ipAddress);
       
@@ -166,39 +164,37 @@ export async function POST(request: NextRequest) {
       if (emailSent) {
         logger.info('Verification email sent after registration', { userId: user.id });
       } else {
-        // Email service not configured or failed
         logger.warn('Verification email not sent (service unavailable)', { userId: user.id });
-        if (process.env.NODE_ENV === 'development') {
-          // In development mode, log the code so user can verify manually
-          console.log('\n🔐 VERIFICATION CODE (dev mode):', code, '\n');
-          logger.info('Verification code (dev mode)', { code, userId: user.id });
+        if (process.env.NODE_ENV === 'production') {
+          await prisma.$transaction([
+            prisma.verification_codes.deleteMany({ where: { user_id: user.id, type: 'email_verification' } }),
+            prisma.user_settings.deleteMany({ where: { user_id: user.id } }),
+            prisma.users.delete({ where: { id: user.id } }),
+          ]);
+          return NextResponse.json(
+            { error: 'Не удалось отправить код подтверждения. Проверьте настройки Resend и повторите регистрацию.' },
+            { status: 503 },
+          );
         }
       }
     } catch (emailError) {
-      // Don't fail registration if email service fails
       logger.error('Failed to send verification email during registration', emailError);
-      if (process.env.NODE_ENV === 'development') {
-        console.log('\n⚠️  Email service error (registration continues anyway)\n');
+      if (process.env.NODE_ENV === 'production') {
+        await prisma.$transaction([
+          prisma.verification_codes.deleteMany({ where: { user_id: user.id, type: 'email_verification' } }),
+          prisma.user_settings.deleteMany({ where: { user_id: user.id } }),
+          prisma.users.delete({ where: { id: user.id } }),
+        ]);
+        return NextResponse.json(
+          { error: 'Не удалось отправить код подтверждения. Проверьте настройки Resend и повторите регистрацию.' },
+          { status: 503 },
+        );
       }
     }
 
-    // Generate tokens
-    const tokenPayload = {
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-      status: user.status,
-      requiresApproval: false,
-      sessionId: crypto.randomUUID(),
-    };
-
-    const { accessToken, refreshToken } = await generateTokenPair(tokenPayload);
-
-    // Return tokens and user info
+    // Do not authenticate an unverified account.
     return NextResponse.json({
       success: true,
-      accessToken,
-      refreshToken,
       user: {
         id: user.id,
         email: user.email,

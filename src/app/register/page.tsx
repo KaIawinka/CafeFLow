@@ -104,14 +104,7 @@ function RegisterForm() {
         return;
       }
 
-      // Success - set tokens and redirect to email verification
-      if (data.accessToken) {
-        document.cookie = `accessToken=${data.accessToken}; path=/; max-age=900`;
-        document.cookie = `refreshToken=${data.refreshToken}; path=/; max-age=604800`;
-        
-        // Redirect to email verification page
-        router.push(`/verify-email?userId=${data.user.id}&email=${encodeURIComponent(data.user.email)}`);
-      }
+      router.push(`/verify-email?userId=${data.user.id}&email=${encodeURIComponent(data.user.email)}`);
     } catch {
       setError(t.register.errors.serverError);
       setIsLoading(false);
