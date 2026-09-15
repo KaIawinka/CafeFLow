@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, useState, useEffect, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Mail, CheckCircle, AlertCircle, Loader2, ArrowLeft, RefreshCw } from 'lucide-react';
@@ -17,6 +17,8 @@ export default function VerifyEmailPage() {
 function VerifyEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const currentLocale = ['ru', 'en', 'kg'].includes(pathname.split('/').filter(Boolean)[0] || '') ? pathname.split('/').filter(Boolean)[0] : 'ru';
   const userId = searchParams.get('userId');
   const email = searchParams.get('email');
 
@@ -166,7 +168,7 @@ function VerifyEmailContent() {
             Отсутствуют необходимые параметры. Пожалуйста, войдите в систему заново.
           </p>
           <Link
-            href="/login"
+            href={`/${currentLocale}/login`}
             className="inline-flex items-center gap-2 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors min-h-[44px]"
           >
             Перейти к входу

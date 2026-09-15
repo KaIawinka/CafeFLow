@@ -308,7 +308,7 @@ function RegisterForm() {
 
             <div className="text-center text-sm text-gray-600 dark:text-gray-400">
               {t.register.haveAccount}{' '}
-              <Link href="/login" className="text-amber-600 hover:text-amber-700 font-medium">
+              <Link href={`/${currentLocale}/login`} className="text-amber-600 hover:text-amber-700 font-medium">
                 {t.register.login}
               </Link>
             </div>

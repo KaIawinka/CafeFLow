@@ -184,19 +184,25 @@ export default function AdminPage() {
   }, [filterRole, refreshKey, searchQuery]);
 
   useEffect(() => {
-    try {
-      setLocalKitchenOrders(JSON.parse(localStorage.getItem('cafeflow-orders') || '[]') as LocalKitchenOrder[]);
-    } catch {
-      setLocalKitchenOrders([]);
-    }
+    const timeoutId = window.setTimeout(() => {
+      try {
+        setLocalKitchenOrders(JSON.parse(localStorage.getItem('cafeflow-orders') || '[]') as LocalKitchenOrder[]);
+      } catch {
+        setLocalKitchenOrders([]);
+      }
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
   useEffect(() => {
-    try {
-      setLocalReservations(JSON.parse(localStorage.getItem('cafeflow-reservations') || '[]') as LocalReservation[]);
-    } catch {
-      setLocalReservations([]);
-    }
+    const timeoutId = window.setTimeout(() => {
+      try {
+        setLocalReservations(JSON.parse(localStorage.getItem('cafeflow-reservations') || '[]') as LocalReservation[]);
+      } catch {
+        setLocalReservations([]);
+      }
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
   const updateUser = async (userId: string, changes: { role?: string; status?: string; requiresApproval?: boolean }) => {
