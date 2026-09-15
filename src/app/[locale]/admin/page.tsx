@@ -69,6 +69,17 @@ interface RecentOrder {
   created_at: string;
 }
 
+interface LocalKitchenOrder {
+  id: string;
+  createdAt: string;
+  table: string;
+  customerName: string;
+  total: number;
+  status: string;
+  comment: string;
+  items?: Array<{ productId: string; quantity: number }>;
+}
+
 interface Product {
   id: string;
   name: string;
@@ -90,6 +101,7 @@ export default function AdminPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [metrics, setMetrics] = useState<Metrics>({ users: 0, activeUsers: 0, admins: 0, orders: 0, revenue: 0, products: 0, activeProducts: 0 });
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
+  const [localKitchenOrders, setLocalKitchenOrders] = useState<LocalKitchenOrder[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [error, setError] = useState('');
   const [savingId, setSavingId] = useState<string | null>(null);
@@ -152,6 +164,14 @@ export default function AdminPage() {
     return () => window.clearTimeout(timeoutId);
   }, [filterRole, refreshKey, searchQuery]);
 
+  useEffect(() => {
+    try {
+      setLocalKitchenOrders(JSON.parse(localStorage.getItem('cafeflow-orders') || '[]') as LocalKitchenOrder[]);
+    } catch {
+      setLocalKitchenOrders([]);
+    }
+  }, []);
+
   const updateUser = async (userId: string, changes: { role?: string; status?: string; requiresApproval?: boolean }) => {
     setSavingId(userId);
     setError('');
@@ -194,6 +214,13 @@ export default function AdminPage() {
   const updateOrder = async (orderId: string, orderStatus: string) => {
     setSavingId(orderId);
     setError('');
+    if (orderId.startsWith('CF-')) {
+      const next = localKitchenOrders.map((order) => order.id === orderId ? { ...order, status: orderStatus } : order);
+      setLocalKitchenOrders(next);
+      localStorage.setItem('cafeflow-orders', JSON.stringify(next));
+      setSavingId(null);
+      return;
+    }
     try {
       const response = await fetch('/api/admin/dashboard', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ resource: 'order', id: orderId, orderStatus }) });
       const data = await response.json();
@@ -525,20 +552,29 @@ export default function AdminPage() {
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{ui.admin.ordersTab}</h2>
                     <p className="text-sm text-gray-500 dark:text-gray-400">{ui.admin.manageOrders}</p>
                   </div>
-                  <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">{recentOrders.length}</span>
+                  <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">{recentOrders.length + localKitchenOrders.length}</span>
                 </div>
                 <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
                   <table className="w-full min-w-[720px] text-left text-sm">
                     <thead className="bg-gray-50 text-xs uppercase text-gray-500 dark:bg-gray-900 dark:text-gray-400">
-                      <tr><th className="px-4 py-3">№</th><th className="px-4 py-3">{ui.admin.clients}</th><th className="px-4 py-3">{ui.admin.revenue}</th><th className="px-4 py-3">{ui.admin.payment}</th><th className="px-4 py-3">{ui.admin.status}</th></tr>
+                      <tr><th className="px-4 py-3">№</th><th className="px-4 py-3">{ui.admin.clients}</th><th className="px-4 py-3">Столик / детали</th><th className="px-4 py-3">{ui.admin.revenue}</th><th className="px-4 py-3">{ui.admin.status}</th></tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                      {localKitchenOrders.map((order) => (
+                        <tr key={order.id} className="bg-orange-50/60 dark:bg-orange-950/20">
+                          <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">#{order.id}<span className="ml-2 rounded bg-orange-200 px-1.5 py-0.5 text-[10px] font-bold text-orange-800">QR</span></td>
+                          <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{order.customerName}</td>
+                          <td className="px-4 py-3 text-gray-600 dark:text-gray-400">Столик {order.table}<br /><span className="text-xs">{order.comment || 'Без комментария'}</span></td>
+                          <td className="px-4 py-3 font-semibold text-amber-600 dark:text-amber-400">{order.total} сом</td>
+                          <td className="px-4 py-3"><select value={order.status} disabled={savingId === order.id} onChange={(event) => void updateOrder(order.id, event.target.value)} className="min-h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">{['new', 'confirmed', 'cooking', 'ready', 'completed', 'cancelled'].map((status) => <option key={status} value={status}>{status}</option>)}</select></td>
+                        </tr>
+                      ))}
                       {recentOrders.map((order) => (
                         <tr key={order.id} className="bg-white dark:bg-gray-800">
                           <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">#{order.order_number}</td>
                           <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{order.customer_name}</td>
+                          <td className="px-4 py-3 text-gray-500 dark:text-gray-400">DB-заказ</td>
                           <td className="px-4 py-3 font-semibold text-amber-600 dark:text-amber-400">{order.total} {order.currency}</td>
-                          <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{order.payment_status}</td>
                           <td className="px-4 py-3">
                             <select value={order.status} disabled={savingId === order.id} onChange={(event) => void updateOrder(order.id, event.target.value)} className="min-h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
                               {['new', 'confirmed', 'cooking', 'ready', 'delivering', 'completed', 'cancelled'].map((status) => <option key={status} value={status}>{status}</option>)}

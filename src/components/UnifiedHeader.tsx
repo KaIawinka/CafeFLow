@@ -174,9 +174,18 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/Logo-
   const currentRole = user ? roleConfig[user.role] || roleConfig.customer : null;
 
   const getNavLinks = () => {
-    if (!user) return [];
-    
-    const links = [];
+    const labels = {
+      ru: { menu: 'Меню', booking: 'Бронь', orders: 'Мои заказы' },
+      en: { menu: 'Menu', booking: 'Booking', orders: 'My orders' },
+      kg: { menu: 'Меню', booking: 'Брондоо', orders: 'Менин заказдарым' },
+    }[currentLocale];
+    const links = [
+      { href: `/${currentLocale}/menu`, label: labels.menu },
+      { href: `/${currentLocale}/booking`, label: labels.booking },
+      { href: `/${currentLocale}/orders`, label: labels.orders },
+    ];
+
+    if (!user) return links;
     
     if (user.role === 'admin' || user.role === 'manager') {
       links.push({ href: `/${currentLocale}/admin`, label: ui.header.admin });
@@ -185,8 +194,6 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/Logo-
     if (user.role === 'kitchen') {
       links.push({ href: '/kitchen', label: ui.header.kitchen });
     }
-    
-    links.push({ href: '/orders', label: ui.header.orders });
     
     return links;
   };
