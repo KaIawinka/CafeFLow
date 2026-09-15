@@ -19,7 +19,6 @@ import {
   Globe,
   Sun,
   Moon,
-  Monitor,
   Palette,
 } from 'lucide-react';
 
@@ -37,6 +36,10 @@ interface UserData {
 
 interface UnifiedHeaderProps {
   user?: UserData | null;
+}
+
+function savePreferredLanguage(locale: Locale) {
+  document.cookie = `preferredLanguage=${locale}; path=/; max-age=31536000`;
 }
 
 export function UnifiedHeader({ user }: UnifiedHeaderProps) {
@@ -88,7 +91,7 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
 
   const switchLocale = (newLocale: Locale) => {
     // Save to cookie (используется middleware для авто-применения)
-    document.cookie = `preferredLanguage=${newLocale}; path=/; max-age=31536000`; // 1 год
+    savePreferredLanguage(newLocale);
     
     const segments = pathname.split('/').filter(Boolean);
     if (locales.includes(segments[0] as Locale)) {
@@ -368,20 +371,9 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
                   )}
                 </div>
 
-                {/* Mobile Menu Button */}
-                <button
-                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
-                >
-                  {isMobileMenuOpen ? (
-                    <X className="w-6 h-6 text-gray-700 dark:text-gray-300" />
-                  ) : (
-                    <Menu className="w-6 h-6 text-gray-700 dark:text-gray-300" />
-                  )}
-                </button>
               </>
             ) : (
-              <div className="flex items-center gap-3">
+              <div className="hidden items-center gap-3 md:flex">
                 <Link
                   href={`/${currentLocale}`}
                   className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-500 transition-colors"
@@ -402,13 +394,26 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
                 </Link>
               </div>
             )}
+
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-800 md:hidden"
+              aria-label={isMobileMenuOpen ? 'Закрыть меню' : 'Открыть меню'}
+              aria-expanded={isMobileMenuOpen}
+            >
+              {isMobileMenuOpen ? (
+                <X className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+              ) : (
+                <Menu className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+              )}
+            </button>
           </div>
         </div>
 
         {/* Mobile Menu */}
-        {user && isMobileMenuOpen && (
+        {isMobileMenuOpen && (
           <div className="md:hidden border-t border-gray-200 dark:border-gray-800 py-4">
-            <div className="flex items-center gap-3 px-4 py-3 mb-4">
+            {user && <div className="flex items-center gap-3 px-4 py-3 mb-4">
               {user.avatarUrl ? (
                 <Image src={user.avatarUrl} alt="Аватар" width={40} height={40} className="h-10 w-10 rounded-full object-cover" />
               ) : (
@@ -424,7 +429,7 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
                   {user.email}
                 </div>
               </div>
-            </div>
+            </div>}
 
             <div className="space-y-1">
               {navLinks.map((link) => (
@@ -441,8 +446,22 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
                 </Link>
               ))}
 
+              {!user && (
+                <div className="space-y-1">
+                  <Link href={`/${currentLocale}`} className="flex min-h-[44px] items-center px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
+                    Главная
+                  </Link>
+                  <Link href="/login" className="flex min-h-[44px] items-center px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
+                    Войти
+                  </Link>
+                  <Link href="/register" className="mx-4 flex min-h-[44px] items-center justify-center rounded-lg bg-amber-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-amber-700">
+                    Регистрация
+                  </Link>
+                </div>
+              )}
+
               {/* Mobile Theme Selector */}
-              <div className="border-t border-gray-200 dark:border-gray-700 my-2 pt-2">
+              {user && <div className="border-t border-gray-200 dark:border-gray-700 my-2 pt-2">
                 <div className="px-4 py-2">
                   <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2">
                     <Palette className="w-4 h-4" />
@@ -465,7 +484,7 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
                     ))}
                   </div>
                 </div>
-              </div>
+              </div>}
 
               {/* Mobile Language Selector */}
               <div className="border-t border-gray-200 dark:border-gray-700 my-2 pt-2">

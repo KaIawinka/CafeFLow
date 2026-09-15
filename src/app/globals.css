@@ -25,6 +25,7 @@
   --gradient-primary: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
   --gradient-secondary: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
   --gradient-bg: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+  color-scheme: light;
 }
 
 .light {
@@ -78,6 +79,7 @@
   --gradient-primary: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
   --gradient-secondary: linear-gradient(135deg, #422006 0%, #78350f 100%);
   --gradient-bg: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color-scheme: dark;
 }
 
 body {
@@ -87,6 +89,7 @@ body {
   font-feature-settings: "rlig" 1, "calt" 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-width: 320px;
 }
 
 /* Grid background pattern */
@@ -220,20 +223,6 @@ select {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Card hover effect */
-.card-hover {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.card-hover:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-}
-
-.dark .card-hover:hover {
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
-}
-
 /* Hide scrollbar but keep functionality */
 .scrollbar-hide {
   -ms-overflow-style: none;
@@ -252,12 +241,6 @@ select {
   }
 }
 
-.dark .glass {
-  background: rgba(30, 41, 59, 0.7);
-  border: 1px solid rgba(148, 163, 184, 0.1);
-}
-
-/* Card hover effect */
 .card-hover {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -328,15 +311,5 @@ select {
   .no-print {
     display: none !important;
   }
-}
-
-/* Hide scrollbar but keep functionality */
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
 }
 

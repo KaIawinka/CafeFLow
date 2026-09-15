@@ -46,7 +46,6 @@ export const themeLabels = {
   dark: 'Тёмная',
 };
 
-// Локализованные названия языков
 const languageNames: Record<Locale, Record<Locale, string>> = {
   ru: { ru: 'Русский', en: 'Английский', kg: 'Кыргызский' },
   en: { ru: 'Russian', en: 'English', kg: 'Kyrgyz' },
