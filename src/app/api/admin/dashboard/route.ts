@@ -155,11 +155,19 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (body.resource === 'tenant') {
-      if (!actor.tenant_id) return NextResponse.json({ error: 'У администратора не настроен tenant' }, { status: 400 });
-      const currentTenant = await prisma.tenants.findUnique({ where: { id: actor.tenant_id }, select: { settings: true } });
+      let tenantId = actor.tenant_id;
+      if (!tenantId) {
+        if (auth.role !== 'admin') return NextResponse.json({ error: 'Для сохранения настроек нужны права администратора' }, { status: 403 });
+        const baseSlug = actor.email.split('@')[0].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'cafeflow';
+        const slug = `${baseSlug}-${actor.id.slice(0, 8)}`;
+        const createdTenant = await prisma.tenants.create({ data: { name: body.name?.trim() || 'CaféFlow', slug, status: 'active', currency: body.currency?.trim().toUpperCase().slice(0, 3) || 'KGS', timezone: body.timezone?.trim() || 'Asia/Bishkek' } });
+        await prisma.users.update({ where: { id: actor.id }, data: { tenant_id: createdTenant.id } });
+        tenantId = createdTenant.id;
+      }
+      const currentTenant = await prisma.tenants.findUnique({ where: { id: tenantId }, select: { settings: true } });
       const currentSettings = currentTenant?.settings && typeof currentTenant.settings === 'object' && !Array.isArray(currentTenant.settings) ? currentTenant.settings as Record<string, unknown> : {};
       const updated = await prisma.tenants.update({
-        where: { id: actor.tenant_id },
+        where: { id: tenantId },
         data: {
           ...(body.name?.trim() ? { name: body.name.trim() } : {}),
           ...(body.currency?.trim() ? { currency: body.currency.trim().toUpperCase().slice(0, 3) } : {}),
@@ -177,7 +185,7 @@ export async function PATCH(request: NextRequest) {
         },
         select: { id: true, name: true, slug: true, status: true, currency: true, timezone: true, primary_color: true, contact_phone: true, contact_email: true, address_text: true, settings: true },
       });
-      await prisma.activity_logs.create({ data: { tenant_id: actor.tenant_id, actor_user_id: actor.id, action: 'admin.tenant.updated', entity_type: 'tenants', entity_id: actor.tenant_id, after_data: updated } });
+      await prisma.activity_logs.create({ data: { tenant_id: tenantId, actor_user_id: actor.id, action: 'admin.tenant.updated', entity_type: 'tenants', entity_id: tenantId, after_data: updated } });
       return NextResponse.json({ success: true, tenant: updated });
     }
 

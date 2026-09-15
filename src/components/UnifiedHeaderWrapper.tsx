@@ -9,6 +9,7 @@ import { UnifiedHeader } from './UnifiedHeader';
  */
 export async function UnifiedHeaderWrapper() {
   let userData = null;
+  let siteName = 'CaféFlow';
 
   try {
     // Get token from cookies
@@ -35,6 +36,7 @@ export async function UnifiedHeaderWrapper() {
             },
             role: true,
             status: true,
+            tenant_id: true,
           },
         });
 
@@ -50,15 +52,26 @@ export async function UnifiedHeaderWrapper() {
             role: user.role,
             status: user.status,
           };
+          if (user.tenant_id) {
+            const tenant = await prisma.tenants.findUnique({ where: { id: user.tenant_id }, select: { name: true } });
+            siteName = tenant?.name || siteName;
+          }
+        }
+        if (!user) {
+          const tenant = await prisma.tenants.findFirst({ orderBy: { created_at: 'asc' }, select: { name: true } });
+          siteName = tenant?.name || siteName;
         }
       }
+    } else {
+      const tenant = await prisma.tenants.findFirst({ orderBy: { created_at: 'asc' }, select: { name: true } });
+      siteName = tenant?.name || siteName;
     }
   } catch (error) {
     console.error('Error fetching user for header:', error);
     // Silently fail - user will see login/register buttons
   }
 
-  return <UnifiedHeader user={userData} />;
+  return <UnifiedHeader user={userData} siteName={siteName} />;
 }
 
 // Mark as async Server Component (no 'use client' directive)

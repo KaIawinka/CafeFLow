@@ -36,6 +36,7 @@ interface UserData {
 
 interface UnifiedHeaderProps {
   user?: UserData | null;
+  siteName?: string;
 }
 
 function savePreferredLanguage(locale: Locale) {
@@ -56,7 +57,7 @@ function getPreferredLocale(pathname: string): Locale {
   return locales.includes(cookieLocale as Locale) ? cookieLocale as Locale : 'ru';
 }
 
-export function UnifiedHeader({ user }: UnifiedHeaderProps) {
+export function UnifiedHeader({ user, siteName = 'CaféFlow' }: UnifiedHeaderProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -204,7 +205,7 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
               className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl object-cover shadow-lg" 
             />
             <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
-              CaféFlow
+              {siteName}
             </span>
           </Link>
 
