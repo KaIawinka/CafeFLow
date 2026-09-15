@@ -15,10 +15,16 @@ export async function generateMetadata({
   const resolvedParams = await params;
   const { locale } = resolvedParams;
   const t = await getTranslations(locale as Locale, "common");
-  const tenant = await prisma.tenants.findFirst({ orderBy: { created_at: 'asc' }, select: { name: true } });
+  let tenantName: string | null = null;
+  try {
+    const tenant = await prisma.tenants.findFirst({ orderBy: { created_at: 'asc' }, select: { name: true } });
+    tenantName = tenant?.name || null;
+  } catch (error) {
+    console.error('Tenant metadata unavailable:', error);
+  }
 
   return {
-    title: tenant?.name || t.meta.title,
+    title: tenantName || t.meta.title,
     description: t.meta.description,
   };
 }
