@@ -42,6 +42,20 @@ function savePreferredLanguage(locale: Locale) {
   document.cookie = `preferredLanguage=${locale}; path=/; max-age=31536000`;
 }
 
+function getPreferredLocale(pathname: string): Locale {
+  const urlLocale = pathname.split('/')[1];
+  if (locales.includes(urlLocale as Locale)) {
+    return urlLocale as Locale;
+  }
+
+  const cookieLocale = typeof document === 'undefined' ? null : document.cookie
+    .split(';')
+    .map((cookie) => cookie.trim().split('='))
+    .find(([key]) => key === 'preferredLanguage')?.[1];
+
+  return locales.includes(cookieLocale as Locale) ? cookieLocale as Locale : 'ru';
+}
+
 export function UnifiedHeader({ user }: UnifiedHeaderProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
@@ -55,7 +69,7 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
 
-  const currentLocale = (locales.find((locale) => pathname.split('/')[1] === locale) || 'ru') as Locale;
+  const currentLocale = getPreferredLocale(pathname);
   const ui = getUiTranslations(currentLocale);
 
   // Close dropdowns when clicking outside

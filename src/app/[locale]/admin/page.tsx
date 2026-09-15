@@ -45,7 +45,7 @@ export default function AdminPage() {
     {
       id: '1',
       email: 'admin@cafeflow.com',
-      first_name: 'Администратор',
+      first_name: ui.admin.demoAdminName,
       role: 'admin',
       status: 'active',
       created_at: new Date().toISOString(),
@@ -57,7 +57,7 @@ export default function AdminPage() {
   // Site settings
   const [siteSettings, setSiteSettings] = useState<SiteSettings>({
     siteName: 'CaféFlow',
-    siteDescription: 'Система управления рестораном',
+    siteDescription: ui.admin.description,
     logoUrl: '/Logo-CafeFlow.png',
     primaryColor: '#f59e0b',
     maintenanceMode: false,
@@ -70,14 +70,6 @@ export default function AdminPage() {
     const matchesRole = filterRole === 'all' || user.role === filterRole;
     return matchesSearch && matchesRole;
   });
-
-  const roleLabels: Record<string, string> = {
-    admin: 'Администратор',
-    manager: 'Менеджер',
-    kitchen: 'Кухня',
-    employee: 'Сотрудник',
-    customer: 'Клиент',
-  };
 
   const roleColors: Record<string, string> = {
     admin: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
@@ -226,7 +218,7 @@ export default function AdminPage() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`px-3 py-1 rounded-full text-xs font-medium ${roleColors[user.role]}`}>
-                                {roleLabels[user.role]}
+                                {ui.profile.roleLabels[user.role] || user.role}
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
@@ -239,7 +231,7 @@ export default function AdminPage() {
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-                              {new Date(user.created_at).toLocaleDateString('ru-RU')}
+                              {new Date(user.created_at).toLocaleDateString(locale)}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right">
                               <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 min-h-[44px] min-w-[44px] flex items-center justify-center ml-auto">
@@ -274,7 +266,7 @@ export default function AdminPage() {
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
                           <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${roleColors[user.role]}`}>
-                            {roleLabels[user.role]}
+                            {ui.profile.roleLabels[user.role] || user.role}
                           </span>
                           <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
                             user.status === 'active'
@@ -284,7 +276,7 @@ export default function AdminPage() {
                               {user.status === 'active' ? ui.admin.active : ui.admin.blocked}
                           </span>
                           <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {new Date(user.created_at).toLocaleDateString('ru-RU')}
+                            {new Date(user.created_at).toLocaleDateString(locale)}
                           </span>
                         </div>
                       </div>
@@ -398,7 +390,7 @@ export default function AdminPage() {
                   <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white">
                     <Users className="w-8 h-8 mb-3 opacity-80" />
                     <h3 className="text-3xl font-bold mb-1">{users.length}</h3>
-                    <p className="text-blue-100">Всего пользователей</p>
+                    <p className="text-blue-100">{ui.admin.totalUsers}</p>
                   </div>
 
                   <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white">
@@ -406,7 +398,7 @@ export default function AdminPage() {
                     <h3 className="text-3xl font-bold mb-1">
                       {users.filter((u) => u.status === 'active').length}
                     </h3>
-                    <p className="text-green-100">Активных</p>
+                    <p className="text-green-100">{ui.admin.activeUsers}</p>
                   </div>
 
                   <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white">
@@ -414,14 +406,14 @@ export default function AdminPage() {
                     <h3 className="text-3xl font-bold mb-1">
                       {users.filter((u) => u.role === 'admin').length}
                     </h3>
-                    <p className="text-purple-100">Администраторов</p>
+                    <p className="text-purple-100">{ui.admin.adminCount}</p>
                   </div>
                 </div>
 
                 <div className="text-center py-12 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
                   <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-600 dark:text-gray-400">
-                    Детальная статистика в разработке
+                    {ui.admin.detailedStats}
                   </p>
                 </div>
               </div>

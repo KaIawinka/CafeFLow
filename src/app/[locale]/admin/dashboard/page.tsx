@@ -62,7 +62,7 @@ export default async function AdminDashboard({ params }: { params: Promise<{ loc
                   </svg>
                 </div>
               </div>
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">0 сом</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">0 {ui.admin.currency}</p>
             </div>
 
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm">
