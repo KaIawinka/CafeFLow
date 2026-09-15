@@ -152,7 +152,7 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
     const links = [];
     
     if (user.role === 'admin' || user.role === 'manager') {
-      links.push({ href: '/admin', label: ui.header.admin });
+      links.push({ href: `/${currentLocale}/admin/dashboard`, label: ui.header.admin });
     }
     
     if (user.role === 'kitchen') {
@@ -298,7 +298,7 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
                       </div>
 
                       <Link
-                        href="/profile"
+                        href={`/${currentLocale}/profile`}
                         className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                         onClick={() => setIsDropdownOpen(false)}
                       >
@@ -307,7 +307,7 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
                       </Link>
 
                       <Link
-                        href="/profile#settings"
+                        href={`/${currentLocale}/profile#settings`}
                         className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                         onClick={() => setIsDropdownOpen(false)}
                       >
@@ -343,13 +343,13 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
                   {ui.header.home}
                 </Link>
                 <Link
-                  href="/login"
+                  href={`/${currentLocale}/login`}
                   className="inline-flex min-h-10 items-center text-sm font-medium text-gray-700 transition-colors hover:text-amber-600 dark:text-gray-300 dark:hover:text-amber-500"
                 >
                   {ui.header.login}
                 </Link>
                 <Link
-                  href="/register"
+                  href={`/${currentLocale}/register`}
                   className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors"
                 >
                   {ui.header.register}
@@ -413,10 +413,10 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
                   <Link href={`/${currentLocale}`} className="flex min-h-[44px] items-center px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
                     {ui.header.home}
                   </Link>
-                  <Link href="/login" className="flex min-h-[44px] items-center px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
+                  <Link href={`/${currentLocale}/login`} className="flex min-h-[44px] items-center px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
                     {ui.header.login}
                   </Link>
-                  <Link href="/register" className="mx-4 flex min-h-[44px] items-center justify-center rounded-lg bg-amber-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-amber-700">
+                  <Link href={`/${currentLocale}/register`} className="mx-4 flex min-h-[44px] items-center justify-center rounded-lg bg-amber-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-amber-700">
                     {ui.header.register}
                   </Link>
                 </div>
@@ -460,7 +460,7 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
 
               <div className="border-t border-gray-200 dark:border-gray-700 my-2 pt-2">
                 <Link
-                  href="/profile"
+                  href={`/${currentLocale}/profile`}
                   className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 min-h-[44px] transition-colors"
                 >
                   <User className="w-4 h-4" />
@@ -468,7 +468,7 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
                 </Link>
 
                 <Link
-                  href="/profile#settings"
+                  href={`/${currentLocale}/profile#settings`}
                   className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 min-h-[44px] transition-colors"
                 >
                   <Settings className="w-4 h-4" />
