@@ -1,20 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import {
   Users,
   Settings as SettingsIcon,
   BarChart3,
-  Shield,
   Loader2,
   Search,
   Filter,
   MoreVertical,
-  Edit,
-  Trash2,
   Crown,
-  Ban,
   CheckCircle,
 } from 'lucide-react';
 
@@ -38,10 +33,18 @@ interface SiteSettings {
 }
 
 export default function AdminPage() {
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'users' | 'settings' | 'stats'>('users');
-  const [isLoading, setIsLoading] = useState(true);
-  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading] = useState(false);
+  const [users] = useState<User[]>([
+    {
+      id: '1',
+      email: 'admin@cafeflow.com',
+      first_name: 'Администратор',
+      role: 'admin',
+      status: 'active',
+      created_at: new Date().toISOString(),
+    },
+  ]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterRole, setFilterRole] = useState<string>('all');
   
@@ -53,21 +56,6 @@ export default function AdminPage() {
     primaryColor: '#f59e0b',
     maintenanceMode: false,
   });
-
-  useEffect(() => {
-    // TODO: Load users from API
-    setIsLoading(false);
-    setUsers([
-      {
-        id: '1',
-        email: 'admin@cafeflow.com',
-        first_name: 'Администратор',
-        role: 'admin',
-        status: 'active',
-        created_at: new Date().toISOString(),
-      },
-    ]);
-  }, []);
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =

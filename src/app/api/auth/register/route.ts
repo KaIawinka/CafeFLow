@@ -146,10 +146,8 @@ export async function POST(request: NextRequest) {
                      'unknown';
 
     // Create and send verification code (don't fail registration if email fails)
-    let verificationCode: string | null = null;
     try {
       const code = await createVerificationCode(user.id, 'email_verification', ipAddress);
-      verificationCode = code;
       
       const emailSent = await sendVerificationEmail(user.email, code, user.first_name);
       

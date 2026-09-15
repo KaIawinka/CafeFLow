@@ -19,7 +19,6 @@ import {
   Globe,
   Sun,
   Moon,
-  Palette,
 } from 'lucide-react';
 
 interface UserData {
@@ -45,15 +44,13 @@ function savePreferredLanguage(locale: Locale) {
 export function UnifiedHeader({ user }: UnifiedHeaderProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
-  const [isThemeDropdownOpen, setIsThemeDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutConfirm, setLogoutConfirm] = useState(false);
-  const { theme, setTheme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   
   const dropdownRef = useRef<HTMLDivElement>(null);
   const langDropdownRef = useRef<HTMLDivElement>(null);
-  const themeDropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -68,9 +65,6 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
       if (langDropdownRef.current && !langDropdownRef.current.contains(event.target as Node)) {
         setIsLangDropdownOpen(false);
       }
-      if (themeDropdownRef.current && !themeDropdownRef.current.contains(event.target as Node)) {
-        setIsThemeDropdownOpen(false);
-      }
     }
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -83,11 +77,6 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
     const timeoutId = window.setTimeout(() => setIsMobileMenuOpen(false), 0);
     return () => window.clearTimeout(timeoutId);
   }, [pathname, isMobileMenuOpen]);
-
-  const handleThemeChange = (newTheme: 'light' | 'dark') => {
-    setTheme(newTheme);
-    setIsThemeDropdownOpen(false);
-  };
 
   const switchLocale = (newLocale: Locale) => {
     // Save to cookie (используется middleware для авто-применения)
@@ -176,16 +165,6 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
 
   const navLinks = getNavLinks();
 
-  const themeIcons = {
-    light: <Sun className="w-4 h-4" />,
-    dark: <Moon className="w-4 h-4" />,
-  };
-
-  const themeLabels = {
-    light: 'Светлая',
-    dark: 'Тёмная',
-  };
-
   // Get localized language names
   const getLocalizedLanguageName = (locale: Locale, inLocale: Locale): string => {
     const names: Record<Locale, Record<Locale, string>> = {
@@ -220,7 +199,7 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`text-sm font-medium transition-colors ${
+                className={`inline-flex min-h-10 items-center text-sm font-medium transition-colors ${
                   pathname === link.href
                     ? 'text-amber-600 dark:text-amber-400'
                     : 'text-gray-700 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400'
@@ -234,33 +213,15 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
           {/* Right Section */}
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Theme Switcher */}
-            <div className="hidden md:block relative" ref={themeDropdownRef}>
+            <div className="hidden md:block">
               <button
-                onClick={() => setIsThemeDropdownOpen(!isThemeDropdownOpen)}
-                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300 touch-manipulation"
-                aria-label="Переключить тему"
+                onClick={toggleTheme}
+                className="flex h-10 w-10 items-center justify-center rounded-lg text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                aria-label={theme === 'light' ? 'Включить темную тему' : 'Включить светлую тему'}
+                title={theme === 'light' ? 'Темная тема' : 'Светлая тема'}
               >
-                {themeIcons[theme]}
+                {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
               </button>
-
-              {isThemeDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2">
-                  {(['light', 'dark'] as const).map((themeOption) => (
-                    <button
-                      key={themeOption}
-                      onClick={() => handleThemeChange(themeOption)}
-                      className={`w-full flex items-center gap-3 px-4 py-2 text-sm transition-colors ${
-                        theme === themeOption
-                          ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-500'
-                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                      }`}
-                    >
-                      {themeIcons[themeOption]}
-                      <span>{themeLabels[themeOption]}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
 
             {/* Language Switcher */}
@@ -373,16 +334,16 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
 
               </>
             ) : (
-              <div className="hidden items-center gap-3 md:flex">
+              <div className="hidden h-full items-center gap-3 md:flex">
                 <Link
                   href={`/${currentLocale}`}
-                  className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-500 transition-colors"
+                  className="inline-flex min-h-10 items-center text-sm font-medium text-gray-700 transition-colors hover:text-amber-600 dark:text-gray-300 dark:hover:text-amber-500"
                 >
                   Главная
                 </Link>
                 <Link
                   href="/login"
-                  className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-500 transition-colors"
+                  className="inline-flex min-h-10 items-center text-sm font-medium text-gray-700 transition-colors hover:text-amber-600 dark:text-gray-300 dark:hover:text-amber-500"
                 >
                   Войти
                 </Link>
@@ -460,31 +421,16 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
                 </div>
               )}
 
-              {/* Mobile Theme Selector */}
-              {user && <div className="border-t border-gray-200 dark:border-gray-700 my-2 pt-2">
-                <div className="px-4 py-2">
-                  <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2">
-                    <Palette className="w-4 h-4" />
-                    <span className="font-medium">Тема</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {(['light', 'dark'] as const).map((themeOption) => (
-                      <button
-                        key={themeOption}
-                        onClick={() => handleThemeChange(themeOption)}
-                        className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all min-h-[44px] ${
-                          theme === themeOption
-                            ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg'
-                            : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                        }`}
-                      >
-                        {themeIcons[themeOption]}
-                        <span>{themeLabels[themeOption]}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>}
+              <div className="my-2 border-t border-gray-200 pt-2 dark:border-gray-700">
+                <button
+                  onClick={toggleTheme}
+                  className="flex min-h-[44px] w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                  aria-label={theme === 'light' ? 'Включить темную тему' : 'Включить светлую тему'}
+                >
+                  {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+                  <span>{theme === 'light' ? 'Темная тема' : 'Светлая тема'}</span>
+                </button>
+              </div>
 
               {/* Mobile Language Selector */}
               <div className="border-t border-gray-200 dark:border-gray-700 my-2 pt-2">

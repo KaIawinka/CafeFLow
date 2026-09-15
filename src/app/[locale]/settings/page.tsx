@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import {
   User,
   Shield,
@@ -21,8 +20,9 @@ import {
   Sun,
   Smartphone,
   Key,
-  LogOut,
 } from 'lucide-react';
+
+type SettingsTab = 'profile' | 'security' | 'notifications' | 'privacy' | 'appearance';
 
 interface UserSettings {
   // Profile
@@ -52,8 +52,7 @@ interface UserSettings {
 }
 
 export default function SettingsPage() {
-  const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'notifications' | 'privacy' | 'appearance'>('profile');
+  const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [success, setSuccess] = useState('');
@@ -78,26 +77,26 @@ export default function SettingsPage() {
   });
 
   useEffect(() => {
-    loadSettings();
-  }, []);
-
-  const loadSettings = async () => {
-    try {
-      const response = await fetch('/api/user/settings');
-      const data = await response.json();
-      
-      if (response.ok && data.settings) {
-        setSettings({
-          ...settings,
-          ...data.settings,
-        });
+    const loadSettings = async () => {
+      try {
+        const response = await fetch('/api/user/settings');
+        const data = await response.json();
+        
+        if (response.ok && data.settings) {
+          setSettings((currentSettings) => ({
+            ...currentSettings,
+            ...data.settings,
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to load settings', error);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      console.error('Failed to load settings', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
+
+    void loadSettings();
+  }, []);
 
   const handleSave = async () => {
     setError('');
@@ -119,7 +118,7 @@ export default function SettingsPage() {
       } else {
         setError(data.error || 'Ошибка сохранения');
       }
-    } catch (err) {
+    } catch {
       setError('Произошла ошибка при сохранении');
     } finally {
       setIsSaving(false);
@@ -181,7 +180,7 @@ export default function SettingsPage() {
                   return (
                     <button
                       key={tab.id}
-                      onClick={() => setActiveTab(tab.id as any)}
+                      onClick={() => setActiveTab(tab.id as SettingsTab)}
                       className={`flex-shrink-0 flex flex-col items-center gap-1.5 px-4 py-3 rounded-xl transition-all touch-manipulation ${
                         activeTab === tab.id
                           ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg'
@@ -204,7 +203,7 @@ export default function SettingsPage() {
                   return (
                     <button
                       key={tab.id}
-                      onClick={() => setActiveTab(tab.id as any)}
+                      onClick={() => setActiveTab(tab.id as SettingsTab)}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all ${
                         activeTab === tab.id
                           ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg'
@@ -452,7 +451,7 @@ export default function SettingsPage() {
                         return (
                           <button
                             key={theme.value}
-                            onClick={() => setSettings({ ...settings, theme: theme.value as any })}
+                            onClick={() => setSettings({ ...settings, theme: theme.value as UserSettings['theme'] })}
                             className={`p-6 rounded-xl border-2 transition-all ${
                               settings.theme === theme.value
                                 ? 'border-amber-600 bg-amber-50 dark:bg-amber-900/20'

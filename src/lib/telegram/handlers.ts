@@ -683,7 +683,7 @@ bot.on('message:text', async (ctx: BotContext) => {
       // Try to delete the message with password for security
       try {
         await ctx.deleteMessage();
-      } catch (e) {
+      } catch {
         // Ignore if can't delete
       }
 

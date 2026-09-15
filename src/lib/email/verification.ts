@@ -7,7 +7,6 @@ import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import crypto from 'crypto';
 
-const CODE_LENGTH = 6;
 const CODE_EXPIRY_MINUTES = 10;
 const MAX_ATTEMPTS = 5;
 
