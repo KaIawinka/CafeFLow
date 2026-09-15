@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, useState } from 'react';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Eye, EyeOff, LogIn, Mail, Lock, AlertCircle, Loader2, ShieldCheck } from 'lucide-react';
@@ -20,7 +20,6 @@ export default function LoginPage() {
 }
 
 function LoginContent() {
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/';
@@ -35,6 +34,15 @@ function LoginContent() {
 
   const currentLocale = getCurrentLocale();
   const t = getTranslation(currentLocale);
+
+  const navigateAfterLogin = (target: string) => {
+    const localizedTarget = target.startsWith(`/${currentLocale}`)
+      ? target
+      : target === '/'
+        ? `/${currentLocale}`
+        : `/${currentLocale}${target}`;
+    window.location.assign(localizedTarget);
+  };
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -92,13 +100,13 @@ function LoginContent() {
         // Redirect based on role
         const user = data.user;
         if (user.requiresApproval) {
-          router.push('/profile?message=awaiting_approval');
+          navigateAfterLogin(`/${currentLocale}/profile?message=awaiting_approval`);
         } else if (user.role === 'admin' || user.role === 'manager') {
-          router.push('/admin');
+          navigateAfterLogin(`/${currentLocale}/admin`);
         } else if (user.role === 'kitchen') {
-          router.push('/kitchen');
+          navigateAfterLogin(`/${currentLocale}/kitchen`);
         } else {
-          router.push(redirectTo);
+          navigateAfterLogin(redirectTo);
         }
       }
     } catch {
@@ -117,6 +125,7 @@ function LoginContent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          email,
           tempSessionId,
           code: code2FA,
         }),
@@ -137,11 +146,11 @@ function LoginContent() {
         
         const user = data.user;
         if (user.role === 'admin' || user.role === 'manager') {
-          router.push('/admin');
+          navigateAfterLogin(`/${currentLocale}/admin`);
         } else if (user.role === 'kitchen') {
-          router.push('/kitchen');
+          navigateAfterLogin(`/${currentLocale}/kitchen`);
         } else {
-          router.push(redirectTo);
+          navigateAfterLogin(redirectTo);
         }
       }
     } catch {

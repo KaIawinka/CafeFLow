@@ -15,6 +15,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'CafeFlow',
   description: 'CafeFlow restaurant management platform',
+  icons: {
+    icon: '/Logo-CafeFlow.png',
+    apple: '/Logo-CafeFlow.png',
+  },
 };
 
 export default function RootLayout({

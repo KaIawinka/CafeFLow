@@ -10,6 +10,17 @@ import { UnifiedHeader } from './UnifiedHeader';
 export async function UnifiedHeaderWrapper() {
   let userData = null;
   let siteName = 'CaféFlow';
+  let siteLogo = '/Logo-CafeFlow.png';
+
+  const applyTenantBranding = (tenant: { name: string; settings: unknown } | null) => {
+    if (!tenant) return;
+    siteName = tenant.name || siteName;
+    if (tenant.settings && typeof tenant.settings === 'object' && !Array.isArray(tenant.settings)) {
+      const settings = tenant.settings as { logoData?: unknown; logoUrl?: unknown };
+      if (typeof settings.logoData === 'string' && settings.logoData.startsWith('data:image/')) siteLogo = settings.logoData;
+      else if (typeof settings.logoUrl === 'string' && (settings.logoUrl.startsWith('/') || settings.logoUrl.startsWith('data:image/'))) siteLogo = settings.logoUrl;
+    }
+  };
 
   try {
     // Get token from cookies
@@ -53,25 +64,25 @@ export async function UnifiedHeaderWrapper() {
             status: user.status,
           };
           if (user.tenant_id) {
-            const tenant = await prisma.tenants.findUnique({ where: { id: user.tenant_id }, select: { name: true } });
-            siteName = tenant?.name || siteName;
+            const tenant = await prisma.tenants.findUnique({ where: { id: user.tenant_id }, select: { name: true, settings: true } });
+            applyTenantBranding(tenant);
           }
         }
         if (!user) {
-          const tenant = await prisma.tenants.findFirst({ orderBy: { created_at: 'asc' }, select: { name: true } });
-          siteName = tenant?.name || siteName;
+          const tenant = await prisma.tenants.findFirst({ orderBy: { created_at: 'asc' }, select: { name: true, settings: true } });
+          applyTenantBranding(tenant);
         }
       }
     } else {
-      const tenant = await prisma.tenants.findFirst({ orderBy: { created_at: 'asc' }, select: { name: true } });
-      siteName = tenant?.name || siteName;
+      const tenant = await prisma.tenants.findFirst({ orderBy: { created_at: 'asc' }, select: { name: true, settings: true } });
+      applyTenantBranding(tenant);
     }
   } catch (error) {
     console.error('Error fetching user for header:', error);
     // Silently fail - user will see login/register buttons
   }
 
-  return <UnifiedHeader user={userData} siteName={siteName} />;
+  return <UnifiedHeader user={userData} siteName={siteName} siteLogo={siteLogo} />;
 }
 
 // Mark as async Server Component (no 'use client' directive)

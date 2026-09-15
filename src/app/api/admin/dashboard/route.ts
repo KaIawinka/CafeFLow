@@ -125,6 +125,7 @@ export async function PATCH(request: NextRequest) {
       addressText?: string | null;
       siteDescription?: string | null;
       logoUrl?: string | null;
+      logoData?: string | null;
       maintenanceMode?: boolean;
       isAvailable?: boolean;
       price?: string;
@@ -155,6 +156,9 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (body.resource === 'tenant') {
+      if (body.logoData && (!body.logoData.startsWith('data:image/') || body.logoData.length > 2_000_000)) {
+        return NextResponse.json({ error: 'Некорректный логотип или слишком большой файл' }, { status: 400 });
+      }
       let tenantId = actor.tenant_id;
       if (!tenantId) {
         if (auth.role !== 'admin') return NextResponse.json({ error: 'Для сохранения настроек нужны права администратора' }, { status: 403 });
@@ -180,6 +184,7 @@ export async function PATCH(request: NextRequest) {
             ...currentSettings,
             ...(body.siteDescription !== undefined ? { siteDescription: body.siteDescription } : {}),
             ...(body.logoUrl !== undefined ? { logoUrl: body.logoUrl } : {}),
+            ...(body.logoData !== undefined ? { logoData: body.logoData } : {}),
             ...(typeof body.maintenanceMode === 'boolean' ? { maintenanceMode: body.maintenanceMode } : {}),
           },
         },

@@ -3,6 +3,7 @@ import { locales, type Locale } from "../i18n/config";
 import { getTranslations } from "../i18n/utils";
 import { UnifiedHeaderWrapper } from "@/components/UnifiedHeaderWrapper";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -14,9 +15,10 @@ export async function generateMetadata({
   const resolvedParams = await params;
   const { locale } = resolvedParams;
   const t = await getTranslations(locale as Locale, "common");
+  const tenant = await prisma.tenants.findFirst({ orderBy: { created_at: 'asc' }, select: { name: true } });
 
   return {
-    title: t.meta.title,
+    title: tenant?.name || t.meta.title,
     description: t.meta.description,
   };
 }

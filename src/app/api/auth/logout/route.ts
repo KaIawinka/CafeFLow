@@ -3,21 +3,20 @@
  * Logout user and invalidate session
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { verifyAccessToken, extractTokenFromHeader } from '@/lib/auth/jwt';
+import { NextResponse } from 'next/server';
+import { verifyAccessToken } from '@/lib/auth/jwt';
+import { cookies } from 'next/headers';
 import { logger } from '@/lib/logger';
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
-    // Extract token from Authorization header
-    const authHeader = request.headers.get('authorization');
-    const token = extractTokenFromHeader(authHeader);
+    const cookieStore = await cookies();
+    const token = cookieStore.get('accessToken')?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { error: 'Токен не предоставлен' },
-        { status: 401 }
-      );
+      cookieStore.delete('accessToken');
+      cookieStore.delete('refreshToken');
+      return NextResponse.json({ success: true, message: 'Сессия уже завершена' });
     }
 
     // Verify JWT token
@@ -34,6 +33,9 @@ export async function POST(request: NextRequest) {
       email: payload.email, 
       sessionId: payload.sessionId 
     });
+
+    cookieStore.delete('accessToken');
+    cookieStore.delete('refreshToken');
 
     return NextResponse.json({
       success: true,

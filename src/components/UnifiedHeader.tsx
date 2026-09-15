@@ -37,6 +37,7 @@ interface UserData {
 interface UnifiedHeaderProps {
   user?: UserData | null;
   siteName?: string;
+  siteLogo?: string;
 }
 
 function savePreferredLanguage(locale: Locale) {
@@ -57,12 +58,13 @@ function getPreferredLocale(pathname: string): Locale {
   return locales.includes(cookieLocale as Locale) ? cookieLocale as Locale : 'ru';
 }
 
-export function UnifiedHeader({ user, siteName = 'CaféFlow' }: UnifiedHeaderProps) {
+export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/Logo-CafeFlow.png' }: UnifiedHeaderProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutConfirm, setLogoutConfirm] = useState(false);
+  const [logoutCountdown, setLogoutCountdown] = useState(0);
   const { theme, toggleTheme } = useTheme();
   
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -94,6 +96,12 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow' }: UnifiedHeaderPro
     return () => window.clearTimeout(timeoutId);
   }, [pathname]);
 
+  useEffect(() => {
+    if (!logoutConfirm || logoutCountdown <= 0) return;
+    const timeoutId = window.setTimeout(() => setLogoutCountdown((current) => Math.max(0, current - 1)), 1000);
+    return () => window.clearTimeout(timeoutId);
+  }, [logoutConfirm, logoutCountdown]);
+
   const switchLocale = (newLocale: Locale) => {
     // Save to cookie (используется middleware для авто-применения)
     savePreferredLanguage(newLocale);
@@ -110,19 +118,23 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow' }: UnifiedHeaderPro
   const handleLogout = async () => {
     if (!logoutConfirm) {
       setLogoutConfirm(true);
-      // Reset after 3 seconds
-      setTimeout(() => setLogoutConfirm(false), 3000);
+      setLogoutCountdown(3);
       return;
     }
 
+    if (logoutCountdown > 0) return;
+
     setIsLoggingOut(true);
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-      router.push('/login');
+      const response = await fetch('/api/auth/logout', { method: 'POST' });
+      if (!response.ok) throw new Error('Logout request failed');
+      router.push(`/${currentLocale}/login`);
+      router.refresh();
     } catch (error) {
       console.error('Logout failed:', error);
       setIsLoggingOut(false);
       setLogoutConfirm(false);
+      setLogoutCountdown(0);
     }
   };
 
@@ -198,7 +210,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow' }: UnifiedHeaderPro
           {/* Logo */}
           <Link href={`/${currentLocale}`} className="flex items-center gap-2 sm:gap-3">
             <Image 
-              src="/Logo-CafeFlow.png" 
+              src={siteLogo}
               alt="CafeFlow" 
               width={40} 
               height={40} 
@@ -334,7 +346,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow' }: UnifiedHeaderPro
 
                       <button
                         onClick={handleLogout}
-                        disabled={isLoggingOut}
+                        disabled={isLoggingOut || logoutCountdown > 0}
                         className={`flex items-center gap-3 px-4 py-2 text-sm w-full transition-colors ${
                           logoutConfirm
                             ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
@@ -342,7 +354,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow' }: UnifiedHeaderPro
                         } disabled:opacity-50`}
                       >
                         <LogOut className="w-4 h-4" />
-                        {isLoggingOut ? ui.header.loggingOut : logoutConfirm ? ui.header.confirmLogout : ui.header.logout}
+                        {isLoggingOut ? ui.header.loggingOut : logoutConfirm ? `${ui.header.confirmLogout}${logoutCountdown > 0 ? ` (${logoutCountdown})` : ''}` : ui.header.logout}
                       </button>
                     </div>
                   )}
@@ -492,7 +504,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow' }: UnifiedHeaderPro
 
                 <button
                   onClick={handleLogout}
-                  disabled={isLoggingOut}
+                  disabled={isLoggingOut || logoutCountdown > 0}
                   className={`flex items-center gap-3 px-4 py-3 text-sm w-full min-h-[44px] transition-all ${
                     logoutConfirm
                       ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
@@ -500,7 +512,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow' }: UnifiedHeaderPro
                   } disabled:opacity-50`}
                 >
                   <LogOut className="w-4 h-4" />
-                  {isLoggingOut ? ui.header.loggingOut : logoutConfirm ? ui.header.confirmLogout : ui.header.logout}
+                  {isLoggingOut ? ui.header.loggingOut : logoutConfirm ? `${ui.header.confirmLogout}${logoutCountdown > 0 ? ` (${logoutCountdown})` : ''}` : ui.header.logout}
                 </button>
               </div>
             </div>

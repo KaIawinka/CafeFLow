@@ -2,6 +2,8 @@
 
 import { useEffect, useEffectEvent, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import {
   Users,
   Settings as SettingsIcon,
@@ -37,6 +39,7 @@ interface SiteSettings {
   siteName: string;
   siteDescription: string;
   logoUrl: string;
+  logoData: string;
   primaryColor: string;
   maintenanceMode: boolean;
   timezone: string;
@@ -78,6 +81,7 @@ interface Product {
 
 export default function AdminPage() {
   const pathname = usePathname();
+  const router = useRouter();
   const locale = (locales.find((item) => pathname.split('/')[1] === item) || 'ru') as Locale;
   const ui = getUiTranslations(locale);
   const errorLoad = ui.admin.errorLoad;
@@ -98,6 +102,7 @@ export default function AdminPage() {
     siteName: 'CaféFlow',
     siteDescription: ui.admin.description,
     logoUrl: '/Logo-CafeFlow.png',
+    logoData: '',
     primaryColor: '#f59e0b',
     maintenanceMode: false,
     timezone: 'Asia/Bishkek',
@@ -131,6 +136,7 @@ export default function AdminPage() {
           addressText: data.tenant.address_text || '',
           siteDescription: typeof data.tenant.settings?.siteDescription === 'string' ? data.tenant.settings.siteDescription : current.siteDescription,
           logoUrl: typeof data.tenant.settings?.logoUrl === 'string' ? data.tenant.settings.logoUrl : current.logoUrl,
+          logoData: typeof data.tenant.settings?.logoData === 'string' ? data.tenant.settings.logoData : current.logoData,
           maintenanceMode: data.tenant.settings?.maintenanceMode === true,
         }));
       }
@@ -172,11 +178,12 @@ export default function AdminPage() {
       const response = await fetch('/api/admin/dashboard', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resource: 'tenant', name: siteSettings.siteName, timezone: siteSettings.timezone, primaryColor: siteSettings.primaryColor, contactPhone: siteSettings.contactPhone || null, contactEmail: siteSettings.contactEmail || null, addressText: siteSettings.addressText || null, siteDescription: siteSettings.siteDescription, logoUrl: siteSettings.logoUrl, maintenanceMode: siteSettings.maintenanceMode }),
+        body: JSON.stringify({ resource: 'tenant', name: siteSettings.siteName, timezone: siteSettings.timezone, primaryColor: siteSettings.primaryColor, contactPhone: siteSettings.contactPhone || null, contactEmail: siteSettings.contactEmail || null, addressText: siteSettings.addressText || null, siteDescription: siteSettings.siteDescription, logoUrl: siteSettings.logoUrl, logoData: siteSettings.logoData || null, maintenanceMode: siteSettings.maintenanceMode }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || ui.admin.errorSave);
-      setSiteSettings((current) => ({ ...current, siteName: data.tenant.name, timezone: data.tenant.timezone, primaryColor: data.tenant.primary_color || current.primaryColor, contactPhone: data.tenant.contact_phone || '', contactEmail: data.tenant.contact_email || '', addressText: data.tenant.address_text || '', siteDescription: data.tenant.settings?.siteDescription || current.siteDescription, logoUrl: data.tenant.settings?.logoUrl || current.logoUrl, maintenanceMode: data.tenant.settings?.maintenanceMode === true }));
+      setSiteSettings((current) => ({ ...current, siteName: data.tenant.name, timezone: data.tenant.timezone, primaryColor: data.tenant.primary_color || current.primaryColor, contactPhone: data.tenant.contact_phone || '', contactEmail: data.tenant.contact_email || '', addressText: data.tenant.address_text || '', siteDescription: data.tenant.settings?.siteDescription || current.siteDescription, logoUrl: data.tenant.settings?.logoUrl || current.logoUrl, logoData: data.tenant.settings?.logoData || current.logoData, maintenanceMode: data.tenant.settings?.maintenanceMode === true }));
+      router.refresh();
     } catch {
       setError(ui.admin.errorSave);
     } finally {
@@ -597,6 +604,29 @@ export default function AdminPage() {
                       onChange={(e) => setSiteSettings({ ...siteSettings, logoUrl: e.target.value })}
                       className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
+                    <div className="mt-3 flex items-center gap-3">
+                      <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
+                        <Image unoptimized width={56} height={56} src={siteSettings.logoData || siteSettings.logoUrl || '/Logo-CafeFlow.png'} alt={siteSettings.siteName} className="h-full w-full object-cover" />
+                      </div>
+                      <label className="inline-flex min-h-10 cursor-pointer items-center rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700">
+                        {ui.admin.logoUpload}
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                          className="sr-only"
+                          onChange={(event) => {
+                            const file = event.target.files?.[0];
+                            if (!file || file.size > 1024 * 1024) {
+                              setError(ui.admin.logoSizeError);
+                              return;
+                            }
+                            const reader = new FileReader();
+                            reader.onload = () => setSiteSettings((current) => ({ ...current, logoData: typeof reader.result === 'string' ? reader.result : '' }));
+                            reader.readAsDataURL(file);
+                          }}
+                        />
+                      </label>
+                    </div>
                   </div>
 
                   <div className="md:col-span-2">
