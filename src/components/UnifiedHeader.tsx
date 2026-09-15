@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { locales, localeNames, type Locale } from '@/app/i18n/config';
 import { useTheme } from '@/components/ThemeProvider';
+import { getUiTranslations } from '@/lib/ui-translations';
 import { 
   User, 
   Settings, 
@@ -55,6 +56,7 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
   const router = useRouter();
 
   const currentLocale = (locales.find((locale) => pathname.split('/')[1] === locale) || 'ru') as Locale;
+  const ui = getUiTranslations(currentLocale);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -73,10 +75,9 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
 
   // Close mobile menu on navigation
   useEffect(() => {
-    if (!isMobileMenuOpen) return;
     const timeoutId = window.setTimeout(() => setIsMobileMenuOpen(false), 0);
     return () => window.clearTimeout(timeoutId);
-  }, [pathname, isMobileMenuOpen]);
+  }, [pathname]);
 
   const switchLocale = (newLocale: Locale) => {
     // Save to cookie (используется middleware для авто-применения)
@@ -112,32 +113,32 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
 
   const roleConfig: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
     admin: { 
-      label: 'Администратор', 
+      label: ui.profile.roleLabels.admin, 
       color: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
       icon: <ShieldCheck className="w-3 h-3" />
     },
     manager: { 
-      label: 'Менеджер', 
+      label: ui.profile.roleLabels.manager, 
       color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
       icon: <LayoutDashboard className="w-3 h-3" />
     },
     kitchen: { 
-      label: 'Кухня', 
+      label: ui.header.kitchen, 
       color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
       icon: <User className="w-3 h-3" />
     },
     employee: { 
-      label: 'Сотрудник', 
+      label: ui.profile.roleLabels.employee, 
       color: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
       icon: <User className="w-3 h-3" />
     },
     customer: { 
-      label: 'Клиент', 
+      label: ui.profile.roleLabels.customer, 
       color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
       icon: <UserCircle className="w-3 h-3" />
     },
     guest: { 
-      label: 'Гость', 
+      label: ui.profile.roleLabels.guest, 
       color: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',
       icon: <UserCircle className="w-3 h-3" />
     },
@@ -151,14 +152,14 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
     const links = [];
     
     if (user.role === 'admin' || user.role === 'manager') {
-      links.push({ href: '/admin', label: 'Админ панель' });
+      links.push({ href: '/admin', label: ui.header.admin });
     }
     
     if (user.role === 'kitchen') {
-      links.push({ href: '/kitchen', label: 'Кухня' });
+      links.push({ href: '/kitchen', label: ui.header.kitchen });
     }
     
-    links.push({ href: '/orders', label: 'Заказы' });
+    links.push({ href: '/orders', label: ui.header.orders });
     
     return links;
   };
@@ -217,8 +218,8 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
               <button
                 onClick={toggleTheme}
                 className="flex h-10 w-10 items-center justify-center rounded-lg text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-                aria-label={theme === 'light' ? 'Включить темную тему' : 'Включить светлую тему'}
-                title={theme === 'light' ? 'Темная тема' : 'Светлая тема'}
+                aria-label={theme === 'light' ? ui.header.darkTheme : ui.header.lightTheme}
+                title={theme === 'light' ? ui.header.darkTheme : ui.header.lightTheme}
               >
                 {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
               </button>
@@ -302,7 +303,7 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
                         onClick={() => setIsDropdownOpen(false)}
                       >
                         <User className="w-4 h-4" />
-                        Профиль
+                        {ui.header.profile}
                       </Link>
 
                       <Link
@@ -311,7 +312,7 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
                         onClick={() => setIsDropdownOpen(false)}
                       >
                         <Settings className="w-4 h-4" />
-                        Настройки
+                        {ui.header.settings}
                       </Link>
 
                       <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
@@ -326,7 +327,7 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
                         } disabled:opacity-50`}
                       >
                         <LogOut className="w-4 h-4" />
-                        {isLoggingOut ? 'Выход...' : logoutConfirm ? 'Подтвердить выход' : 'Выйти'}
+                        {isLoggingOut ? ui.header.loggingOut : logoutConfirm ? ui.header.confirmLogout : ui.header.logout}
                       </button>
                     </div>
                   )}
@@ -339,19 +340,19 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
                   href={`/${currentLocale}`}
                   className="inline-flex min-h-10 items-center text-sm font-medium text-gray-700 transition-colors hover:text-amber-600 dark:text-gray-300 dark:hover:text-amber-500"
                 >
-                  Главная
+                  {ui.header.home}
                 </Link>
                 <Link
                   href="/login"
                   className="inline-flex min-h-10 items-center text-sm font-medium text-gray-700 transition-colors hover:text-amber-600 dark:text-gray-300 dark:hover:text-amber-500"
                 >
-                  Войти
+                  {ui.header.login}
                 </Link>
                 <Link
                   href="/register"
                   className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors"
                 >
-                  Регистрация
+                  {ui.header.register}
                 </Link>
               </div>
             )}
@@ -359,7 +360,7 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-800 md:hidden"
-              aria-label={isMobileMenuOpen ? 'Закрыть меню' : 'Открыть меню'}
+              aria-label={isMobileMenuOpen ? ui.header.closeMenu : ui.header.openMenu}
               aria-expanded={isMobileMenuOpen}
             >
               {isMobileMenuOpen ? (
@@ -410,13 +411,13 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
               {!user && (
                 <div className="space-y-1">
                   <Link href={`/${currentLocale}`} className="flex min-h-[44px] items-center px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
-                    Главная
+                    {ui.header.home}
                   </Link>
                   <Link href="/login" className="flex min-h-[44px] items-center px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
-                    Войти
+                    {ui.header.login}
                   </Link>
                   <Link href="/register" className="mx-4 flex min-h-[44px] items-center justify-center rounded-lg bg-amber-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-amber-700">
-                    Регистрация
+                    {ui.header.register}
                   </Link>
                 </div>
               )}
@@ -425,10 +426,10 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
                 <button
                   onClick={toggleTheme}
                   className="flex min-h-[44px] w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-                  aria-label={theme === 'light' ? 'Включить темную тему' : 'Включить светлую тему'}
+                  aria-label={theme === 'light' ? ui.header.darkTheme : ui.header.lightTheme}
                 >
                   {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-                  <span>{theme === 'light' ? 'Темная тема' : 'Светлая тема'}</span>
+                  <span>{theme === 'light' ? ui.header.darkTheme : ui.header.lightTheme}</span>
                 </button>
               </div>
 
@@ -437,7 +438,7 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
                 <div className="px-4 py-2">
                   <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2">
                     <Globe className="w-4 h-4" />
-                    <span className="font-medium">Язык</span>
+                    <span className="font-medium">{ui.header.language}</span>
                   </div>
                   <div className="space-y-1">
                     {locales.map((locale) => (
@@ -463,7 +464,7 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
                   className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 min-h-[44px] transition-colors"
                 >
                   <User className="w-4 h-4" />
-                  Профиль
+                  {ui.header.profile}
                 </Link>
 
                 <Link
@@ -471,7 +472,7 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
                   className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 min-h-[44px] transition-colors"
                 >
                   <Settings className="w-4 h-4" />
-                  Настройки
+                  {ui.header.settings}
                 </Link>
 
                 <button
@@ -484,7 +485,7 @@ export function UnifiedHeader({ user }: UnifiedHeaderProps) {
                   } disabled:opacity-50`}
                 >
                   <LogOut className="w-4 h-4" />
-                  {isLoggingOut ? 'Выход...' : logoutConfirm ? 'Подтвердить выход' : 'Выйти'}
+                  {isLoggingOut ? ui.header.loggingOut : logoutConfirm ? ui.header.confirmLogout : ui.header.logout}
                 </button>
               </div>
             </div>

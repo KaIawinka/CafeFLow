@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import {
   Users,
   Settings as SettingsIcon,
@@ -12,6 +13,8 @@ import {
   Crown,
   CheckCircle,
 } from 'lucide-react';
+import { locales, type Locale } from '@/app/i18n/config';
+import { getUiTranslations } from '@/lib/ui-translations';
 
 interface User {
   id: string;
@@ -33,6 +36,9 @@ interface SiteSettings {
 }
 
 export default function AdminPage() {
+  const pathname = usePathname();
+  const locale = (locales.find((item) => pathname.split('/')[1] === item) || 'ru') as Locale;
+  const ui = getUiTranslations(locale);
   const [activeTab, setActiveTab] = useState<'users' | 'settings' | 'stats'>('users');
   const [isLoading] = useState(false);
   const [users] = useState<User[]>([
@@ -95,10 +101,10 @@ export default function AdminPage() {
         {/* Header */}
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Панель администратора
+            {ui.admin.title}
           </h1>
           <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-            Управление пользователями и настройками сайта
+            {ui.admin.description}
           </p>
         </div>
 
@@ -115,7 +121,7 @@ export default function AdminPage() {
                 }`}
               >
                 <Users className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden xs:inline">Пользователи</span>
+                <span className="hidden xs:inline">{ui.admin.users}</span>
               </button>
               <button
                 onClick={() => setActiveTab('settings')}
@@ -126,7 +132,7 @@ export default function AdminPage() {
                 }`}
               >
                 <SettingsIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden xs:inline">Настройки</span>
+                <span className="hidden xs:inline">{ui.admin.settings}</span>
               </button>
               <button
                 onClick={() => setActiveTab('stats')}
@@ -137,7 +143,7 @@ export default function AdminPage() {
                 }`}
               >
                 <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden xs:inline">Статистика</span>
+                <span className="hidden xs:inline">{ui.admin.stats}</span>
               </button>
             </nav>
           </div>
@@ -152,7 +158,7 @@ export default function AdminPage() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                     <input
                       type="text"
-                      placeholder="Поиск..."
+                      placeholder={ui.admin.search}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="w-full pl-9 sm:pl-10 pr-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white touch-manipulation"
@@ -165,12 +171,12 @@ export default function AdminPage() {
                       onChange={(e) => setFilterRole(e.target.value)}
                       className="pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none cursor-pointer min-w-[200px]"
                     >
-                      <option value="all">Все роли</option>
-                      <option value="admin">Администраторы</option>
-                      <option value="manager">Менеджеры</option>
-                      <option value="kitchen">Кухня</option>
-                      <option value="employee">Сотрудники</option>
-                      <option value="customer">Клиенты</option>
+                      <option value="all">{ui.admin.allRoles}</option>
+                      <option value="admin">{ui.admin.administrators}</option>
+                      <option value="manager">{ui.admin.managers}</option>
+                      <option value="kitchen">{ui.admin.roleKitchen}</option>
+                      <option value="employee">{ui.admin.employees}</option>
+                      <option value="customer">{ui.admin.customers}</option>
                     </select>
                   </div>
                 </div>
@@ -183,22 +189,22 @@ export default function AdminPage() {
                       <thead className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                         <tr>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Пользователь
+                            {ui.admin.user}
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Email
+                            {ui.admin.email}
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Роль
+                            {ui.admin.role}
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Статус
+                            {ui.admin.status}
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Дата регистрации
+                            {ui.admin.registered}
                           </th>
                           <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Действия
+                            {ui.admin.actions}
                           </th>
                         </tr>
                       </thead>
@@ -229,7 +235,7 @@ export default function AdminPage() {
                                   ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
                                   : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
                               }`}>
-                                {user.status === 'active' ? 'Активен' : 'Заблокирован'}
+                                {user.status === 'active' ? ui.admin.active : ui.admin.blocked}
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
@@ -275,7 +281,7 @@ export default function AdminPage() {
                               ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
                               : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
                           }`}>
-                            {user.status === 'active' ? 'Активен' : 'Заблокирован'}
+                              {user.status === 'active' ? ui.admin.active : ui.admin.blocked}
                           </span>
                           <span className="text-xs text-gray-500 dark:text-gray-400">
                             {new Date(user.created_at).toLocaleDateString('ru-RU')}
@@ -290,7 +296,7 @@ export default function AdminPage() {
                   <div className="text-center py-12">
                     <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-600 dark:text-gray-400">
-                      Пользователи не найдены
+                      {ui.admin.notFound}
                     </p>
                   </div>
                 )}
@@ -303,7 +309,7 @@ export default function AdminPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Название сайта
+                      {ui.admin.siteName}
                     </label>
                     <input
                       type="text"
@@ -315,7 +321,7 @@ export default function AdminPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      URL логотипа
+                      {ui.admin.logoUrl}
                     </label>
                     <input
                       type="text"
@@ -327,7 +333,7 @@ export default function AdminPage() {
 
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Описание сайта
+                      {ui.admin.siteDescription}
                     </label>
                     <textarea
                       value={siteSettings.siteDescription}
@@ -339,7 +345,7 @@ export default function AdminPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Основной цвет
+                      {ui.admin.primaryColor}
                     </label>
                     <div className="flex gap-3">
                       <input
@@ -367,10 +373,10 @@ export default function AdminPage() {
                       />
                       <div>
                         <span className="block text-sm font-medium text-gray-900 dark:text-white">
-                          Режим обслуживания
+                          {ui.admin.maintenance}
                         </span>
                         <span className="block text-xs text-gray-500 dark:text-gray-400">
-                          Сайт будет недоступен для посетителей
+                          {ui.admin.maintenanceDescription}
                         </span>
                       </div>
                     </label>
@@ -380,7 +386,7 @@ export default function AdminPage() {
                 <button
                   className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-semibold py-3 rounded-xl transition-all shadow-lg hover:shadow-xl"
                 >
-                  Сохранить настройки
+                  {ui.admin.save}
                 </button>
               </div>
             )}

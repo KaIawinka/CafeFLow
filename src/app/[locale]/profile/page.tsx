@@ -1,7 +1,7 @@
 'use client';
 
-import { Suspense, useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { Suspense, useCallback, useState, useEffect } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import {
   User,
@@ -18,6 +18,8 @@ import {
   MessageSquare,
   Calendar,
 } from 'lucide-react';
+import { locales, type Locale } from '@/app/i18n/config';
+import { getUiTranslations } from '@/lib/ui-translations';
 
 interface UserProfile {
   id: string;
@@ -68,17 +70,20 @@ export default function ProfilePage() {
 }
 
 function ProfileContent() {
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+  const locale = (locales.find((item) => pathname.split('/')[1] === item) || 'ru') as Locale;
+  const ui = getUiTranslations(locale);
   const message = searchParams.get('message');
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(
-    message === 'awaiting_approval' ? 'Ваш аккаунт ожидает подтверждения администратором.' : ''
+    message === 'awaiting_approval' ? ui.profile.awaitingApproval : ''
   );
   const [success, setSuccess] = useState(
-    message === 'welcome' ? 'Добро пожаловать! Ваш аккаунт успешно создан.' : ''
+    message === 'welcome' ? ui.profile.welcome : ''
   );
   const [activeTab, setActiveTab] = useState<'profile' | 'settings'>('profile');
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
@@ -104,7 +109,7 @@ function ProfileContent() {
     compactMode: false,
   });
 
-  async function loadProfile() {
+  const loadProfile = useCallback(async () => {
     try {
       const response = await fetch('/api/user/profile');
       const data = await response.json();
@@ -134,11 +139,11 @@ function ProfileContent() {
         }
       }
     } catch {
-      setError('Ошибка загрузки профиля');
+      setError(ui.profile.loadError);
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [ui]);
 
   // Load profile after mounting so the page can show its initial status message immediately.
   useEffect(() => {
@@ -146,7 +151,7 @@ function ProfileContent() {
       void loadProfile();
     }, 0);
     return () => window.clearTimeout(timeoutId);
-  }, []);
+  }, [loadProfile]);
 
   const handleSaveProfile = async () => {
     setError('');
@@ -220,15 +225,6 @@ function ProfileContent() {
     );
   }
 
-  const roleLabels: Record<string, string> = {
-    admin: 'Администратор',
-    manager: 'Менеджер',
-    kitchen: 'Кухня',
-    employee: 'Сотрудник',
-    customer: 'Клиент',
-    guest: 'Гость',
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -238,14 +234,14 @@ function ProfileContent() {
               {/* Avatar */}
               <div className="relative shrink-0">
                 {profile.avatar_file?.storage_key ? (
-                  <Image src={profile.avatar_file.storage_key} alt="Аватар профиля" width={96} height={96} className="h-20 w-20 sm:h-24 sm:w-24 rounded-full object-cover shadow-lg" />
+                  <Image src={profile.avatar_file.storage_key} alt={ui.profile.avatarAlt} width={96} height={96} className="h-20 w-20 sm:h-24 sm:w-24 rounded-full object-cover shadow-lg" />
                 ) : (
                   <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold shadow-lg">
                     {profile.first_name[0]?.toUpperCase()}
                   </div>
                 )}
                 <label className="absolute -bottom-2 -right-2 cursor-pointer rounded-full bg-gray-900 px-3 py-1 text-xs font-medium text-white shadow hover:bg-gray-700">
-                  {isUploadingAvatar ? '...' : 'Фото'}
+                  {isUploadingAvatar ? '...' : ui.profile.photo}
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
@@ -262,16 +258,16 @@ function ProfileContent() {
                         const response = await fetch('/api/user/avatar', { method: 'POST', body: uploadData });
                         const data = await response.json();
                         if (!response.ok) {
-                          setError(data.error || 'Не удалось загрузить аватарку');
+                          setError(data.error || ui.profile.uploadError);
                         } else {
                           setProfile((current) => current ? {
                             ...current,
                             avatar_file: { storage_key: data.avatarUrl, mime_type: file.type },
                           } : current);
-                          setSuccess('Аватарка обновлена');
+                          setSuccess(ui.profile.avatarUpdated);
                         }
                       } catch {
-                        setError('Не удалось загрузить аватарку');
+                        setError(ui.profile.uploadError);
                       } finally {
                         setIsUploadingAvatar(false);
                         event.target.value = '';
@@ -292,14 +288,14 @@ function ProfileContent() {
                     {profile.email}
                   </span>
                   <span className="px-3 py-1 bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 rounded-full text-xs font-medium">
-                    {roleLabels[profile.role]}
+                    {ui.profile.roleLabels[profile.role] || profile.role}
                   </span>
                 </div>
 
                 {profile.requires_approval && (
                   <div className="mt-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
                     <p className="text-sm text-yellow-800 dark:text-yellow-300">
-                      ⏳ Ваш аккаунт ожидает подтверждения администратором
+                      ⏳ {ui.profile.awaitingApproval}
                     </p>
                   </div>
                 )}
@@ -335,7 +331,7 @@ function ProfileContent() {
                   }`}
                 >
                   <User className="w-4 h-4 inline mr-2" />
-                  Профиль
+                  {ui.profile.profileTab}
                 </button>
                 <button
                   onClick={() => setActiveTab('settings')}
@@ -346,7 +342,7 @@ function ProfileContent() {
                   }`}
                 >
                   <Shield className="w-4 h-4 inline mr-2" />
-                  Настройки
+                  {ui.profile.settingsTab}
                 </button>
               </nav>
             </div>
@@ -358,7 +354,7 @@ function ProfileContent() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Имя
+                        {ui.profile.firstName}
                       </label>
                       <input
                         type="text"
@@ -370,7 +366,7 @@ function ProfileContent() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Фамилия
+                        {ui.profile.lastName}
                       </label>
                       <input
                         type="text"
@@ -382,7 +378,7 @@ function ProfileContent() {
 
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Отображаемое имя
+                        {ui.profile.displayName}
                       </label>
                       <input
                         type="text"
@@ -394,20 +390,20 @@ function ProfileContent() {
 
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        О себе
+                        {ui.profile.about}
                       </label>
                       <textarea
                         value={formData.bio}
                         onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                         rows={4}
                         className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 dark:bg-gray-700 dark:text-white"
-                        placeholder="Расскажите о себе..."
+                        placeholder={ui.profile.aboutPlaceholder}
                       />
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Телефон
+                        {ui.profile.phone}
                       </label>
                       <div className="relative">
                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -422,7 +418,7 @@ function ProfileContent() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Часовой пояс
+                        {ui.profile.timezone}
                       </label>
                       <div className="relative">
                         <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -446,7 +442,7 @@ function ProfileContent() {
                         <MessageSquare className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                         <div className="flex-1">
                           <h3 className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-1">
-                            Telegram подключён
+                            {ui.profile.telegramConnected}
                           </h3>
                           <p className="text-sm text-blue-700 dark:text-blue-400">
                             @{profile.telegram_username || 'username'}
@@ -466,7 +462,7 @@ function ProfileContent() {
                     <div className="flex items-center gap-3 text-sm">
                       <Calendar className="w-4 h-4 text-gray-400" />
                       <div>
-                        <span className="text-gray-500 dark:text-gray-400">Регистрация:</span>
+                        <span className="text-gray-500 dark:text-gray-400">{ui.profile.registration}</span>
                         <span className="ml-2 text-gray-900 dark:text-white">
                           {new Date(profile.created_at).toLocaleDateString('ru-RU')}
                         </span>
@@ -477,7 +473,7 @@ function ProfileContent() {
                       <div className="flex items-center gap-3 text-sm">
                         <Clock className="w-4 h-4 text-gray-400" />
                         <div>
-                          <span className="text-gray-500 dark:text-gray-400">Последний вход:</span>
+                          <span className="text-gray-500 dark:text-gray-400">{ui.profile.lastLogin}</span>
                           <span className="ml-2 text-gray-900 dark:text-white">
                             {new Date(profile.last_login_at).toLocaleDateString('ru-RU')}
                           </span>
@@ -494,12 +490,12 @@ function ProfileContent() {
                     {isSaving ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        Сохранение...
+                        {ui.profile.saving}
                       </>
                     ) : (
                       <>
                         <Save className="w-5 h-5" />
-                        Сохранить профиль
+                        {ui.profile.saveProfile}
                       </>
                     )}
                   </button>
@@ -510,14 +506,14 @@ function ProfileContent() {
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                       <Bell className="w-5 h-5" />
-                      Уведомления
+                      {ui.profile.notifications}
                     </h3>
                     <div className="space-y-3">
                       {[
-                        { key: 'emailNotifications', label: 'Email уведомления', icon: Mail },
-                        { key: 'smsNotifications', label: 'SMS уведомления', icon: Phone },
-                        { key: 'pushNotifications', label: 'Push уведомления', icon: Bell },
-                        { key: 'telegramNotifications', label: 'Telegram уведомления', icon: MessageSquare },
+                        { key: 'emailNotifications', label: ui.profile.emailNotifications, icon: Mail },
+                        { key: 'smsNotifications', label: ui.profile.smsNotifications, icon: Phone },
+                        { key: 'pushNotifications', label: ui.profile.pushNotifications, icon: Bell },
+                        { key: 'telegramNotifications', label: ui.profile.telegramNotifications, icon: MessageSquare },
                       ].map((item) => (
                         <label key={item.key} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600">
                           <span className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300">
@@ -539,14 +535,14 @@ function ProfileContent() {
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                       <Eye className="w-5 h-5" />
-                      Приватность
+                      {ui.profile.privacy}
                     </h3>
                     <div className="space-y-3">
                       {[
-                        { key: 'showOnlineStatus', label: 'Показывать статус онлайн' },
-                        { key: 'showPhone', label: 'Показывать телефон' },
-                        { key: 'showEmail', label: 'Показывать email' },
-                        { key: 'compactMode', label: 'Компактный режим интерфейса' },
+                        { key: 'showOnlineStatus', label: ui.profile.showOnlineStatus },
+                        { key: 'showPhone', label: ui.profile.showPhone },
+                        { key: 'showEmail', label: ui.profile.showEmail },
+                        { key: 'compactMode', label: ui.profile.compactMode },
                       ].map((item) => (
                         <label key={item.key} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600">
                           <span className="text-sm text-gray-700 dark:text-gray-300">{item.label}</span>
@@ -569,12 +565,12 @@ function ProfileContent() {
                     {isSaving ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        Сохранение...
+                        {ui.profile.saving}
                       </>
                     ) : (
                       <>
                         <Save className="w-5 h-5" />
-                        Сохранить настройки
+                        {ui.profile.saveSettings}
                       </>
                     )}
                   </button>
