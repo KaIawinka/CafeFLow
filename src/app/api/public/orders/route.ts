@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     if (!customerName || customerName.length > 200 || customerPhone.length > 40 || !body.tableId || requestIdempotencyKey.length > 120) {
       return NextResponse.json({ error: 'Укажите имя, столик и корректные позиции заказа' }, { status: 400 });
     }
-    const context = await getPublicCafeContext();
+    const context = await getPublicCafeContext(request);
     if (!context?.branch) return NextResponse.json({ error: 'Филиал кафе пока не настроен' }, { status: 503 });
     const branch = context.branch;
 

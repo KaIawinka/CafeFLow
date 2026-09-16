@@ -56,6 +56,9 @@ ADMIN_SETUP_TOKEN="your-admin-token"
 
 # App URL
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
+
+# Public tenant used when requests do not include ?tenant=slug or x-cafeflow-tenant
+CAFEFLOW_DEFAULT_TENANT_SLUG="cafeflow-demo"
 ```
 
 ### 4. Примените миграции базы данных

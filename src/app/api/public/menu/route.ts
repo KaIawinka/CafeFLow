@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getPublicCafeContext } from '@/lib/public-context';
 
@@ -6,9 +6,9 @@ function serialize<T>(value: T): T {
   return JSON.parse(JSON.stringify(value, (_, item) => typeof item === 'bigint' ? item.toString() : item));
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const context = await getPublicCafeContext();
+    const context = await getPublicCafeContext(request);
     if (!context) return NextResponse.json({ error: 'Кафе пока не настроено' }, { status: 503 });
     const products = await prisma.products.findMany({
       where: { tenant_id: context.tenant.id, is_available: true, deleted_at: null },

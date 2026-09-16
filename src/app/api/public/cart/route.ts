@@ -11,7 +11,7 @@ function sessionKey() { return randomBytes(32).toString('base64url'); }
 function serialize<T>(value: T): T { return JSON.parse(JSON.stringify(value, (_, item) => typeof item === 'bigint' ? item.toString() : item)); }
 
 async function getCartContext(request: NextRequest) {
-  const context = await getPublicCafeContext();
+  const context = await getPublicCafeContext(request);
   if (!context?.branch) return null;
   const existingSession = request.cookies.get(cartCookie)?.value;
   return { ...context, sessionKey: existingSession || sessionKey() };

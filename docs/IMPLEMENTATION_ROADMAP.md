@@ -67,6 +67,12 @@ CafeFlow is a multi-tenant, white-label restaurant platform for cafes, restauran
 - **Done**: `table_blocks` are excluded from availability and creation.
 - **Commit**: `1194972`.
 
+### Tenant context
+
+- **Done**: public API routes no longer select the first active tenant implicitly.
+- **Done**: public tenant is resolved by `?tenant=slug`, `x-cafeflow-tenant`, or the explicit `CAFEFLOW_DEFAULT_TENANT_SLUG` deployment setting.
+- **Partial**: custom-domain-to-tenant mapping and branch selection are still required for full SaaS rollout.
+
 ### Notifications
 
 - **Done**: staff receive in-app notifications for new orders.
@@ -77,7 +83,7 @@ CafeFlow is a multi-tenant, white-label restaurant platform for cafes, restauran
 
 ## Partial
 
-- **Partial**: tenant and branch data are stored and used in many queries, but public context still selects the first active tenant and branch. This is not ready for commercial multi-tenant deployment.
+- **Partial**: tenant and branch data are now explicit in public API context, but custom-domain mapping and branch selection are not finished. This is not yet ready for unrestricted commercial multi-tenant deployment.
 - **Partial**: dine-in ordering works end to end. Pickup, delivery, addresses, delivery zones and courier workflows are not connected.
 - **Partial**: payment fields exist and orders have payment status, but there is no payment provider, webhook verification or refund lifecycle.
 - **Partial**: reservations have server conflict protection, but do not yet apply `business_hours`, branch timezone, waitlist, deposits or automatic no-show handling.

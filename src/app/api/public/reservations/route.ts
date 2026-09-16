@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
   const guests = Number(request.nextUrl.searchParams.get('guests') || 1);
   if (!date || !Number.isInteger(guests) || guests < 1) return NextResponse.json({ error: 'Дата и количество гостей обязательны' }, { status: 400 });
   try {
-    const context = await getPublicCafeContext();
+    const context = await getPublicCafeContext(request);
     if (!context?.branch) return NextResponse.json({ error: 'Филиал кафе пока не настроен' }, { status: 503 });
     const tables = await prisma.restaurant_tables.findMany({ where: { tenant_id: context.tenant.id, branch_id: context.branch.id, status: 'active', capacity: { gte: guests } }, select: { id: true, name: true, zone: true, capacity: true, position: true }, orderBy: { name: 'asc' } });
     if (!time || !/^\d{2}:\d{2}$/.test(time)) return NextResponse.json(serialize({ tables }));
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     const startAt = new Date(`${body.date}T${body.time}:00`);
     if (Number.isNaN(startAt.getTime()) || startAt < new Date()) return NextResponse.json({ error: 'Выберите корректную дату и время' }, { status: 400 });
     const endAt = new Date(startAt.getTime() + 90 * 60 * 1000);
-    const context = await getPublicCafeContext();
+    const context = await getPublicCafeContext(request);
     if (!context?.branch) return NextResponse.json({ error: 'Филиал кафе пока не настроен' }, { status: 503 });
     const branch = context.branch;
     const guestName = body.name.trim();
