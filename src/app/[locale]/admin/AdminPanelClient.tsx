@@ -22,6 +22,7 @@ import {
   ChefHat,
   Truck,
   ArrowRight,
+  Bell,
 } from 'lucide-react';
 import { locales, type Locale } from '@/app/i18n/config';
 import { getUiTranslations } from '@/lib/ui-translations';
@@ -117,6 +118,7 @@ export default function AdminPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterRole, setFilterRole] = useState<string>('all');
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
   
   // Site settings
   const [siteSettings, setSiteSettings] = useState<SiteSettings>({
@@ -188,6 +190,35 @@ export default function AdminPage() {
     }, 0);
     return () => window.clearTimeout(timeoutId);
   }, [refreshKey]);
+
+  useEffect(() => {
+    let active = true;
+    const loadNotifications = async () => {
+      try {
+        const response = await fetch('/api/user/notifications', { cache: 'no-store' });
+        if (!response.ok) return;
+        const data = await response.json() as { unreadCount?: number };
+        if (active) setUnreadNotifications(data.unreadCount || 0);
+      } catch {
+        // Notification polling must not interrupt order operations.
+      }
+    };
+    void loadNotifications();
+    const intervalId = window.setInterval(() => void loadNotifications(), 15000);
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
+  const markNotificationsRead = async () => {
+    const response = await fetch('/api/user/notifications', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ all: true }),
+    });
+    if (response.ok) setUnreadNotifications(0);
+  };
 
   const updateUser = async (userId: string, changes: { role?: string; status?: string; requiresApproval?: boolean }) => {
     setSavingId(userId);
@@ -305,15 +336,26 @@ export default function AdminPage() {
                 {ui.admin.description}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => setRefreshKey((current) => current + 1)}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-              disabled={isLoading}
-            >
-              <RefreshCw className={isLoading ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} />
-              {ui.admin.refresh}
-            </button>
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => void markNotificationsRead()}
+                className="relative inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                aria-label="Отметить уведомления прочитанными"
+              >
+                <Bell className="h-4 w-4" />
+                {unreadNotifications > 0 && <span className="rounded-full bg-red-600 px-2 py-0.5 text-xs font-bold text-white">{unreadNotifications}</span>}
+              </button>
+              <button
+                type="button"
+                onClick={() => setRefreshKey((current) => current + 1)}
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                disabled={isLoading}
+              >
+                <RefreshCw className={isLoading ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} />
+                {ui.admin.refresh}
+              </button>
+            </div>
           </div>
         </div>
 
