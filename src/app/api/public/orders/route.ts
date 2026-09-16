@@ -1,5 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { getPublicCafeContext } from '@/lib/public-context';
 
@@ -53,11 +54,11 @@ export async function POST(request: NextRequest) {
     if (!table) return NextResponse.json({ error: 'Столик недоступен' }, { status: 409 });
 
     const lines = products.map((product) => {
-      const unitPrice = Number(product.price);
+      const unitPrice = product.price;
       const quantity = quantities.get(product.id)!;
-      return { product_id: product.id, product_name: product.name, unit_price: unitPrice, quantity, modifiers_total: 0, discount_amount: 0, line_total: unitPrice * quantity, comment: null };
+      return { product_id: product.id, product_name: product.name, unit_price: unitPrice, quantity, modifiers_total: new Prisma.Decimal(0), discount_amount: new Prisma.Decimal(0), line_total: unitPrice.mul(quantity), comment: null };
     });
-    const subtotal = lines.reduce((sum, line) => sum + line.line_total, 0);
+    const subtotal = lines.reduce((sum, line) => sum.add(line.line_total), new Prisma.Decimal(0));
     const token = guestToken();
     const newOrderNumber = orderNumber();
     const staff = await prisma.users.findMany({
@@ -67,7 +68,7 @@ export async function POST(request: NextRequest) {
     let order;
     try {
       order = await prisma.$transaction(async (tx) => {
-        const createdOrder = await tx.orders.create({ data: { tenant_id: context.tenant.id, branch_id: branch.id, order_number: newOrderNumber, idempotency_key: requestIdempotencyKey, customer_name: customerName, customer_phone: customerPhone, fulfillment_type: 'dine_in', status: 'new', payment_status: 'pending', subtotal, discount_total: 0, delivery_fee: 0, total: subtotal, currency: context.tenant.currency, comment: body.comment?.trim() || null, delivery_address: { tableId: table.id, tableName: table.name }, guest_token: token, order_items: { create: lines } }, select: { id: true, order_number: true, status: true, total: true, currency: true, created_at: true, guest_token: true } });
+        const createdOrder = await tx.orders.create({ data: { tenant_id: context.tenant.id, branch_id: branch.id, order_number: newOrderNumber, idempotency_key: requestIdempotencyKey, customer_name: customerName, customer_phone: customerPhone, fulfillment_type: 'dine_in', status: 'new', payment_status: 'pending', subtotal, discount_total: new Prisma.Decimal(0), delivery_fee: new Prisma.Decimal(0), total: subtotal, currency: context.tenant.currency, comment: body.comment?.trim() || null, delivery_address: { tableId: table.id, tableName: table.name }, guest_token: token, order_items: { create: lines } }, select: { id: true, order_number: true, status: true, total: true, currency: true, created_at: true, guest_token: true } });
         if (staff.length) {
           await tx.notifications.createMany({ data: staff.map((member) => ({ tenant_id: context.tenant.id, user_id: member.id, channel: 'in_app' as const, type: 'order_status' as const, subject: 'Новый заказ', body: `Заказ ${newOrderNumber} ожидает подтверждения`, status: 'queued' as const, attempts: 0 })) });
         }

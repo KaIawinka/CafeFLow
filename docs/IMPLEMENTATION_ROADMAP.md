@@ -90,7 +90,7 @@ CafeFlow is a multi-tenant, white-label restaurant platform for cafes, restauran
 - **Partial**: admin orders, products and reservations can be updated, but the panel is still a prototype without pagination, full CRUD and shift timeline views.
 - **Partial**: notifications are currently in-app only. Email, Telegram, SMS and push delivery workers are not complete.
 - **Partial**: auth sessions now work for login and refresh, but there is no user-facing active-device/session management screen or cleanup job.
-- **Partial**: order money values are persisted in decimal database columns, but route-level calculations still use JavaScript `Number` and must become decimal-safe.
+- **Partial**: cart and public checkout calculations now use `Prisma.Decimal`; payment, delivery and promotion calculations still need the same treatment when those workflows are implemented.
 
 ## To do: critical production work
 

@@ -1,5 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { getPublicCafeContext } from '@/lib/public-context';
 
@@ -61,8 +62,8 @@ export async function PUT(request: NextRequest) {
     });
     if (products.length !== productIds.length) return NextResponse.json({ error: 'Одно из блюд больше недоступно' }, { status: 409 });
 
-    const items = products.map((product) => ({ productId: product.id, quantity: quantities.get(product.id) || 0, unitPrice: Number(product.price), name: product.name, currency: product.currency }));
-    const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+    const items = products.map((product) => ({ productId: product.id, quantity: quantities.get(product.id) || 0, unitPrice: product.price.toString(), name: product.name, currency: product.currency }));
+    const subtotal = items.reduce((sum, item) => sum.add(new Prisma.Decimal(item.unitPrice).mul(item.quantity)), new Prisma.Decimal(0));
     const existing = await loadCart(context.tenant.id, context.sessionKey);
     const cart = existing
       ? await prisma.carts.update({ where: { id: existing.id }, data: { branch_id: branch.id, items, subtotal }, select: { id: true, items: true, subtotal: true, status: true, updated_at: true } })
