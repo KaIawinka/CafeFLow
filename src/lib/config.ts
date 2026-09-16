@@ -9,7 +9,7 @@ export function getJwtSecret(): Uint8Array {
   return new TextEncoder().encode(developmentJwtSecret);
 }
 
-export function getRequiredServerSecret(name: 'ADMIN_SETUP_TOKEN' | 'TELEGRAM_WEBHOOK_SECRET'): string {
+export function getRequiredServerSecret(name: 'ADMIN_SETUP_TOKEN' | 'TELEGRAM_WEBHOOK_SECRET' | 'CRON_SECRET'): string {
   const value = process.env[name]?.trim();
   if (!value) throw new Error(`${name} must be configured`);
   return value;
