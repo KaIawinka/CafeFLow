@@ -12,6 +12,7 @@ import { getJwtSecret } from '@/lib/config';
 // Token expiration times
 const ACCESS_TOKEN_EXPIRY = '15m'; // 15 minutes
 const REFRESH_TOKEN_EXPIRY = '7d'; // 7 days
+const SESSION_IDLE_TIMEOUT_MS = 2 * 60 * 60 * 1000;
 
 /**
  * JWT Payload Interface
@@ -106,11 +107,13 @@ export async function verifyAccessToken(token: string): Promise<TokenPayload | n
     }
 
     if (!jwtPayload.sessionId) return null;
+    const now = new Date();
     const session = await prisma.auth_sessions.findFirst({
-      where: { id: jwtPayload.sessionId, user_id: jwtPayload.userId, expires_at: { gt: new Date() } },
+      where: { id: jwtPayload.sessionId, user_id: jwtPayload.userId, expires_at: { gt: now }, last_activity: { gt: new Date(now.getTime() - SESSION_IDLE_TIMEOUT_MS) } },
       select: { id: true },
     });
     if (!session) return null;
+    await prisma.auth_sessions.update({ where: { id: session.id }, data: { last_activity: now } });
 
     const currentUser = await prisma.users.findUnique({
       where: { id: jwtPayload.userId },
@@ -157,11 +160,13 @@ export async function verifyRefreshToken(token: string): Promise<TokenPayload | 
     }
 
     if (!jwtPayload.sessionId) return null;
+    const now = new Date();
     const session = await prisma.auth_sessions.findFirst({
-      where: { id: jwtPayload.sessionId, user_id: jwtPayload.userId, token: hashSessionToken(token), expires_at: { gt: new Date() } },
+      where: { id: jwtPayload.sessionId, user_id: jwtPayload.userId, token: hashSessionToken(token), expires_at: { gt: now }, last_activity: { gt: new Date(now.getTime() - SESSION_IDLE_TIMEOUT_MS) } },
       select: { id: true },
     });
     if (!session) return null;
+    await prisma.auth_sessions.update({ where: { id: session.id }, data: { last_activity: now } });
 
     const currentUser = await prisma.users.findUnique({
       where: { id: jwtPayload.userId },
