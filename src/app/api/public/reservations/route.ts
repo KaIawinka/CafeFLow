@@ -8,13 +8,19 @@ function serialize<T>(value: T): T { return JSON.parse(JSON.stringify(value, (_,
 
 export async function GET(request: NextRequest) {
   const date = request.nextUrl.searchParams.get('date');
+  const time = request.nextUrl.searchParams.get('time');
   const guests = Number(request.nextUrl.searchParams.get('guests') || 1);
   if (!date || !Number.isInteger(guests) || guests < 1) return NextResponse.json({ error: 'Дата и количество гостей обязательны' }, { status: 400 });
   try {
     const context = await getPublicCafeContext();
     if (!context?.branch) return NextResponse.json({ error: 'Филиал кафе пока не настроен' }, { status: 503 });
     const tables = await prisma.restaurant_tables.findMany({ where: { tenant_id: context.tenant.id, branch_id: context.branch.id, status: 'active', capacity: { gte: guests } }, select: { id: true, name: true, zone: true, capacity: true, position: true }, orderBy: { name: 'asc' } });
-    return NextResponse.json(serialize({ tables }));
+    if (!time || !/^\d{2}:\d{2}$/.test(time)) return NextResponse.json(serialize({ tables }));
+    const startAt = new Date(`${date}T${time}:00`);
+    const endAt = new Date(startAt.getTime() + 90 * 60 * 1000);
+    const conflicts = await prisma.reservations.findMany({ where: { tenant_id: context.tenant.id, branch_id: context.branch.id, status: { in: ['pending', 'confirmed', 'seated'] }, start_at: { lt: endAt }, end_at: { gt: startAt } }, select: { table_ids: true } });
+    const occupied = new Set(conflicts.flatMap((reservation) => Array.isArray(reservation.table_ids) ? reservation.table_ids.filter((id): id is string => typeof id === 'string') : []));
+    return NextResponse.json(serialize({ tables: tables.filter((table) => !occupied.has(table.id)) }));
   } catch (error) {
     console.error('Public reservation availability error', error);
     return NextResponse.json({ error: 'Не удалось загрузить доступные столики' }, { status: 500 });

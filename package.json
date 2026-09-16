@@ -9,6 +9,7 @@
     "lint": "eslint",
     "telegram:commands": "node scripts/setup-bot-commands.js",
     "admin:create": "node scripts/create-admin.js",
+    "db:seed-demo": "node scripts/seed-demo.js",
     "postinstall": "prisma generate"
   },
   "dependencies": {

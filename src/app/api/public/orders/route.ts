@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     const customerName = body.customerName?.trim();
     const customerPhone = body.customerPhone?.trim() || 'guest';
     const items = body.items || [];
-    if (!customerName || !body.tableId || !items.length || items.some((item) => !item.productId || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 20)) {
+    if (!customerName || customerName.length > 200 || customerPhone.length > 40 || !body.tableId || !items.length || items.some((item) => !item.productId || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 20)) {
       return NextResponse.json({ error: 'Укажите имя, столик и корректные позиции заказа' }, { status: 400 });
     }
     const context = await getPublicCafeContext();
