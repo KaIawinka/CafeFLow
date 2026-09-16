@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   User,
   Shield,
@@ -52,11 +53,20 @@ interface UserSettings {
 }
 
 export default function SettingsPage() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const locale = pathname.split('/').filter(Boolean)[0] || 'ru';
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
 
   const [settings, setSettings] = useState<UserSettings>({
     language: 'ru',
@@ -122,6 +132,34 @@ export default function SettingsPage() {
       setError('Произошла ошибка при сохранении');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handlePasswordChange = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError('');
+    setSuccess('');
+    setIsChangingPassword(true);
+
+    try {
+      const response = await fetch('/api/user/password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(passwordData),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Не удалось изменить пароль');
+        return;
+      }
+
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      router.push(`/${locale}/login?message=password_changed`);
+    } catch {
+      setError('Произошла ошибка при изменении пароля');
+    } finally {
+      setIsChangingPassword(false);
     }
   };
 
@@ -344,13 +382,50 @@ export default function SettingsPage() {
                     </div>
                   </div>
 
-                  {/* Change Password */}
-                  <div className="pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-700">
-                    <button className="flex items-center gap-2 text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 font-medium min-h-[44px] transition-colors">
-                      <Lock className="w-5 h-5" />
-                      <span className="text-sm sm:text-base">Изменить пароль</span>
+                  <form onSubmit={handlePasswordChange} className="space-y-4 border-t border-gray-200 pt-4 sm:pt-6 dark:border-gray-700">
+                    <div>
+                      <h3 className="flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-white">
+                        <Lock className="h-5 w-5" />
+                        Изменить пароль
+                      </h3>
+                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">После изменения потребуется войти заново на устройствах.</p>
+                    </div>
+                    <input
+                      type="password"
+                      autoComplete="current-password"
+                      value={passwordData.currentPassword}
+                      onChange={(event) => setPasswordData({ ...passwordData, currentPassword: event.target.value })}
+                      placeholder="Текущий пароль"
+                      required
+                      className="w-full rounded-lg border border-gray-300 px-4 py-3 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    />
+                    <input
+                      type="password"
+                      autoComplete="new-password"
+                      value={passwordData.newPassword}
+                      onChange={(event) => setPasswordData({ ...passwordData, newPassword: event.target.value })}
+                      placeholder="Новый пароль"
+                      required
+                      className="w-full rounded-lg border border-gray-300 px-4 py-3 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    />
+                    <input
+                      type="password"
+                      autoComplete="new-password"
+                      value={passwordData.confirmPassword}
+                      onChange={(event) => setPasswordData({ ...passwordData, confirmPassword: event.target.value })}
+                      placeholder="Повторите новый пароль"
+                      required
+                      className="w-full rounded-lg border border-gray-300 px-4 py-3 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    />
+                    <button
+                      type="submit"
+                      disabled={isChangingPassword}
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-amber-600 px-5 font-semibold text-white transition-colors hover:bg-amber-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+                    >
+                      {isChangingPassword ? <Loader2 className="h-5 w-5 animate-spin" /> : <Lock className="h-5 w-5" />}
+                      {isChangingPassword ? 'Изменение...' : 'Изменить пароль'}
                     </button>
-                  </div>
+                  </form>
                 </div>
               )}
 

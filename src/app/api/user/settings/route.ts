@@ -32,7 +32,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get or create settings
+    const user = await prisma.users.findUnique({
+      where: { id: payload.userId },
+      select: {
+        language: true,
+        timezone: true,
+        two_fa_enabled: true,
+        email_verified_at: true,
+        phone_verified_at: true,
+      },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
+    }
+
     let settings = await prisma.user_settings.findUnique({
       where: { user_id: payload.userId },
     });
@@ -48,7 +62,23 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      settings,
+      settings: {
+        language: user.language,
+        language_ui: user.language,
+        timezone: user.timezone,
+        twoFAEnabled: user.two_fa_enabled,
+        emailVerified: Boolean(user.email_verified_at),
+        phoneVerified: Boolean(user.phone_verified_at),
+        emailNotifications: settings.email_notifications,
+        smsNotifications: settings.sms_notifications,
+        pushNotifications: settings.push_notifications,
+        telegramNotifications: settings.telegram_notifications,
+        showOnlineStatus: settings.show_online_status,
+        showPhone: settings.show_phone,
+        showEmail: settings.show_email,
+        theme: settings.theme,
+        compactMode: settings.compact_mode,
+      },
     });
 
   } catch (error) {
@@ -84,7 +114,31 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
+    const body = await request.json() as {
+      language?: string;
+      language_ui?: string;
+      timezone?: string;
+      emailNotifications?: boolean;
+      smsNotifications?: boolean;
+      pushNotifications?: boolean;
+      telegramNotifications?: boolean;
+      showOnlineStatus?: boolean;
+      showPhone?: boolean;
+      showEmail?: boolean;
+      theme?: string;
+      compactMode?: boolean;
+    };
+    const language = body.language_ui || body.language;
+    const supportedLanguages = ['ru', 'en', 'kg'];
+    if (language !== undefined && !supportedLanguages.includes(language)) {
+      return NextResponse.json({ error: 'Недопустимый язык интерфейса' }, { status: 400 });
+    }
+    if (body.timezone !== undefined && !body.timezone.trim()) {
+      return NextResponse.json({ error: 'Часовой пояс не может быть пустым' }, { status: 400 });
+    }
+    if (body.theme !== undefined && !['light', 'dark', 'system'].includes(body.theme)) {
+      return NextResponse.json({ error: 'Недопустимая тема оформления' }, { status: 400 });
+    }
     const {
       emailNotifications,
       smsNotifications,
@@ -122,6 +176,14 @@ export async function PATCH(request: NextRequest) {
         ...(showEmail !== undefined && { show_email: showEmail }),
         ...(theme !== undefined && { theme }),
         ...(compactMode !== undefined && { compact_mode: compactMode }),
+      },
+    });
+
+    await prisma.users.update({
+      where: { id: payload.userId },
+      data: {
+        ...(language !== undefined ? { language } : {}),
+        ...(body.timezone !== undefined ? { timezone: body.timezone.trim() } : {}),
       },
     });
 
