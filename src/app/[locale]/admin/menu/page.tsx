@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Archive, Plus, Save } from 'lucide-react';
 import { useParams } from 'next/navigation';
@@ -24,16 +24,16 @@ export default function AdminMenuPage() {
   const [product, setProduct] = useState({ name: '', price: '', categoryId: '' });
   const [message, setMessage] = useState('');
 
-  const load = async () => {
+  const load = useCallback(async () => {
     const [categoryResponse, productResponse] = await Promise.all([fetch('/api/admin/menu/categories'), fetch('/api/admin/menu/products')]);
     if (!categoryResponse.ok || !productResponse.ok) { setMessage(t.loadError); return; }
     const categoryData = await categoryResponse.json();
     const productData = await productResponse.json();
     setCategories(categoryData.categories || []);
     setProducts(productData.products || []);
-  };
+  }, [t.loadError]);
 
-  useEffect(() => { const timeoutId = window.setTimeout(() => void load(), 0); return () => window.clearTimeout(timeoutId); }, []);
+  useEffect(() => { const timeoutId = window.setTimeout(() => void load(), 0); return () => window.clearTimeout(timeoutId); }, [load]);
 
   const createCategory = async () => {
     const response = await fetch('/api/admin/menu/categories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: categoryName }) });
