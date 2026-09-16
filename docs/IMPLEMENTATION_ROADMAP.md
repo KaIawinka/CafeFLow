@@ -103,6 +103,11 @@ CafeFlow is a multi-tenant, white-label restaurant platform for cafes, restauran
 - **Done**: admin reservation transitions create activity log before/after events; paginated admin audit viewer API is available.
 - **Done**: retryable notification worker claims queued notifications and processes in-app/email delivery with bounded retries.
 - **Partial**: payment operations support admin cash/card reconciliation transitions; external provider intents, signed webhooks, refunds ledger and settlement reconciliation remain required.
+- **Done**: authenticated favorites API and verified completed-order review submission API are available.
+- **Done**: tenant-scoped promotion validation calculates Decimal-safe discounts and enforces active dates, minimum subtotal and usage limits.
+- **Partial**: retention UI, promotion redemption inside checkout, loyalty append-only ledger and moderation screens remain required.
+- **Done**: new admin menu UI labels and actions support Russian, English and Kyrgyz locale variants.
+- **Required for every future UI step**: no hardcoded user-facing strings; loading, empty, error, success and validation states must be translated in `ru`, `en` and `kg`.
 
 ## Partial
 
