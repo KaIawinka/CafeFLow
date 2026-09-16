@@ -45,8 +45,23 @@ model tenants {
   restaurant_tables  restaurant_tables[]
   reviews            reviews[]
   table_blocks       table_blocks[]
+  tenant_domains     tenant_domains[]
   logo_file          files?               @relation("tenant_logo_file", fields: [logo_file_id], references: [id])
   users              users[]
+}
+
+model tenant_domains {
+  id          String        @id @default(uuid()) @db.Uuid
+  tenant_id   String        @db.Uuid
+  hostname    String        @unique @db.VarChar(255)
+  status      domain_status @default(pending)
+  verified_at DateTime?     @db.Timestamptz(6)
+  created_at  DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime      @updatedAt @db.Timestamptz(6)
+  tenant      tenants       @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+
+  @@index([tenant_id])
+  @@index([hostname, status])
 }
 
 model branches {
@@ -777,6 +792,12 @@ enum tenant_status {
   active
   suspended
   archived
+}
+
+enum domain_status {
+  pending
+  verified
+  disabled
 }
 
 enum branch_status {
