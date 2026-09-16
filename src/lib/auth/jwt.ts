@@ -4,6 +4,7 @@
  */
 
 import { SignJWT, jwtVerify, JWTPayload } from 'jose';
+import { createHash } from 'node:crypto';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 
@@ -26,6 +27,31 @@ export interface TokenPayload extends JWTPayload {
   status?: string;
   requiresApproval?: boolean;
   sessionId?: string;
+}
+
+export function hashSessionToken(token: string): string {
+  return createHash('sha256').update(token).digest('hex');
+}
+
+export async function createAuthSession(params: {
+  sessionId: string;
+  userId: string;
+  refreshToken: string;
+  request: Request;
+  is2faVerified?: boolean;
+}) {
+  const forwardedFor = params.request.headers.get('x-forwarded-for');
+  await prisma.auth_sessions.create({
+    data: {
+      id: params.sessionId,
+      user_id: params.userId,
+      token: hashSessionToken(params.refreshToken),
+      expires_at: new Date(Date.now() + getTokenExpirySeconds('refresh') * 1000),
+      ip_address: forwardedFor?.split(',')[0]?.trim() || params.request.headers.get('x-real-ip') || null,
+      user_agent: params.request.headers.get('user-agent')?.slice(0, 500) || null,
+      is_2fa_verified: params.is2faVerified ?? true,
+    },
+  });
 }
 
 /**
@@ -83,6 +109,13 @@ export async function verifyAccessToken(token: string): Promise<TokenPayload | n
       return null;
     }
 
+    if (!jwtPayload.sessionId) return null;
+    const session = await prisma.auth_sessions.findFirst({
+      where: { id: jwtPayload.sessionId, user_id: jwtPayload.userId, expires_at: { gt: new Date() } },
+      select: { id: true },
+    });
+    if (!session) return null;
+
     const currentUser = await prisma.users.findUnique({
       where: { id: jwtPayload.userId },
       select: {
@@ -126,6 +159,13 @@ export async function verifyRefreshToken(token: string): Promise<TokenPayload | 
     if (!jwtPayload.userId) {
       return null;
     }
+
+    if (!jwtPayload.sessionId) return null;
+    const session = await prisma.auth_sessions.findFirst({
+      where: { id: jwtPayload.sessionId, user_id: jwtPayload.userId, token: hashSessionToken(token), expires_at: { gt: new Date() } },
+      select: { id: true },
+    });
+    if (!session) return null;
 
     const currentUser = await prisma.users.findUnique({
       where: { id: jwtPayload.userId },

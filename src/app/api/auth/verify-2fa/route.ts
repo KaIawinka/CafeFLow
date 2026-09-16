@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyCode } from '@/lib/telegram/utils';
-import { generateTokenPair } from '@/lib/auth/jwt';
+import { createAuthSession, generateTokenPair } from '@/lib/auth/jwt';
 import { sendLoginAlert } from '@/lib/telegram/messages';
 import { logger } from '@/lib/logger';
 import crypto from 'crypto';
@@ -113,6 +113,7 @@ export async function POST(request: NextRequest) {
     };
 
     const { accessToken, refreshToken } = await generateTokenPair(tokenPayload);
+    await createAuthSession({ sessionId, userId: user.id, refreshToken, request, is2faVerified: true });
 
     // Update last login
     await prisma.users.update({

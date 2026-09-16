@@ -6,10 +6,15 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logger } from '@/lib/logger';
+import { verifyAccessToken } from '@/lib/auth/jwt';
+import { prisma } from '@/lib/prisma';
 
 export async function POST() {
   try {
     const cookieStore = await cookies();
+    const token = cookieStore.get('accessToken')?.value;
+    const payload = token ? await verifyAccessToken(token) : null;
+    if (payload?.sessionId) await prisma.auth_sessions.deleteMany({ where: { id: payload.sessionId, user_id: payload.userId } });
     
     // Clear auth cookies
     cookieStore.delete('accessToken');

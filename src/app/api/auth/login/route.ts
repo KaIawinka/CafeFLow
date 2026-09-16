@@ -8,7 +8,7 @@ import { prisma } from '@/lib/prisma';
 import { verifyPassword } from '@/lib/auth/password';
 import { createVerificationCode, checkCodeGenerationRateLimit } from '@/lib/telegram/utils';
 import { sendVerificationCode } from '@/lib/telegram/messages';
-import { generateTokenPair } from '@/lib/auth/jwt';
+import { createAuthSession, generateTokenPair } from '@/lib/auth/jwt';
 import { logger } from '@/lib/logger';
 import crypto from 'crypto';
 import { verifyRecaptcha } from '@/lib/recaptcha';
@@ -201,6 +201,7 @@ export async function POST(request: NextRequest) {
     };
 
     const { accessToken, refreshToken } = await generateTokenPair(tokenPayload);
+    await createAuthSession({ sessionId: tokenPayload.sessionId, userId: user.id, refreshToken, request });
 
     // Update last login and last seen
     await prisma.users.update({
