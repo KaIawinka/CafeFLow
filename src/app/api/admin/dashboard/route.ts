@@ -7,6 +7,15 @@ const roles = ['guest', 'customer', 'employee', 'kitchen', 'manager', 'admin'] a
 const statuses = ['active', 'blocked', 'pending'] as const;
 const orderStatuses = ['new', 'confirmed', 'cooking', 'ready', 'delivering', 'completed', 'cancelled'] as const;
 const orderedStatuses = ['new', 'confirmed', 'cooking', 'ready', 'delivering', 'completed'] as const;
+const orderStatusLabels: Record<OrderStatus, string> = {
+  new: 'принят',
+  confirmed: 'подтверждён',
+  cooking: 'готовится',
+  ready: 'готов',
+  delivering: 'передан официанту',
+  completed: 'завершён',
+  cancelled: 'отменён',
+};
 
 type Role = (typeof roles)[number];
 type Status = (typeof statuses)[number];
@@ -197,7 +206,7 @@ export async function PATCH(request: NextRequest) {
 
     if (body.resource === 'order') {
       if (!body.id || !body.orderStatus || !orderStatuses.includes(body.orderStatus)) return NextResponse.json({ error: 'Недопустимый статус заказа' }, { status: 400 });
-      const order = await prisma.orders.findUnique({ where: { id: body.id }, select: { id: true, tenant_id: true, status: true, status_history: true } });
+      const order = await prisma.orders.findUnique({ where: { id: body.id }, select: { id: true, tenant_id: true, user_id: true, order_number: true, status: true, status_history: true } });
       if (!order || (actor.tenant_id && order.tenant_id !== actor.tenant_id)) return NextResponse.json({ error: 'Заказ не найден' }, { status: 404 });
       const currentIndex = orderedStatuses.indexOf(order.status as (typeof orderedStatuses)[number]);
       const nextIndex = body.orderStatus === 'cancelled' ? -1 : orderedStatuses.indexOf(body.orderStatus as (typeof orderedStatuses)[number]);
@@ -207,7 +216,18 @@ export async function PATCH(request: NextRequest) {
       if (body.orderStatus === order.status) return NextResponse.json({ error: 'Заказ уже находится в этом статусе' }, { status: 409 });
       const history = Array.isArray(order.status_history) ? order.status_history : [];
       const statusHistory = [...history, { from: order.status, to: body.orderStatus, changedAt: new Date().toISOString(), changedBy: actor.id }];
-      const updated = await prisma.orders.update({ where: { id: body.id }, data: { status: body.orderStatus, status_history: statusHistory, ...(body.orderStatus === 'completed' ? { completed_at: new Date() } : {}), ...(body.orderStatus === 'cancelled' ? { cancelled_at: new Date() } : {}) }, select: { id: true, order_number: true, status: true, payment_status: true, total: true, currency: true, customer_name: true, created_at: true } });
+      const staff = await prisma.users.findMany({
+        where: { tenant_id: order.tenant_id, status: 'active', role: { in: ['admin', 'manager', 'kitchen', 'employee'] }, id: { not: actor.id } },
+        select: { id: true },
+      });
+      const statusLabel = orderStatusLabels[body.orderStatus];
+      const updated = await prisma.$transaction(async (tx) => {
+        const changedOrder = await tx.orders.update({ where: { id: body.id }, data: { status: body.orderStatus, status_history: statusHistory, ...(body.orderStatus === 'completed' ? { completed_at: new Date() } : {}), ...(body.orderStatus === 'cancelled' ? { cancelled_at: new Date() } : {}) }, select: { id: true, order_number: true, status: true, payment_status: true, total: true, currency: true, customer_name: true, created_at: true } });
+        const notifications = staff.map((member) => ({ tenant_id: order.tenant_id, user_id: member.id, channel: 'in_app' as const, type: 'order_status' as const, subject: 'Изменение заказа', body: `Заказ ${order.order_number} теперь ${statusLabel}`, status: 'queued' as const, attempts: 0 }));
+        if (order.user_id) notifications.push({ tenant_id: order.tenant_id, user_id: order.user_id, channel: 'in_app' as const, type: 'order_status' as const, subject: 'Статус заказа', body: `Ваш заказ ${order.order_number} ${statusLabel}`, status: 'queued' as const, attempts: 0 });
+        if (notifications.length) await tx.notifications.createMany({ data: notifications });
+        return changedOrder;
+      });
       await prisma.activity_logs.create({ data: { tenant_id: order.tenant_id, actor_user_id: actor.id, action: 'admin.order.updated', entity_type: 'orders', entity_id: order.id, before_data: order, after_data: updated } });
       return NextResponse.json({ success: true, order: updated });
     }
