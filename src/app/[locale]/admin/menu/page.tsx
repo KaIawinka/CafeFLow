@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useEffectEvent, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Archive, Plus, Save } from 'lucide-react';
 import { useParams } from 'next/navigation';
@@ -33,7 +33,8 @@ export default function AdminMenuPage() {
     setProducts(productData.products || []);
   };
 
-  useEffect(() => { const timeoutId = window.setTimeout(() => void load(), 0); return () => window.clearTimeout(timeoutId); }, []);
+  const loadMenu = useEffectEvent(load);
+  useEffect(() => { const timeoutId = window.setTimeout(() => void loadMenu(), 0); return () => window.clearTimeout(timeoutId); }, []);
 
   const createCategory = async () => {
     const response = await fetch('/api/admin/menu/categories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: categoryName }) });
