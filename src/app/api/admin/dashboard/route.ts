@@ -50,6 +50,9 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search')?.trim() || '';
     const role = searchParams.get('role');
     const status = searchParams.get('status');
+    const usersPage = Math.max(1, Number(searchParams.get('usersPage') || 1));
+    const ordersPage = Math.max(1, Number(searchParams.get('ordersPage') || 1));
+    const pageSize = 25;
     const userWhere = {
       ...(search ? {
         OR: [
@@ -65,7 +68,7 @@ export async function GET(request: NextRequest) {
 
     const orderWhere = tenantScope(actor.tenant_id);
     const productWhere = { deleted_at: null, ...tenantScope(actor.tenant_id) };
-      const [users, usersCount, activeUsersCount, adminCount, ordersCount, revenue, productsCount, activeProductsCount, recentOrders, products, tenant] = await Promise.all([
+      const [users, filteredUsersCount, usersCount, activeUsersCount, adminCount, ordersCount, revenue, productsCount, activeProductsCount, recentOrders, recentOrdersCount, products, tenant] = await Promise.all([
       prisma.users.findMany({
         where: userWhere,
         select: {
@@ -74,8 +77,10 @@ export async function GET(request: NextRequest) {
           language: true, last_login_at: true, created_at: true,
         },
         orderBy: { created_at: 'desc' },
-        take: 100,
+        skip: (usersPage - 1) * pageSize,
+        take: pageSize,
       }),
+        prisma.users.count({ where: userWhere }),
         prisma.users.count({ where: tenantScope(actor.tenant_id) }),
         prisma.users.count({ where: { ...tenantScope(actor.tenant_id), status: 'active' } }),
         prisma.users.count({ where: { ...tenantScope(actor.tenant_id), role: 'admin' } }),
@@ -87,8 +92,10 @@ export async function GET(request: NextRequest) {
         where: orderWhere,
         select: { id: true, order_number: true, customer_name: true, status: true, payment_status: true, total: true, currency: true, created_at: true },
         orderBy: { created_at: 'desc' },
-        take: 10,
+        skip: (ordersPage - 1) * pageSize,
+        take: pageSize,
       }),
+      prisma.orders.count({ where: orderWhere }),
       prisma.products.findMany({
         where: productWhere,
         select: { id: true, name: true, price: true, currency: true, is_available: true, is_featured: true, sort_order: true, category: { select: { name: true } } },
@@ -102,6 +109,7 @@ export async function GET(request: NextRequest) {
       success: true,
       actor: { id: actor.id, email: actor.email, role: actor.role },
       users,
+      pagination: { usersPage, ordersPage, pageSize, usersTotal: filteredUsersCount, ordersTotal: recentOrdersCount },
       metrics: { users: usersCount, activeUsers: activeUsersCount, admins: adminCount, orders: ordersCount, revenue: revenue._sum.total || 0, products: productsCount, activeProducts: activeProductsCount },
       recentOrders,
       products,

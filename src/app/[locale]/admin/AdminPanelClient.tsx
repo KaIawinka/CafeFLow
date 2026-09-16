@@ -97,6 +97,17 @@ interface Product {
   category?: { name: string } | null;
 }
 
+function PaginationControls({ page, pageCount, onPageChange }: { page: number; pageCount: number; onPageChange: (page: number) => void }) {
+  if (pageCount <= 1) return null;
+  return (
+    <div className="flex items-center justify-center gap-3 pt-2">
+      <button type="button" onClick={() => onPageChange(Math.max(1, page - 1))} disabled={page === 1} className="min-h-10 rounded-lg border border-gray-200 px-3 text-sm font-semibold text-gray-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-200">Назад</button>
+      <span className="text-sm text-gray-500 dark:text-gray-400">Страница {page} из {pageCount}</span>
+      <button type="button" onClick={() => onPageChange(Math.min(pageCount, page + 1))} disabled={page === pageCount} className="min-h-10 rounded-lg border border-gray-200 px-3 text-sm font-semibold text-gray-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-200">Вперёд</button>
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const pathname = usePathname();
   const router = useRouter();
@@ -119,6 +130,10 @@ export default function AdminPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterRole, setFilterRole] = useState<string>('all');
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [usersPage, setUsersPage] = useState(1);
+  const [ordersPage, setOrdersPage] = useState(1);
+  const [usersTotal, setUsersTotal] = useState(0);
+  const [ordersTotal, setOrdersTotal] = useState(0);
   
   // Site settings
   const [siteSettings, setSiteSettings] = useState<SiteSettings>({
@@ -141,6 +156,8 @@ export default function AdminPage() {
       const query = new URLSearchParams();
       if (searchQuery.trim()) query.set('search', searchQuery.trim());
       if (filterRole !== 'all') query.set('role', filterRole);
+      query.set('usersPage', String(usersPage));
+      query.set('ordersPage', String(ordersPage));
       const response = await fetch(`/api/admin/dashboard?${query.toString()}`, { cache: 'no-store', signal });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || errorLoad);
@@ -148,6 +165,8 @@ export default function AdminPage() {
       setHasLoadedDashboard(true);
       setMetrics(data.metrics || { users: 0, activeUsers: 0, admins: 0, orders: 0, revenue: 0, products: 0, activeProducts: 0 });
       setRecentOrders(data.recentOrders || []);
+      setUsersTotal(data.pagination?.usersTotal || 0);
+      setOrdersTotal(data.pagination?.ordersTotal || 0);
       setProducts(data.products || []);
       if (data.tenant) {
         setSiteSettings((current) => ({
@@ -179,7 +198,7 @@ export default function AdminPage() {
       window.clearTimeout(timeoutId);
       controller.abort();
     };
-  }, [filterRole, refreshKey, searchQuery]);
+  }, [filterRole, refreshKey, searchQuery, usersPage, ordersPage]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -305,6 +324,8 @@ export default function AdminPage() {
   };
 
   const filteredUsers = users;
+  const usersPageCount = Math.max(1, Math.ceil(usersTotal / 25));
+  const ordersPageCount = Math.max(1, Math.ceil(ordersTotal / 25));
 
   const roleColors: Record<string, string> = {
     admin: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
@@ -451,7 +472,7 @@ export default function AdminPage() {
                       type="text"
                       placeholder={ui.admin.search}
                       value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onChange={(e) => { setSearchQuery(e.target.value); setUsersPage(1); }}
                       className="w-full pl-9 sm:pl-10 pr-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white touch-manipulation"
                     />
                   </div>
@@ -459,7 +480,7 @@ export default function AdminPage() {
                     <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <select
                       value={filterRole}
-                      onChange={(e) => setFilterRole(e.target.value)}
+                      onChange={(e) => { setFilterRole(e.target.value); setUsersPage(1); }}
                       className="pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none cursor-pointer min-w-[200px]"
                     >
                       <option value="all">{ui.admin.allRoles}</option>
@@ -618,6 +639,9 @@ export default function AdminPage() {
                     </p>
                   </div>
                 )}
+                {usersTotal > 0 && (
+                  <PaginationControls page={usersPage} pageCount={usersPageCount} onPageChange={setUsersPage} />
+                )}
               </div>
             )}
 
@@ -665,6 +689,9 @@ export default function AdminPage() {
                   </table>
                   {recentOrders.length === 0 && <p className="p-8 text-center text-sm text-gray-500 dark:text-gray-400">{ui.admin.noOrders}</p>}
                 </div>
+                {ordersTotal > 0 && (
+                  <PaginationControls page={ordersPage} pageCount={ordersPageCount} onPageChange={setOrdersPage} />
+                )}
               </div>
             )}
 
