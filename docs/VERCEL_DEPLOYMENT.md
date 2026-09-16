@@ -67,6 +67,7 @@ postgresql://postgres.xxx:password@aws-0-us-east-1.pooler.supabase.com:5432/post
 ```bash
 # Database
 DATABASE_URL="postgresql://user:password@host:5432/db?sslmode=require"
+DIRECT_URL="postgresql://user:password@host:5432/db?sslmode=require"
 
 # JWT
 JWT_SECRET="генерируйте-случайную-строку-32-символа"
@@ -343,6 +344,7 @@ vercel --prod
 | Variable | Required | Description | Example |
 |----------|----------|-------------|---------|
 | `DATABASE_URL` | ✅ | PostgreSQL connection string | `postgresql://...?sslmode=require` |
+| `DIRECT_URL` | ✅ | Direct PostgreSQL connection for Prisma migrations | `postgresql://...?sslmode=require` |
 | `JWT_SECRET` | ✅ | JWT signing key (32+ chars) | `your-random-32-char-secret` |
 | `TELEGRAM_BOT_TOKEN` | ✅ | Bot token from @BotFather | `12345:ABC...` |
 | `TELEGRAM_WEBHOOK_SECRET` | ✅ | Webhook security token | `random-32-chars` |

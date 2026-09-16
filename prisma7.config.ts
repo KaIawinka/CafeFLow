@@ -7,6 +7,8 @@ export default defineConfig({
     path: 'prisma/migrations',
   },
   datasource: {
-    url: env('DATABASE_URL'),
+    // Prisma migrations need a direct Neon connection for advisory locks.
+    // Runtime queries continue using the pooled DATABASE_URL.
+    url: process.env.DIRECT_URL || env('DATABASE_URL'),
   },
 })
