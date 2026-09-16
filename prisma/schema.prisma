@@ -214,6 +214,7 @@ model carts {
   tenant      tenants     @relation(fields: [tenant_id], references: [id])
   user        users?      @relation(fields: [user_id], references: [id])
 
+  @@unique([tenant_id, session_key])
   @@index([tenant_id])
   @@index([user_id])
 }
