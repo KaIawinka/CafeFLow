@@ -6,6 +6,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { setWebhook, deleteWebhook, getWebhookInfo, getBotInfo, configureBotProfile } from '@/lib/telegram/bot';
 import { logger } from '@/lib/logger';
+import { getRequiredServerSecret } from '@/lib/config';
+
+function hasSetupAuthorization(request: NextRequest): boolean {
+  try {
+    return request.headers.get('authorization') === `Bearer ${getRequiredServerSecret('ADMIN_SETUP_TOKEN')}`;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * POST /api/telegram/setup
@@ -14,10 +23,7 @@ import { logger } from '@/lib/logger';
 export async function POST(request: NextRequest) {
   try {
     // Only allow with admin token
-    const authHeader = request.headers.get('authorization');
-    const adminToken = process.env.ADMIN_SETUP_TOKEN;
-
-    if (adminToken && authHeader !== `Bearer ${adminToken}`) {
+    if (!hasSetupAuthorization(request)) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -29,7 +35,7 @@ export async function POST(request: NextRequest) {
 
     if (action === 'set') {
       const webhookUrl = body.url || `${process.env.NEXT_PUBLIC_APP_URL}/api/telegram/webhook`;
-      const secretToken = process.env.TELEGRAM_WEBHOOK_SECRET;
+      const secretToken = getRequiredServerSecret('TELEGRAM_WEBHOOK_SECRET');
 
       if (!webhookUrl || !/^https:\/\//i.test(webhookUrl) || /localhost|127\.0\.0\.1/i.test(webhookUrl)) {
         return NextResponse.json(
@@ -93,10 +99,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // Protect bot status in every environment when a setup token is configured.
-    const authHeader = request.headers.get('authorization');
-    const adminToken = process.env.ADMIN_SETUP_TOKEN;
-
-    if (adminToken && authHeader !== `Bearer ${adminToken}`) {
+    if (!hasSetupAuthorization(request)) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

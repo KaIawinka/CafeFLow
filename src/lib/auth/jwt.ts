@@ -7,11 +7,7 @@ import { SignJWT, jwtVerify, JWTPayload } from 'jose';
 import { createHash } from 'node:crypto';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
-
-// JWT secret key
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'cafeflow-super-secret-key-change-in-production'
-);
+import { getJwtSecret } from '@/lib/config';
 
 // Token expiration times
 const ACCESS_TOKEN_EXPIRY = '15m'; // 15 minutes
@@ -71,7 +67,7 @@ export async function generateAccessToken(payload: TokenPayload): Promise<string
     .setExpirationTime(ACCESS_TOKEN_EXPIRY)
     .setIssuer('cafeflow')
     .setAudience('cafeflow-admin')
-    .sign(JWT_SECRET);
+    .sign(getJwtSecret());
 
   return token;
 }
@@ -89,7 +85,7 @@ export async function generateRefreshToken(payload: TokenPayload): Promise<strin
     .setExpirationTime(REFRESH_TOKEN_EXPIRY)
     .setIssuer('cafeflow')
     .setAudience('cafeflow-admin')
-    .sign(JWT_SECRET);
+    .sign(getJwtSecret());
 
   return token;
 }
@@ -99,7 +95,7 @@ export async function generateRefreshToken(payload: TokenPayload): Promise<strin
  */
 export async function verifyAccessToken(token: string): Promise<TokenPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET, {
+    const { payload } = await jwtVerify(token, getJwtSecret(), {
       issuer: 'cafeflow',
       audience: 'cafeflow-admin',
     });
@@ -150,7 +146,7 @@ export async function verifyAccessToken(token: string): Promise<TokenPayload | n
  */
 export async function verifyRefreshToken(token: string): Promise<TokenPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET, {
+    const { payload } = await jwtVerify(token, getJwtSecret(), {
       issuer: 'cafeflow',
       audience: 'cafeflow-admin',
     });
