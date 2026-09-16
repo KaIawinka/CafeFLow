@@ -104,6 +104,7 @@ export default function AdminPage() {
   const errorLoad = ui.admin.errorLoad;
   const [activeTab, setActiveTab] = useState<'users' | 'orders' | 'reservations' | 'products' | 'settings' | 'stats'>('users');
   const [isLoading, setIsLoading] = useState(true);
+  const [hasLoadedDashboard, setHasLoadedDashboard] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [metrics, setMetrics] = useState<Metrics>({ users: 0, activeUsers: 0, admins: 0, orders: 0, revenue: 0, products: 0, activeProducts: 0 });
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
@@ -131,17 +132,18 @@ export default function AdminPage() {
     addressText: '',
   });
 
-  const loadDashboard = useEffectEvent(async () => {
-    setIsLoading(true);
+  const loadDashboard = useEffectEvent(async (signal: AbortSignal) => {
+    if (!hasLoadedDashboard) setIsLoading(true);
     setError('');
     try {
       const query = new URLSearchParams();
       if (searchQuery.trim()) query.set('search', searchQuery.trim());
       if (filterRole !== 'all') query.set('role', filterRole);
-      const response = await fetch(`/api/admin/dashboard?${query.toString()}`, { cache: 'no-store' });
+      const response = await fetch(`/api/admin/dashboard?${query.toString()}`, { cache: 'no-store', signal });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || errorLoad);
       setUsers(data.users || []);
+      setHasLoadedDashboard(true);
       setMetrics(data.metrics || { users: 0, activeUsers: 0, admins: 0, orders: 0, revenue: 0, products: 0, activeProducts: 0 });
       setRecentOrders(data.recentOrders || []);
       setProducts(data.products || []);
@@ -160,16 +162,21 @@ export default function AdminPage() {
           maintenanceMode: data.tenant.settings?.maintenanceMode === true,
         }));
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return;
       setError(errorLoad);
     } finally {
-      setIsLoading(false);
+      if (!hasLoadedDashboard) setIsLoading(false);
     }
   });
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => void loadDashboard(), 0);
-    return () => window.clearTimeout(timeoutId);
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => void loadDashboard(controller.signal), 300);
+    return () => {
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
   }, [filterRole, refreshKey, searchQuery]);
 
   useEffect(() => {
