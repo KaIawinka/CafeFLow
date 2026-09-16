@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { getPublicCafeContext } from '@/lib/public-context';
+import { isWithinBusinessHours } from '@/lib/reservations/hours';
 
 function token() { return randomBytes(48).toString('base64url'); }
 function serialize<T>(value: T): T { return JSON.parse(JSON.stringify(value, (_, item) => typeof item === 'bigint' ? item.toString() : item)); }
@@ -19,6 +20,8 @@ export async function GET(request: NextRequest) {
     if (!time || !/^\d{2}:\d{2}$/.test(time)) return NextResponse.json(serialize({ tables }));
     const startAt = new Date(`${date}T${time}:00`);
     const endAt = new Date(startAt.getTime() + 90 * 60 * 1000);
+    const branchInfo = await prisma.branches.findUnique({ where: { id: context.branch.id }, select: { timezone: true } });
+    if (!branchInfo || !(await isWithinBusinessHours(context.tenant.id, context.branch.id, startAt, endAt, branchInfo.timezone || 'UTC'))) return NextResponse.json({ tables: [] });
     const conflicts = await prisma.reservations.findMany({ where: { tenant_id: context.tenant.id, branch_id: context.branch.id, status: { in: ['pending', 'confirmed', 'seated'] }, start_at: { lt: endAt }, end_at: { gt: startAt } }, select: { table_ids: true } });
     const blocks = await prisma.table_blocks.findMany({
       where: { tenant_id: context.tenant.id, branch_id: context.branch.id, start_at: { lt: endAt }, end_at: { gt: startAt } },
@@ -46,6 +49,8 @@ export async function POST(request: NextRequest) {
     const context = await getPublicCafeContext(request);
     if (!context?.branch) return NextResponse.json({ error: 'Филиал кафе пока не настроен' }, { status: 503 });
     const branch = context.branch;
+    const branchInfo = await prisma.branches.findUnique({ where: { id: branch.id }, select: { timezone: true } });
+    if (!branchInfo || !(await isWithinBusinessHours(context.tenant.id, branch.id, startAt, endAt, branchInfo.timezone || 'UTC'))) return NextResponse.json({ error: 'Филиал закрыт в выбранное время' }, { status: 409 });
     const guestName = body.name.trim();
     const guestPhone = body.phone.trim();
     const table = await prisma.restaurant_tables.findFirst({ where: { id: body.tableId, tenant_id: context.tenant.id, branch_id: branch.id, status: 'active', capacity: { gte: guests } }, select: { id: true, name: true } });
