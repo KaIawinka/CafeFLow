@@ -20,6 +20,7 @@ import {
   Globe,
   Sun,
   Moon,
+  Bell,
 } from 'lucide-react';
 
 interface UserData {
@@ -65,6 +66,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/Logo-
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutConfirm, setLogoutConfirm] = useState(false);
   const [logoutCountdown, setLogoutCountdown] = useState(0);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
   const { theme, toggleTheme } = useTheme();
   
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -101,6 +103,36 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/Logo-
     const timeoutId = window.setTimeout(() => setLogoutCountdown((current) => Math.max(0, current - 1)), 1000);
     return () => window.clearTimeout(timeoutId);
   }, [logoutConfirm, logoutCountdown]);
+
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    const loadNotifications = async () => {
+      try {
+        const response = await fetch('/api/user/notifications', { cache: 'no-store' });
+        if (!response.ok) return;
+        const data = await response.json() as { unreadCount?: number };
+        if (active) setUnreadNotifications(data.unreadCount || 0);
+      } catch {
+        // Notification availability must not affect navigation.
+      }
+    };
+    void loadNotifications();
+    const intervalId = window.setInterval(() => void loadNotifications(), 20000);
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+    };
+  }, [user]);
+
+  const markNotificationsRead = async () => {
+    const response = await fetch('/api/user/notifications', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ all: true }),
+    });
+    if (response.ok) setUnreadNotifications(0);
+  };
 
   const switchLocale = (newLocale: Locale) => {
     // Save to cookie (используется middleware для авто-применения)
@@ -247,6 +279,19 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/Logo-
 
           {/* Right Section */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {user && (
+              <button
+                type="button"
+                onClick={() => void markNotificationsRead()}
+                className="relative flex h-10 w-10 items-center justify-center rounded-lg text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                aria-label="Уведомления"
+                title="Уведомления"
+              >
+                <Bell className="h-4 w-4" />
+                {unreadNotifications > 0 && <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-red-600 px-1 text-center text-[10px] font-bold leading-5 text-white">{unreadNotifications > 99 ? '99+' : unreadNotifications}</span>}
+              </button>
+            )}
+
             {/* Theme Switcher */}
             <div className="hidden md:block">
               <button
