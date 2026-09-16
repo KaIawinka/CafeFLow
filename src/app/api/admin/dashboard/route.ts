@@ -30,12 +30,16 @@ function serialize<T>(value: T): T {
 async function getActor(userId: string) {
   return prisma.users.findUnique({
     where: { id: userId },
-    select: { id: true, tenant_id: true, role: true, email: true },
+    select: { id: true, tenant_id: true, branch_id: true, role: true, email: true },
   });
 }
 
 function tenantScope(tenantId: string | null | undefined): { tenant_id?: string } {
   return tenantId ? { tenant_id: tenantId } : {};
+}
+
+function branchScope(branchId: string | null | undefined): { branch_id?: string } {
+  return branchId ? { branch_id: branchId } : {};
 }
 
 export async function GET(request: NextRequest) {
@@ -66,7 +70,7 @@ export async function GET(request: NextRequest) {
       ...tenantScope(actor.tenant_id),
     };
 
-    const orderWhere = tenantScope(actor.tenant_id);
+    const orderWhere = { ...tenantScope(actor.tenant_id), ...branchScope(actor.branch_id) };
     const productWhere = { deleted_at: null, ...tenantScope(actor.tenant_id) };
       const [users, filteredUsersCount, usersCount, activeUsersCount, adminCount, ordersCount, revenue, productsCount, activeProductsCount, recentOrders, recentOrdersCount, products, tenant] = await Promise.all([
       prisma.users.findMany({
@@ -156,8 +160,8 @@ export async function PATCH(request: NextRequest) {
       if (body.status && !statuses.includes(body.status)) return NextResponse.json({ error: 'Недопустимый статус' }, { status: 400 });
       if (auth.role !== 'admin' && body.role === 'admin') return NextResponse.json({ error: 'Менеджер не может назначать администратора' }, { status: 403 });
 
-      const target = await prisma.users.findUnique({ where: { id: body.id }, select: { id: true, tenant_id: true, role: true, status: true, requires_approval: true } });
-      if (!target || (actor.tenant_id && target.tenant_id !== actor.tenant_id)) return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
+      const target = await prisma.users.findUnique({ where: { id: body.id }, select: { id: true, tenant_id: true, branch_id: true, role: true, status: true, requires_approval: true } });
+      if (!target || (actor.tenant_id && target.tenant_id !== actor.tenant_id) || (actor.branch_id && target.branch_id && target.branch_id !== actor.branch_id)) return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
       if (body.role === 'admin' && auth.role !== 'admin') return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 });
 
       const updated = await prisma.users.update({
@@ -214,8 +218,8 @@ export async function PATCH(request: NextRequest) {
 
     if (body.resource === 'order') {
       if (!body.id || !body.orderStatus || !orderStatuses.includes(body.orderStatus)) return NextResponse.json({ error: 'Недопустимый статус заказа' }, { status: 400 });
-      const order = await prisma.orders.findUnique({ where: { id: body.id }, select: { id: true, tenant_id: true, user_id: true, order_number: true, status: true, status_history: true } });
-      if (!order || (actor.tenant_id && order.tenant_id !== actor.tenant_id)) return NextResponse.json({ error: 'Заказ не найден' }, { status: 404 });
+      const order = await prisma.orders.findUnique({ where: { id: body.id }, select: { id: true, tenant_id: true, branch_id: true, user_id: true, order_number: true, status: true, status_history: true } });
+      if (!order || (actor.tenant_id && order.tenant_id !== actor.tenant_id) || (actor.branch_id && order.branch_id !== actor.branch_id)) return NextResponse.json({ error: 'Заказ не найден' }, { status: 404 });
       const currentIndex = orderedStatuses.indexOf(order.status as (typeof orderedStatuses)[number]);
       const nextIndex = body.orderStatus === 'cancelled' ? -1 : orderedStatuses.indexOf(body.orderStatus as (typeof orderedStatuses)[number]);
       if (body.orderStatus !== 'cancelled' && (currentIndex < 0 || nextIndex <= currentIndex)) {
