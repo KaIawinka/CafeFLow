@@ -958,6 +958,7 @@ enum notification_type {
 
 enum notification_status {
   queued
+  processing
   sent
   failed
   read
