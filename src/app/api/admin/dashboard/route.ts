@@ -2,11 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAdminOrManager } from '@/lib/api-middleware';
 import { logger } from '@/lib/logger';
+import { canTransitionOrderStatus, orderStatuses, type OrderStatus } from '@/lib/orders/status';
 
 const roles = ['guest', 'customer', 'employee', 'kitchen', 'manager', 'admin'] as const;
 const statuses = ['active', 'blocked', 'pending'] as const;
-const orderStatuses = ['new', 'confirmed', 'cooking', 'ready', 'delivering', 'completed', 'cancelled'] as const;
-const orderedStatuses = ['new', 'confirmed', 'cooking', 'ready', 'delivering', 'completed'] as const;
 const orderStatusLabels: Record<OrderStatus, string> = {
   new: 'принят',
   confirmed: 'подтверждён',
@@ -19,7 +18,6 @@ const orderStatusLabels: Record<OrderStatus, string> = {
 
 type Role = (typeof roles)[number];
 type Status = (typeof statuses)[number];
-type OrderStatus = (typeof orderStatuses)[number];
 
 function serialize<T>(value: T): T {
   return JSON.parse(JSON.stringify(value, (_, item) =>
@@ -220,12 +218,7 @@ export async function PATCH(request: NextRequest) {
       if (!body.id || !body.orderStatus || !orderStatuses.includes(body.orderStatus)) return NextResponse.json({ error: 'Недопустимый статус заказа' }, { status: 400 });
       const order = await prisma.orders.findUnique({ where: { id: body.id }, select: { id: true, tenant_id: true, branch_id: true, user_id: true, order_number: true, status: true, status_history: true } });
       if (!order || (actor.tenant_id && order.tenant_id !== actor.tenant_id) || (actor.branch_id && order.branch_id !== actor.branch_id)) return NextResponse.json({ error: 'Заказ не найден' }, { status: 404 });
-      const currentIndex = orderedStatuses.indexOf(order.status as (typeof orderedStatuses)[number]);
-      const nextIndex = body.orderStatus === 'cancelled' ? -1 : orderedStatuses.indexOf(body.orderStatus as (typeof orderedStatuses)[number]);
-      if (body.orderStatus !== 'cancelled' && (currentIndex < 0 || nextIndex <= currentIndex)) {
-        return NextResponse.json({ error: 'Нельзя вернуть заказ на предыдущий статус' }, { status: 409 });
-      }
-      if (body.orderStatus === order.status) return NextResponse.json({ error: 'Заказ уже находится в этом статусе' }, { status: 409 });
+      if (!canTransitionOrderStatus(order.status as OrderStatus, body.orderStatus)) return NextResponse.json({ error: 'Недопустимый переход статуса заказа' }, { status: 409 });
       const history = Array.isArray(order.status_history) ? order.status_history : [];
       const statusHistory = [...history, { from: order.status, to: body.orderStatus, changedAt: new Date().toISOString(), changedBy: actor.id }];
       const staff = await prisma.users.findMany({
