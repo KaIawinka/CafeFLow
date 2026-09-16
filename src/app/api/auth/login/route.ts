@@ -213,11 +213,8 @@ export async function POST(request: NextRequest) {
 
     logger.info('User logged in without 2FA', { email: user.email, role: user.role });
 
-    // Return tokens and user info
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
-      accessToken,
-      refreshToken,
       user: {
         id: user.id,
         email: user.email,
@@ -231,6 +228,21 @@ export async function POST(request: NextRequest) {
         twoFAEnabled: user.two_fa_enabled,
       },
     });
+    response.cookies.set('accessToken', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 15 * 60,
+      path: '/',
+    });
+    response.cookies.set('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60,
+      path: '/',
+    });
+    return response;
 
   } catch (error) {
     logger.error('Login error', error);

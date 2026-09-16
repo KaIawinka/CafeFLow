@@ -10,9 +10,9 @@ import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
   try {
-    // Extract token from Authorization header
+    // Prefer an explicit bearer token for API clients, then use the browser session cookie.
     const authHeader = request.headers.get('authorization');
-    const token = extractTokenFromHeader(authHeader);
+    const token = extractTokenFromHeader(authHeader) || request.cookies.get('accessToken')?.value;
 
     if (!token) {
       return NextResponse.json(

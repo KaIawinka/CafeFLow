@@ -12,9 +12,9 @@ import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
   try {
-    // Extract and verify JWT token
+    // Support both API clients and the browser's httpOnly session cookie.
     const authHeader = request.headers.get('authorization');
-    const token = extractTokenFromHeader(authHeader);
+    const token = extractTokenFromHeader(authHeader) || request.cookies.get('accessToken')?.value;
 
     if (!token) {
       return NextResponse.json(

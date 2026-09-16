@@ -92,11 +92,8 @@ function LoginContent() {
         return;
       }
 
-      // Success - set tokens and redirect
-      if (data.accessToken) {
-        document.cookie = `accessToken=${data.accessToken}; path=/; max-age=900`; // 15 min
-        document.cookie = `refreshToken=${data.refreshToken}; path=/; max-age=604800`; // 7 days
-        
+      // The server sets httpOnly auth cookies; the client only handles navigation.
+      if (data.success) {
         // Redirect based on role
         const user = data.user;
         if (user.requiresApproval) {
@@ -139,11 +136,8 @@ function LoginContent() {
         return;
       }
 
-      // Success - set tokens and redirect
-      if (data.accessToken) {
-        document.cookie = `accessToken=${data.accessToken}; path=/; max-age=900`;
-        document.cookie = `refreshToken=${data.refreshToken}; path=/; max-age=604800`;
-        
+      // The server sets httpOnly auth cookies; the client only handles navigation.
+      if (data.success) {
         const user = data.user;
         if (user.role === 'admin' || user.role === 'manager') {
           navigateAfterLogin(`/${currentLocale}/admin`);
