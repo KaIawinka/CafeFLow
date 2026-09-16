@@ -256,6 +256,7 @@ model orders {
   reviews          reviews[]
 
   @@unique([tenant_id, order_number])
+  @@unique([tenant_id, idempotency_key])
   @@index([branch_id])
   @@index([user_id])
 }
