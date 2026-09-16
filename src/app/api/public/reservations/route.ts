@@ -1,5 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { getPublicCafeContext } from '@/lib/public-context';
 
@@ -19,7 +20,14 @@ export async function GET(request: NextRequest) {
     const startAt = new Date(`${date}T${time}:00`);
     const endAt = new Date(startAt.getTime() + 90 * 60 * 1000);
     const conflicts = await prisma.reservations.findMany({ where: { tenant_id: context.tenant.id, branch_id: context.branch.id, status: { in: ['pending', 'confirmed', 'seated'] }, start_at: { lt: endAt }, end_at: { gt: startAt } }, select: { table_ids: true } });
-    const occupied = new Set(conflicts.flatMap((reservation) => Array.isArray(reservation.table_ids) ? reservation.table_ids.filter((id): id is string => typeof id === 'string') : []));
+    const blocks = await prisma.table_blocks.findMany({
+      where: { tenant_id: context.tenant.id, branch_id: context.branch.id, start_at: { lt: endAt }, end_at: { gt: startAt } },
+      select: { table_id: true },
+    });
+    const occupied = new Set([
+      ...conflicts.flatMap((reservation) => Array.isArray(reservation.table_ids) ? reservation.table_ids.filter((id): id is string => typeof id === 'string') : []),
+      ...blocks.map((block) => block.table_id),
+    ]);
     return NextResponse.json(serialize({ tables: tables.filter((table) => !occupied.has(table.id)) }));
   } catch (error) {
     console.error('Public reservation availability error', error);
@@ -37,12 +45,31 @@ export async function POST(request: NextRequest) {
     const endAt = new Date(startAt.getTime() + 90 * 60 * 1000);
     const context = await getPublicCafeContext();
     if (!context?.branch) return NextResponse.json({ error: 'Филиал кафе пока не настроен' }, { status: 503 });
-    const table = await prisma.restaurant_tables.findFirst({ where: { id: body.tableId, tenant_id: context.tenant.id, branch_id: context.branch.id, status: 'active', capacity: { gte: guests } }, select: { id: true, name: true } });
+    const branch = context.branch;
+    const guestName = body.name.trim();
+    const guestPhone = body.phone.trim();
+    const table = await prisma.restaurant_tables.findFirst({ where: { id: body.tableId, tenant_id: context.tenant.id, branch_id: branch.id, status: 'active', capacity: { gte: guests } }, select: { id: true, name: true } });
     if (!table) return NextResponse.json({ error: 'Столик недоступен' }, { status: 409 });
-    const conflicts = await prisma.reservations.findMany({ where: { tenant_id: context.tenant.id, branch_id: context.branch.id, status: { in: ['pending', 'confirmed', 'seated'] }, start_at: { lt: endAt }, end_at: { gt: startAt } }, select: { table_ids: true } });
-    if (conflicts.some((reservation) => Array.isArray(reservation.table_ids) && reservation.table_ids.includes(table.id))) return NextResponse.json({ error: 'Этот столик уже занят на выбранное время' }, { status: 409 });
     const reservationToken = token();
-    const reservation = await prisma.reservations.create({ data: { tenant_id: context.tenant.id, branch_id: context.branch.id, guest_name: body.name.trim(), guest_phone: body.phone.trim(), guests_count: guests, start_at: startAt, end_at: endAt, status: 'pending', table_ids: [table.id], comment: body.comment?.trim() || null, guest_token: reservationToken }, select: { id: true, status: true, start_at: true, end_at: true, table_ids: true, guest_token: true } });
+    let reservation;
+    try {
+      reservation = await prisma.$transaction(async (tx) => {
+        await tx.$queryRaw(Prisma.sql`SELECT pg_advisory_xact_lock(hashtext(${`${context.tenant.id}:${branch.id}:${table.id}`}))`);
+
+        const [conflict, block] = await Promise.all([
+          tx.reservations.findFirst({ where: { tenant_id: context.tenant.id, branch_id: branch.id, status: { in: ['pending', 'confirmed', 'seated'] }, start_at: { lt: endAt }, end_at: { gt: startAt }, table_ids: { array_contains: [table.id] } }, select: { id: true } }),
+          tx.table_blocks.findFirst({ where: { tenant_id: context.tenant.id, branch_id: branch.id, table_id: table.id, start_at: { lt: endAt }, end_at: { gt: startAt } }, select: { id: true } }),
+        ]);
+        if (conflict || block) throw new Error('RESERVATION_SLOT_UNAVAILABLE');
+
+        return tx.reservations.create({ data: { tenant_id: context.tenant.id, branch_id: branch.id, guest_name: guestName, guest_phone: guestPhone, guests_count: guests, start_at: startAt, end_at: endAt, status: 'pending', table_ids: [table.id], comment: body.comment?.trim() || null, guest_token: reservationToken }, select: { id: true, status: true, start_at: true, end_at: true, table_ids: true, guest_token: true } });
+      });
+    } catch (error) {
+      if (error instanceof Error && error.message === 'RESERVATION_SLOT_UNAVAILABLE') {
+        return NextResponse.json({ error: 'Этот столик уже занят или заблокирован на выбранное время' }, { status: 409 });
+      }
+      throw error;
+    }
     const response = NextResponse.json(serialize({ reservation }), { status: 201 });
     response.cookies.set('guestReservationToken', reservationToken, { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', maxAge: 60 * 60 * 24 * 30, path: '/' });
     return response;
