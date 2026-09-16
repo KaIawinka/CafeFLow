@@ -59,9 +59,10 @@ export async function PATCH(request: NextRequest) {
     const actor = await actorScope(auth.userId);
     const body = await request.json() as { id?: string; status?: ReservationStatus };
     if (!actor?.tenant_id || !body.id || !body.status || !allowedStatuses.includes(body.status)) return NextResponse.json({ error: 'Некорректные данные бронирования' }, { status: 400 });
-    const existing = await prisma.reservations.findFirst({ where: { id: body.id, tenant_id: actor.tenant_id, ...(actor.branch_id ? { branch_id: actor.branch_id } : {}) }, select: { id: true } });
+    const existing = await prisma.reservations.findFirst({ where: { id: body.id, tenant_id: actor.tenant_id, ...(actor.branch_id ? { branch_id: actor.branch_id } : {}) }, select: { id: true, tenant_id: true, status: true } });
     if (!existing) return NextResponse.json({ error: 'Бронирование не найдено' }, { status: 404 });
     const reservation = await prisma.reservations.update({ where: { id: existing.id }, data: { status: body.status }, select: { id: true, status: true, guest_name: true, guest_phone: true, guests_count: true, start_at: true, end_at: true, table_ids: true, comment: true } });
+    await prisma.activity_logs.create({ data: { tenant_id: existing.tenant_id, actor_user_id: auth.userId, action: 'admin.reservation.status_changed', entity_type: 'reservations', entity_id: reservation.id, before_data: { status: existing.status }, after_data: { status: reservation.status } } });
     return NextResponse.json(serialize({ reservation }));
   } catch (error) {
     console.error('Admin reservation update error', error);
