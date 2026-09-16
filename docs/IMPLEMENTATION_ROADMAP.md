@@ -89,7 +89,7 @@ CafeFlow is a multi-tenant, white-label restaurant platform for cafes, restauran
 - **Partial**: payment fields exist and orders have payment status, but there is no payment provider, webhook verification or refund lifecycle.
 - **Partial**: reservations have server conflict protection, but do not yet apply `business_hours`, branch timezone, waitlist, deposits or automatic no-show handling.
 - **Partial**: admin orders, products and reservations can be updated, but the panel is still a prototype without full CRUD and shift timeline views.
-- **Partial**: admin users and orders now have server pagination with totals and page controls; date/status/branch filters, full CRUD and shift timeline views are still required.
+- **Partial**: admin users, orders and reservations now have server pagination with totals and page controls. Branch/date-range filters, full CRUD and shift timeline views are still required.
 - **Partial**: notifications are currently in-app only. Email, Telegram, SMS and push delivery workers are not complete.
 - **Partial**: auth sessions now work for login and refresh, but there is no user-facing active-device/session management screen or cleanup job.
 - **Partial**: cart and public checkout calculations now use `Prisma.Decimal`; payment, delivery and promotion calculations still need the same treatment when those workflows are implemented.
@@ -115,7 +115,7 @@ CafeFlow is a multi-tenant, white-label restaurant platform for cafes, restauran
 	- Add waitlist, deposits, cancellation policy, no-show and day timeline.
 
 5. **Admin operations**
-	- Add date/status/branch filters and pagination for reservations; users and orders pagination is implemented.
+	- Add branch/date-range filters for reservations; pagination for users, orders and reservations is implemented.
 	- Add complete menu/category CRUD, images, modifiers, allergens, preparation time and schedules.
 	- Add kitchen board, shift timeline, branch management, staff permissions and audit viewer.
 

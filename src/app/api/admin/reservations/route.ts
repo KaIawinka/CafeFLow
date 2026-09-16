@@ -19,20 +19,33 @@ export async function GET(request: NextRequest) {
   try {
     const actor = await actorScope(auth.userId);
     if (!actor?.tenant_id) return NextResponse.json({ reservations: [], tables: [] });
-    const [reservations, tables] = await Promise.all([
+    const searchParams = request.nextUrl.searchParams;
+    const page = Math.max(1, Number(searchParams.get('page') || 1));
+    const pageSize = 25;
+    const status = searchParams.get('status');
+    const date = searchParams.get('date');
+    const reservationWhere = {
+      tenant_id: actor.tenant_id,
+      ...(actor.branch_id ? { branch_id: actor.branch_id } : {}),
+      ...(allowedStatuses.includes(status as ReservationStatus) ? { status: status as ReservationStatus } : {}),
+      ...(date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? { start_at: { gte: new Date(`${date}T00:00:00`), lt: new Date(`${date}T23:59:59.999`) } } : {}),
+    };
+    const [reservations, total, tables] = await Promise.all([
       prisma.reservations.findMany({
-        where: { tenant_id: actor.tenant_id, ...(actor.branch_id ? { branch_id: actor.branch_id } : {}) },
+        where: reservationWhere,
         orderBy: { start_at: 'asc' },
-        take: 200,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
         select: { id: true, guest_name: true, guest_phone: true, guests_count: true, start_at: true, end_at: true, status: true, table_ids: true, comment: true, guest_token: true },
       }),
+      prisma.reservations.count({ where: reservationWhere }),
       prisma.restaurant_tables.findMany({
         where: { tenant_id: actor.tenant_id, ...(actor.branch_id ? { branch_id: actor.branch_id } : {}), status: 'active' },
         orderBy: { name: 'asc' },
         select: { id: true, name: true, zone: true, capacity: true },
       }),
     ]);
-    return NextResponse.json(serialize({ reservations, tables }));
+    return NextResponse.json(serialize({ reservations, tables, pagination: { page, pageSize, total } }));
   } catch (error) {
     console.error('Admin reservations read error', error);
     return NextResponse.json({ error: 'Не удалось загрузить бронирования' }, { status: 500 });

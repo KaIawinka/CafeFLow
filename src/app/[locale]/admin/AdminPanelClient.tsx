@@ -122,6 +122,10 @@ export default function AdminPage() {
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [reservations, setReservations] = useState<AdminReservation[]>([]);
   const [reservationTables, setReservationTables] = useState<Array<{ id: string; name: string; zone: string | null; capacity: number }>>([]);
+  const [reservationPage, setReservationPage] = useState(1);
+  const [reservationTotal, setReservationTotal] = useState(0);
+  const [reservationStatus, setReservationStatus] = useState('all');
+  const [reservationDate, setReservationDate] = useState('');
   const [orderQueue, setOrderQueue] = useState<'kitchen' | 'waiters'>('kitchen');
   const [products, setProducts] = useState<Product[]>([]);
   const [error, setError] = useState('');
@@ -202,13 +206,17 @@ export default function AdminPage() {
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
-      void fetch('/api/admin/reservations', { cache: 'no-store' }).then((response) => response.json()).then((data) => {
+      const query = new URLSearchParams({ page: String(reservationPage) });
+      if (reservationStatus !== 'all') query.set('status', reservationStatus);
+      if (reservationDate) query.set('date', reservationDate);
+      void fetch(`/api/admin/reservations?${query.toString()}`, { cache: 'no-store' }).then((response) => response.json()).then((data) => {
         setReservations(data.reservations || []);
         setReservationTables(data.tables || []);
+        setReservationTotal(data.pagination?.total || 0);
       }).catch(() => setReservations([]));
     }, 0);
     return () => window.clearTimeout(timeoutId);
-  }, [refreshKey]);
+  }, [refreshKey, reservationPage, reservationStatus, reservationDate]);
 
   useEffect(() => {
     let active = true;
@@ -326,6 +334,7 @@ export default function AdminPage() {
   const filteredUsers = users;
   const usersPageCount = Math.max(1, Math.ceil(usersTotal / 25));
   const ordersPageCount = Math.max(1, Math.ceil(ordersTotal / 25));
+  const reservationPageCount = Math.max(1, Math.ceil(reservationTotal / 25));
 
   const roleColors: Record<string, string> = {
     admin: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
@@ -726,8 +735,17 @@ export default function AdminPage() {
                   <div><h2 className="text-xl font-semibold text-gray-900 dark:text-white">Бронирования столиков</h2><p className="text-sm text-gray-500 dark:text-gray-400">Проверяйте свободные места и подтверждайте заявки гостей.</p></div>
                   <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">{reservations.filter((reservation) => reservation.status === 'confirmed').length} подтверждено</span>
                 </div>
+                <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-900/60 sm:flex-row">
+                  <input type="date" value={reservationDate} onChange={(event) => { setReservationDate(event.target.value); setReservationPage(1); }} className="min-h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
+                  <select value={reservationStatus} onChange={(event) => { setReservationStatus(event.target.value); setReservationPage(1); }} className="min-h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                    <option value="all">Все статусы</option>
+                    {['pending', 'confirmed', 'seated', 'completed', 'cancelled', 'no_show'].map((status) => <option key={status} value={status}>{status}</option>)}
+                  </select>
+                  {(reservationDate || reservationStatus !== 'all') && <button type="button" onClick={() => { setReservationDate(''); setReservationStatus('all'); setReservationPage(1); }} className="min-h-11 rounded-lg border border-gray-200 px-3 text-sm font-semibold text-gray-700 dark:border-gray-700 dark:text-gray-200">Сбросить</button>}
+                </div>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{reservationTables.map((table) => { const activeReservations = reservations.filter((reservation) => Array.isArray(reservation.table_ids) && reservation.table_ids.includes(table.id) && reservation.status !== 'cancelled'); return <div key={table.id} className="rounded-2xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/60"><div className="flex items-center justify-between"><div className="flex items-center gap-2 font-bold text-gray-900 dark:text-white"><Table2 className="h-4 w-4 text-amber-600" />{table.name}</div><span className="text-xs text-gray-500">до {table.capacity}</span></div><p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{table.zone} · {activeReservations.length ? `${activeReservations.length} заявка` : 'Свободен'}</p></div>; })}</div>
                 <div className="space-y-3">{reservations.map((reservation) => <div key={reservation.id} className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800 sm:flex-row sm:items-center sm:justify-between"><div><div className="flex flex-wrap items-center gap-2"><span className="font-black text-gray-900 dark:text-white">{reservation.id}</span><span className="text-sm text-gray-500">{new Date(reservation.start_at).toLocaleString(locale)}</span></div><p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{reservation.guest_name} · {reservation.guest_phone} · гостей: {reservation.guests_count}</p></div><div className="flex gap-2"><button type="button" onClick={() => void updateReservation(reservation.id, 'confirmed')} disabled={reservation.status === 'confirmed'} className="min-h-10 rounded-lg bg-emerald-600 px-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40">Подтвердить</button><button type="button" onClick={() => void updateReservation(reservation.id, 'cancelled')} disabled={reservation.status === 'cancelled'} className="min-h-10 rounded-lg border border-red-200 px-3 text-sm font-bold text-red-700 disabled:cursor-not-allowed disabled:opacity-40">Отменить</button></div></div>)}{reservations.length === 0 && <p className="rounded-xl bg-gray-50 p-8 text-center text-sm text-gray-500 dark:bg-gray-900/50">Бронирований пока нет</p>}</div>
+                {reservationTotal > 0 && <PaginationControls page={reservationPage} pageCount={reservationPageCount} onPageChange={setReservationPage} />}
               </div>
             )}
 
