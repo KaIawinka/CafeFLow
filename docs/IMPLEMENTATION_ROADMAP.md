@@ -96,6 +96,13 @@ CafeFlow is a multi-tenant, white-label restaurant platform for cafes, restauran
 - **Done**: landing contact form persists validated leads through `/api/public/contact`.
 - **Done**: first Vitest state-machine tests cover order transitions.
 - **Partial**: custom domain verification workflow, tenant-domain admin UI, branch selector UI, PostgreSQL RLS and full cross-tenant tests remain required.
+- **Done**: admin menu/category CRUD APIs and a tenant-scoped menu management page are available.
+- **Done**: checkout supports `dine_in`, `pickup` and `delivery`, validates delivery zones/fees/minimums, records payment method and creates payment/delivery records transactionally.
+- **Done**: public delivery-zone endpoint and customer checkout channel/payment controls are available.
+- **Done**: reservation availability and creation enforce branch business hours and branch timezone; guest lookup/cancellation is token and tenant scoped.
+- **Done**: admin reservation transitions create activity log before/after events; paginated admin audit viewer API is available.
+- **Done**: retryable notification worker claims queued notifications and processes in-app/email delivery with bounded retries.
+- **Partial**: payment operations support admin cash/card reconciliation transitions; external provider intents, signed webhooks, refunds ledger and settlement reconciliation remain required.
 
 ## Partial
 
