@@ -6,10 +6,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyCode } from '@/lib/telegram/utils';
-import { createAuthSession, generateTokenPair } from '@/lib/auth/jwt';
+import { generateTokenPair, hashSessionToken } from '@/lib/auth/jwt';
 import { sendLoginAlert } from '@/lib/telegram/messages';
 import { logger } from '@/lib/logger';
-import crypto from 'crypto';
 
 interface Verify2FARequest {
   email: string;
@@ -20,10 +19,10 @@ interface Verify2FARequest {
 export async function POST(request: NextRequest) {
   try {
     const body: Verify2FARequest = await request.json();
-    const { email, code } = body;
+    const { email, code, tempSessionId } = body;
 
     // Validation
-    if (!email || !code) {
+    if (!email || !code || !tempSessionId) {
       return NextResponse.json(
         { error: 'Email и код обязательны' },
         { status: 400 }
@@ -67,6 +66,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const pendingSession = await prisma.auth_sessions.findFirst({
+      where: { id: tempSessionId, user_id: user.id, is_2fa_verified: false, expires_at: { gt: new Date() } },
+      select: { id: true },
+    });
+    if (!pendingSession) return NextResponse.json({ error: 'Сессия подтверждения истекла. Войдите снова.' }, { status: 401 });
+
     // Check if user is still active
     if (user.status !== 'active') {
       return NextResponse.json(
@@ -103,7 +108,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Code is valid - generate tokens
-    const sessionId = crypto.randomUUID();
+    const sessionId = tempSessionId;
     
     const tokenPayload = {
       userId: user.id,
@@ -113,7 +118,15 @@ export async function POST(request: NextRequest) {
     };
 
     const { accessToken, refreshToken } = await generateTokenPair(tokenPayload);
-    await createAuthSession({ sessionId, userId: user.id, refreshToken, request, is2faVerified: true });
+    await prisma.auth_sessions.update({
+      where: { id: tempSessionId },
+      data: {
+        token: hashSessionToken(refreshToken),
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        is_2fa_verified: true,
+        last_activity: new Date(),
+      },
+    });
 
     // Update last login
     await prisma.users.update({

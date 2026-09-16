@@ -8,7 +8,7 @@ import { prisma } from '@/lib/prisma';
 import { verifyPassword } from '@/lib/auth/password';
 import { createVerificationCode, checkCodeGenerationRateLimit } from '@/lib/telegram/utils';
 import { sendVerificationCode } from '@/lib/telegram/messages';
-import { createAuthSession, generateTokenPair } from '@/lib/auth/jwt';
+import { createAuthSession, generateTokenPair, hashSessionToken } from '@/lib/auth/jwt';
 import { logger } from '@/lib/logger';
 import crypto from 'crypto';
 import { verifyRecaptcha } from '@/lib/recaptcha';
@@ -163,6 +163,17 @@ export async function POST(request: NextRequest) {
         } else {
           // Generate temporary session ID for 2FA verification
           const tempSessionId = crypto.randomUUID();
+          await prisma.auth_sessions.create({
+            data: {
+              id: tempSessionId,
+              user_id: user.id,
+              token: hashSessionToken(crypto.randomUUID()),
+              expires_at: new Date(Date.now() + 5 * 60 * 1000),
+              ip_address: ipAddress.split(',')[0]?.trim() || null,
+              user_agent: request.headers.get('user-agent')?.slice(0, 500) || null,
+              is_2fa_verified: false,
+            },
+          });
 
           logger.info('2FA code sent to Telegram', { email: user.email });
 
