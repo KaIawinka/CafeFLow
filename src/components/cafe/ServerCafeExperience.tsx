@@ -10,22 +10,35 @@ type Table = { id: string; name: string; zone: string | null; capacity: number; 
 type CartItem = { product: Product; quantity: number };
 type Order = { id: string; order_number: string; status: string; total: string | number; currency: string; created_at: string; order_items: Array<{ product_name: string; quantity: number; line_total: string | number }> };
 
-const cartKey = 'cafeflow-cart-draft';
 const copy = { ru: { menu: 'Меню', menuText: 'Меню из базы данных', search: 'Найти блюдо', add: 'Добавить', cart: 'Корзина', empty: 'Корзина пуста', order: 'Оформить заказ', name: 'Ваше имя', phone: 'Телефон', table: 'Столик', comment: 'Комментарий кухне', send: 'Отправить заказ', orders: 'Мои заказы', noOrders: 'Заказов пока нет', booking: 'Бронирование', chooseTable: 'Выберите столик', date: 'Дата', time: 'Время', guests: 'Гостей', reserve: 'Забронировать', success: 'Готово', error: 'Не удалось выполнить запрос' }, en: { menu: 'Menu', menuText: 'Menu from database', search: 'Find a dish', add: 'Add', cart: 'Cart', empty: 'Cart is empty', order: 'Place order', name: 'Your name', phone: 'Phone', table: 'Table', comment: 'Kitchen comment', send: 'Send order', orders: 'My orders', noOrders: 'No orders yet', booking: 'Booking', chooseTable: 'Choose a table', date: 'Date', time: 'Time', guests: 'Guests', reserve: 'Reserve', success: 'Done', error: 'Request failed' }, kg: { menu: 'Меню', menuText: 'Маалымат базасындагы меню', search: 'Тамак издеңиз', add: 'Кошуу', cart: 'Себет', empty: 'Себет бош', order: 'Заказ берүү', name: 'Атыңыз', phone: 'Телефон', table: 'Стол', comment: 'Ашканага комментарий', send: 'Заказ жөнөтүү', orders: 'Менин заказдарым', noOrders: 'Заказдар жок', booking: 'Брондоо', chooseTable: 'Стол тандаңыз', date: 'Дата', time: 'Убакыт', guests: 'Коноктор', reserve: 'Брондоо', success: 'Даяр', error: 'Сурам аткарылган жок' } } as const;
 type Copy = (typeof copy)[Locale];
 
 function money(value: string | number, currency = 'KGS') { return `${Number(value).toLocaleString('ru-RU')} ${currency === 'KGS' ? 'сом' : currency}`; }
-function readCart(): Array<{ productId: string; quantity: number }> { try { return JSON.parse(localStorage.getItem(cartKey) || '[]'); } catch { return []; } }
-function saveCart(items: Array<{ productId: string; quantity: number }>) { localStorage.setItem(cartKey, JSON.stringify(items.filter((item) => item.quantity > 0))); }
+async function loadServerCart() {
+  const response = await fetch('/api/public/cart', { cache: 'no-store' });
+  if (!response.ok) throw new Error('Cart request failed');
+  const data = await response.json() as { cart?: { items?: Array<{ productId: string; quantity: number }> } };
+  return (data.cart?.items || []).filter((item) => item.quantity > 0).map((item) => ({ productId: item.productId, quantity: item.quantity }));
+}
+async function saveServerCart(items: Array<{ productId: string; quantity: number }>) {
+  const response = await fetch('/api/public/cart', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items }) });
+  if (!response.ok) throw new Error('Cart update failed');
+}
 
 export function ServerCafeExperience({ view, locale }: { view: 'menu' | 'cart' | 'orders' | 'booking'; locale: Locale }) {
   const t = copy[locale] || copy.ru;
   const [products, setProducts] = useState<Product[]>([]); const [cart, setCart] = useState<Array<{ productId: string; quantity: number }>>([]); const [error, setError] = useState('');
-  useEffect(() => { const timeoutId = window.setTimeout(() => setCart(readCart()), 0); if (view === 'menu' || view === 'cart') fetch('/api/public/menu').then((response) => response.json()).then((data) => { if (!data.products) throw new Error(); setProducts(data.products); }).catch(() => setError(t.error)); return () => window.clearTimeout(timeoutId); }, [view, t.error]);
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void loadServerCart().then(setCart).catch(() => setError(t.error));
+      if (view === 'menu' || view === 'cart') void fetch('/api/public/menu').then((response) => response.json()).then((data) => { if (!data.products) throw new Error(); setProducts(data.products); }).catch(() => setError(t.error));
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [view, t.error]);
   const items: CartItem[] = cart.map((item) => { const product = products.find((candidate) => candidate.id === item.productId); return product ? { product, quantity: item.quantity } : null; }).filter((item): item is CartItem => Boolean(item));
-  const update = (productId: string, quantity: number) => { const next = [...cart.filter((item) => item.productId !== productId), { productId, quantity }]; setCart(next); saveCart(next); };
+  const update = (productId: string, quantity: number) => { const next = [...cart.filter((item) => item.productId !== productId), { productId, quantity }]; setCart(next); void saveServerCart(next).catch(() => setError(t.error)); };
   if (view === 'menu') return <Shell locale={locale} title={t.menu} subtitle={error || t.menuText} cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}><Menu products={products} t={t} add={(id) => update(id, (cart.find((item) => item.productId === id)?.quantity || 0) + 1)} /></Shell>;
-  if (view === 'cart') return <Shell locale={locale} title={t.order} subtitle={t.menuText} cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}><Cart items={items} t={t} update={update} onDone={() => { setCart([]); saveCart([]); }} /></Shell>;
+  if (view === 'cart') return <Shell locale={locale} title={t.order} subtitle={error || t.menuText} cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}><Cart items={items} t={t} update={update} onDone={() => { setCart([]); void saveServerCart([]); }} /></Shell>;
   if (view === 'orders') return <Shell locale={locale} title={t.orders} subtitle={t.menuText} cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}><Orders t={t} /></Shell>;
   return <Shell locale={locale} title={t.booking} subtitle={t.menuText} cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}><Booking t={t} /></Shell>;
 }
