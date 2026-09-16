@@ -17,13 +17,19 @@ export function ContactForm() {
     e.preventDefault();
     setStatus("loading");
 
-    // Здесь будет реальная отправка формы
-    // Пока симулируем отправку
-    setTimeout(() => {
+    try {
+      const response = await fetch('/api/public/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      if (!response.ok) throw new Error('Contact request failed');
       setStatus("success");
       setFormData({ name: "", email: "", phone: "", company: "", message: "" });
       setTimeout(() => setStatus("idle"), 3000);
-    }, 1500);
+    } catch {
+      setStatus("error");
+    }
   };
 
   const handleChange = (
@@ -56,6 +62,11 @@ export function ContactForm() {
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
+          {status === "error" && (
+            <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              Не удалось отправить заявку. Проверьте данные и попробуйте ещё раз.
+            </div>
+          )}
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <label
