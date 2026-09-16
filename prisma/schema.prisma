@@ -42,6 +42,7 @@ model tenants {
   products           products[]
   promotions         promotions[]
   reservations       reservations[]
+  reservation_waitlist reservation_waitlist[]
   restaurant_tables  restaurant_tables[]
   reviews            reviews[]
   table_blocks       table_blocks[]
@@ -98,6 +99,7 @@ model branches {
   delivery_zones    delivery_zones[]
   orders            orders[]
   reservations      reservations[]
+  reservation_waitlist reservation_waitlist[]
   restaurant_tables restaurant_tables[]
   table_blocks      table_blocks[]
   users             users[]
@@ -435,6 +437,26 @@ model reservations {
   @@index([tenant_id])
   @@index([branch_id])
   @@index([user_id])
+}
+
+model reservation_waitlist {
+  id           String             @id @default(uuid()) @db.Uuid
+  tenant_id    String             @db.Uuid
+  branch_id    String             @db.Uuid
+  guest_name   String             @db.VarChar(200)
+  guest_phone  String             @db.VarChar(40)
+  guests_count Int
+  desired_date DateTime           @db.Date
+  desired_time String             @db.VarChar(5)
+  status       waitlist_status
+  guest_token  String             @unique @db.VarChar(120)
+  note         String?
+  created_at   DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime           @updatedAt @db.Timestamptz(6)
+  tenant       tenants            @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  branch       branches           @relation(fields: [branch_id], references: [id], onDelete: Cascade)
+
+  @@index([tenant_id, branch_id, desired_date, desired_time, status])
 }
 
 model table_blocks {
@@ -926,6 +948,14 @@ enum reservation_status {
   completed
   cancelled
   no_show
+}
+
+enum waitlist_status {
+  waiting
+  notified
+  booked
+  expired
+  cancelled
 }
 
 enum loyalty_operation {
