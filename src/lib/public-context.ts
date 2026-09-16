@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 
 export async function getPublicCafeContext(request?: Request) {
   const urlTenant = request ? new URL(request.url).searchParams.get('tenant') : null;
+  const urlBranch = request ? new URL(request.url).searchParams.get('branch') : null;
   const tenantSlug = urlTenant?.trim() || request?.headers.get('x-cafeflow-tenant')?.trim() || process.env.CAFEFLOW_DEFAULT_TENANT_SLUG?.trim();
   if (!tenantSlug) return null;
 
@@ -17,11 +18,23 @@ export async function getPublicCafeContext(request?: Request) {
   });
   if (!activeTenant) return null;
 
-  const branch = await prisma.branches.findFirst({
-    where: { tenant_id: activeTenant.id, status: 'active' },
+  const requestedBranchId = urlBranch?.trim() || request?.headers.get('x-cafeflow-branch')?.trim();
+  const branches = await prisma.branches.findMany({
+    where: {
+      tenant_id: activeTenant.id,
+      status: 'active',
+      ...(requestedBranchId ? { id: requestedBranchId } : {}),
+    },
     orderBy: { created_at: 'asc' },
+    take: requestedBranchId ? 1 : 2,
     select: { id: true },
   });
+
+  const branch = requestedBranchId
+    ? branches[0] || null
+    : branches.length === 1
+      ? branches[0]
+      : null;
 
   return { tenant: activeTenant, branch };
 }
