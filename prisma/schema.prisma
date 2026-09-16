@@ -55,6 +55,7 @@ model tenant_domains {
   tenant_id   String        @db.Uuid
   hostname    String        @unique @db.VarChar(255)
   status      domain_status @default(pending)
+  verification_token String  @unique @db.VarChar(120)
   verified_at DateTime?     @db.Timestamptz(6)
   created_at  DateTime      @default(now()) @db.Timestamptz(6)
   updated_at  DateTime      @updatedAt @db.Timestamptz(6)

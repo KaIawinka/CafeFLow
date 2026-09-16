@@ -5,6 +5,7 @@ CREATE TABLE "public"."tenant_domains" (
     "tenant_id" UUID NOT NULL,
     "hostname" VARCHAR(255) NOT NULL,
     "status" "public"."domain_status" NOT NULL DEFAULT 'pending',
+    "verification_token" VARCHAR(120) NOT NULL,
     "verified_at" TIMESTAMPTZ(6),
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ(6) NOT NULL,
@@ -12,6 +13,7 @@ CREATE TABLE "public"."tenant_domains" (
 );
 
 CREATE UNIQUE INDEX "tenant_domains_hostname_key" ON "public"."tenant_domains"("hostname");
+CREATE UNIQUE INDEX "tenant_domains_verification_token_key" ON "public"."tenant_domains"("verification_token");
 CREATE INDEX "tenant_domains_tenant_id_idx" ON "public"."tenant_domains"("tenant_id");
 CREATE INDEX "tenant_domains_hostname_status_idx" ON "public"."tenant_domains"("hostname", "status");
 
