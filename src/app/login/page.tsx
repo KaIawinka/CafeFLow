@@ -253,7 +253,7 @@ function LoginContent() {
 
               <div className="text-center text-sm text-gray-600 dark:text-gray-400">
                 {t.login.noAccount}{' '}
-                <Link href="/register" className="text-amber-600 hover:text-amber-700 font-medium">
+                <Link href={`/${currentLocale}/register`} className="text-amber-600 hover:text-amber-700 font-medium">
                   {t.login.register}
                 </Link>
               </div>

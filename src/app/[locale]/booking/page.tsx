@@ -1,7 +1,7 @@
-import { CafeExperience } from '@/components/cafe/CafeExperience';
+import { ServerCafeExperience } from '@/components/cafe/ServerCafeExperience';
 import type { Locale } from '@/app/i18n/config';
 
 export default async function BookingPage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = await params;
-  return <CafeExperience view="booking" locale={locale} />;
+  return <ServerCafeExperience view="booking" locale={locale} />;
 }

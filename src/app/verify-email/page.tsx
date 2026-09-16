@@ -182,7 +182,7 @@ function VerifyEmailContent() {
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="mb-4">
-          <Link href="/profile" className="inline-flex items-center gap-2 font-medium text-gray-800 dark:text-gray-200 hover:text-amber-700 dark:hover:text-amber-400 transition-colors min-h-[44px]">
+          <Link href={`/${currentLocale}/profile`} className="inline-flex items-center gap-2 font-medium text-gray-800 dark:text-gray-200 hover:text-amber-700 dark:hover:text-amber-400 transition-colors min-h-[44px]">
             <ArrowLeft className="h-4 w-4" />
             К профилю
           </Link>

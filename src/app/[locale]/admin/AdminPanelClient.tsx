@@ -25,7 +25,6 @@ import {
 } from 'lucide-react';
 import { locales, type Locale } from '@/app/i18n/config';
 import { getUiTranslations } from '@/lib/ui-translations';
-import { cafeTables } from '@/data/mock-tables';
 
 interface User {
   id: string;
@@ -75,26 +74,16 @@ interface RecentOrder {
   created_at: string;
 }
 
-interface LocalKitchenOrder {
+interface AdminReservation {
   id: string;
-  createdAt: string;
-  table: string;
-  customerName: string;
-  total: number;
+  guest_name: string;
+  guest_phone: string;
+  guests_count: number;
+  start_at: string;
+  end_at: string;
   status: string;
-  comment: string;
-  items?: Array<{ productId: string; quantity: number }>;
-}
-
-interface LocalReservation {
-  id: string;
-  date: string;
-  time: string;
-  guests: number;
-  name: string;
-  phone: string;
-  status: 'pending' | 'confirmed' | 'cancelled';
-  tableId?: string;
+  table_ids?: unknown;
+  comment?: string | null;
 }
 
 interface Product {
@@ -118,8 +107,8 @@ export default function AdminPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [metrics, setMetrics] = useState<Metrics>({ users: 0, activeUsers: 0, admins: 0, orders: 0, revenue: 0, products: 0, activeProducts: 0 });
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
-  const [localKitchenOrders, setLocalKitchenOrders] = useState<LocalKitchenOrder[]>([]);
-  const [localReservations, setLocalReservations] = useState<LocalReservation[]>([]);
+  const [reservations, setReservations] = useState<AdminReservation[]>([]);
+  const [reservationTables, setReservationTables] = useState<Array<{ id: string; name: string; zone: string | null; capacity: number }>>([]);
   const [orderQueue, setOrderQueue] = useState<'kitchen' | 'waiters'>('kitchen');
   const [products, setProducts] = useState<Product[]>([]);
   const [error, setError] = useState('');
@@ -185,25 +174,13 @@ export default function AdminPage() {
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
-      try {
-        setLocalKitchenOrders(JSON.parse(localStorage.getItem('cafeflow-orders') || '[]') as LocalKitchenOrder[]);
-      } catch {
-        setLocalKitchenOrders([]);
-      }
+      void fetch('/api/admin/reservations', { cache: 'no-store' }).then((response) => response.json()).then((data) => {
+        setReservations(data.reservations || []);
+        setReservationTables(data.tables || []);
+      }).catch(() => setReservations([]));
     }, 0);
     return () => window.clearTimeout(timeoutId);
-  }, []);
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      try {
-        setLocalReservations(JSON.parse(localStorage.getItem('cafeflow-reservations') || '[]') as LocalReservation[]);
-      } catch {
-        setLocalReservations([]);
-      }
-    }, 0);
-    return () => window.clearTimeout(timeoutId);
-  }, []);
+  }, [refreshKey]);
 
   const updateUser = async (userId: string, changes: { role?: string; status?: string; requiresApproval?: boolean }) => {
     setSavingId(userId);
@@ -247,13 +224,6 @@ export default function AdminPage() {
   const updateOrder = async (orderId: string, orderStatus: string) => {
     setSavingId(orderId);
     setError('');
-    if (orderId.startsWith('CF-')) {
-      const next = localKitchenOrders.map((order) => order.id === orderId ? { ...order, status: orderStatus } : order);
-      setLocalKitchenOrders(next);
-      localStorage.setItem('cafeflow-orders', JSON.stringify(next));
-      setSavingId(null);
-      return;
-    }
     try {
       const response = await fetch('/api/admin/dashboard', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ resource: 'order', id: orderId, orderStatus }) });
       const data = await response.json();
@@ -266,15 +236,17 @@ export default function AdminPage() {
     }
   };
 
-  const advanceLocalOrder = (order: LocalKitchenOrder) => {
+  const advanceOrder = (order: RecentOrder) => {
     const nextStatus = order.status === 'new' ? 'confirmed' : order.status === 'confirmed' ? 'cooking' : order.status === 'cooking' ? 'ready' : order.status === 'ready' ? 'delivering' : 'completed';
     void updateOrder(order.id, nextStatus);
   };
 
-  const updateReservation = (reservationId: string, status: LocalReservation['status']) => {
-    const next = localReservations.map((reservation) => reservation.id === reservationId ? { ...reservation, status } : reservation);
-    setLocalReservations(next);
-    localStorage.setItem('cafeflow-reservations', JSON.stringify(next));
+  const updateReservation = async (reservationId: string, status: string) => {
+    const response = await fetch('/api/admin/reservations', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: reservationId, status }) });
+    if (response.ok) {
+      const data = await response.json();
+      setReservations((current) => current.map((reservation) => reservation.id === reservationId ? { ...reservation, status: data.reservation.status } : reservation));
+    }
   };
 
   const updateProduct = async (productId: string, changes: { isAvailable?: boolean; price?: string }) => {
@@ -607,17 +579,17 @@ export default function AdminPage() {
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{ui.admin.ordersTab}</h2>
                     <p className="text-sm text-gray-500 dark:text-gray-400">{ui.admin.manageOrders}</p>
                   </div>
-                  <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">{recentOrders.length + localKitchenOrders.length}</span>
+                  <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">{recentOrders.length}</span>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-900/60">
-                  <button type="button" onClick={() => setOrderQueue('kitchen')} className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-4 text-sm font-bold ${orderQueue === 'kitchen' ? 'bg-white text-orange-700 shadow-sm dark:bg-gray-800 dark:text-orange-300' : 'text-gray-500'}`}><ChefHat className="h-4 w-4" /> Кухня <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs">{localKitchenOrders.filter((order) => ['new', 'confirmed', 'cooking'].includes(order.status)).length}</span></button>
-                  <button type="button" onClick={() => setOrderQueue('waiters')} className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-4 text-sm font-bold ${orderQueue === 'waiters' ? 'bg-white text-blue-700 shadow-sm dark:bg-gray-800 dark:text-blue-300' : 'text-gray-500'}`}><Truck className="h-4 w-4" /> Официанты <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs">{localKitchenOrders.filter((order) => ['ready', 'delivering'].includes(order.status)).length}</span></button>
+                  <button type="button" onClick={() => setOrderQueue('kitchen')} className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-4 text-sm font-bold ${orderQueue === 'kitchen' ? 'bg-white text-orange-700 shadow-sm dark:bg-gray-800 dark:text-orange-300' : 'text-gray-500'}`}><ChefHat className="h-4 w-4" /> Кухня <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs">{recentOrders.filter((order) => ['new', 'confirmed', 'cooking'].includes(order.status)).length}</span></button>
+                  <button type="button" onClick={() => setOrderQueue('waiters')} className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-4 text-sm font-bold ${orderQueue === 'waiters' ? 'bg-white text-blue-700 shadow-sm dark:bg-gray-800 dark:text-blue-300' : 'text-gray-500'}`}><Truck className="h-4 w-4" /> Официанты <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs">{recentOrders.filter((order) => ['ready', 'delivering'].includes(order.status)).length}</span></button>
                 </div>
-                {localKitchenOrders.filter((order) => orderQueue === 'kitchen' ? ['new', 'confirmed', 'cooking'].includes(order.status) : ['ready', 'delivering'].includes(order.status)).map((order) => (
+                {recentOrders.filter((order) => orderQueue === 'kitchen' ? ['new', 'confirmed', 'cooking'].includes(order.status) : ['ready', 'delivering'].includes(order.status)).map((order) => (
                   <div key={`queue-${order.id}`} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                      <div><div className="flex items-center gap-2"><span className="font-black text-gray-900 dark:text-white">{order.id}</span><span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-bold text-gray-600 dark:bg-gray-700 dark:text-gray-300">Столик {order.table}</span></div><p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{order.customerName} · {order.comment || 'Без комментария'}</p></div>
-                      <button type="button" onClick={() => advanceLocalOrder(order)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#d06b3c] px-4 text-sm font-bold text-white hover:bg-[#b8532c]">{orderQueue === 'kitchen' ? (order.status === 'new' ? 'Подтвердить' : order.status === 'confirmed' ? 'Взять в работу' : 'Готово') : (order.status === 'ready' ? 'Забрать заказ' : 'Подтвердить доставку')} <ArrowRight className="h-4 w-4" /></button>
+                      <div><div className="flex items-center gap-2"><span className="font-black text-gray-900 dark:text-white">{order.order_number}</span><span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-bold text-gray-600 dark:bg-gray-700 dark:text-gray-300">DB-заказ</span></div><p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{order.customer_name}</p></div>
+                      <button type="button" onClick={() => advanceOrder(order)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#d06b3c] px-4 text-sm font-bold text-white hover:bg-[#b8532c]">{orderQueue === 'kitchen' ? (order.status === 'new' ? 'Подтвердить' : order.status === 'confirmed' ? 'Взять в работу' : 'Готово') : (order.status === 'ready' ? 'Забрать заказ' : 'Подтвердить доставку')} <ArrowRight className="h-4 w-4" /></button>
                     </div>
                   </div>
                 ))}
@@ -627,15 +599,6 @@ export default function AdminPage() {
                       <tr><th className="px-4 py-3">№</th><th className="px-4 py-3">{ui.admin.clients}</th><th className="px-4 py-3">Столик / детали</th><th className="px-4 py-3">{ui.admin.revenue}</th><th className="px-4 py-3">{ui.admin.status}</th></tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                      {localKitchenOrders.map((order) => (
-                        <tr key={order.id} className="bg-orange-50/60 dark:bg-orange-950/20">
-                          <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">#{order.id}<span className="ml-2 rounded bg-orange-200 px-1.5 py-0.5 text-[10px] font-bold text-orange-800">QR</span></td>
-                          <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{order.customerName}</td>
-                          <td className="px-4 py-3 text-gray-600 dark:text-gray-400">Столик {order.table}<br /><span className="text-xs">{order.comment || 'Без комментария'}</span></td>
-                          <td className="px-4 py-3 font-semibold text-amber-600 dark:text-amber-400">{order.total} сом</td>
-                          <td className="px-4 py-3"><select value={order.status} disabled={savingId === order.id} onChange={(event) => void updateOrder(order.id, event.target.value)} className="min-h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">{['new', 'confirmed', 'cooking', 'ready', 'completed', 'cancelled'].map((status) => <option key={status} value={status}>{status}</option>)}</select></td>
-                        </tr>
-                      ))}
                       {recentOrders.map((order) => (
                         <tr key={order.id} className="bg-white dark:bg-gray-800">
                           <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">#{order.order_number}</td>
@@ -685,10 +648,10 @@ export default function AdminPage() {
               <div className="space-y-5">
                 <div className="flex items-center justify-between">
                   <div><h2 className="text-xl font-semibold text-gray-900 dark:text-white">Бронирования столиков</h2><p className="text-sm text-gray-500 dark:text-gray-400">Проверяйте свободные места и подтверждайте заявки гостей.</p></div>
-                  <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">{localReservations.filter((reservation) => reservation.status === 'confirmed').length} подтверждено</span>
+                  <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">{reservations.filter((reservation) => reservation.status === 'confirmed').length} подтверждено</span>
                 </div>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{cafeTables.map((table) => { const activeReservations = localReservations.filter((reservation) => reservation.tableId === table.id && reservation.status !== 'cancelled'); return <div key={table.id} className="rounded-2xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/60"><div className="flex items-center justify-between"><div className="flex items-center gap-2 font-bold text-gray-900 dark:text-white"><Table2 className="h-4 w-4 text-amber-600" />{table.name}</div><span className="text-xs text-gray-500">до {table.capacity}</span></div><p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{table.zone} · {activeReservations.length ? `${activeReservations.length} заявка` : 'Свободен'}</p></div>; })}</div>
-                <div className="space-y-3">{localReservations.map((reservation) => <div key={reservation.id} className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800 sm:flex-row sm:items-center sm:justify-between"><div><div className="flex flex-wrap items-center gap-2"><span className="font-black text-gray-900 dark:text-white">{reservation.id}</span><span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800">{cafeTables.find((table) => table.id === reservation.tableId)?.name || 'Столик не выбран'}</span><span className="text-sm text-gray-500">{reservation.date} · {reservation.time}</span></div><p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{reservation.name} · {reservation.phone} · гостей: {reservation.guests}</p></div><div className="flex gap-2"><button type="button" onClick={() => updateReservation(reservation.id, 'confirmed')} disabled={reservation.status === 'confirmed'} className="min-h-10 rounded-lg bg-emerald-600 px-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40">Подтвердить</button><button type="button" onClick={() => updateReservation(reservation.id, 'cancelled')} disabled={reservation.status === 'cancelled'} className="min-h-10 rounded-lg border border-red-200 px-3 text-sm font-bold text-red-700 disabled:cursor-not-allowed disabled:opacity-40">Отменить</button></div></div>)}{localReservations.length === 0 && <p className="rounded-xl bg-gray-50 p-8 text-center text-sm text-gray-500 dark:bg-gray-900/50">Бронирований пока нет</p>}</div>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{reservationTables.map((table) => { const activeReservations = reservations.filter((reservation) => Array.isArray(reservation.table_ids) && reservation.table_ids.includes(table.id) && reservation.status !== 'cancelled'); return <div key={table.id} className="rounded-2xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/60"><div className="flex items-center justify-between"><div className="flex items-center gap-2 font-bold text-gray-900 dark:text-white"><Table2 className="h-4 w-4 text-amber-600" />{table.name}</div><span className="text-xs text-gray-500">до {table.capacity}</span></div><p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{table.zone} · {activeReservations.length ? `${activeReservations.length} заявка` : 'Свободен'}</p></div>; })}</div>
+                <div className="space-y-3">{reservations.map((reservation) => <div key={reservation.id} className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800 sm:flex-row sm:items-center sm:justify-between"><div><div className="flex flex-wrap items-center gap-2"><span className="font-black text-gray-900 dark:text-white">{reservation.id}</span><span className="text-sm text-gray-500">{new Date(reservation.start_at).toLocaleString(locale)}</span></div><p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{reservation.guest_name} · {reservation.guest_phone} · гостей: {reservation.guests_count}</p></div><div className="flex gap-2"><button type="button" onClick={() => void updateReservation(reservation.id, 'confirmed')} disabled={reservation.status === 'confirmed'} className="min-h-10 rounded-lg bg-emerald-600 px-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40">Подтвердить</button><button type="button" onClick={() => void updateReservation(reservation.id, 'cancelled')} disabled={reservation.status === 'cancelled'} className="min-h-10 rounded-lg border border-red-200 px-3 text-sm font-bold text-red-700 disabled:cursor-not-allowed disabled:opacity-40">Отменить</button></div></div>)}{reservations.length === 0 && <p className="rounded-xl bg-gray-50 p-8 text-center text-sm text-gray-500 dark:bg-gray-900/50">Бронирований пока нет</p>}</div>
               </div>
             )}
 

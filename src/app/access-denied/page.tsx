@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { XCircle, ShieldAlert } from 'lucide-react';
 
@@ -15,6 +15,8 @@ export default function AccessDeniedPage() {
 
 function AccessDeniedContent() {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const locale = ['ru', 'en', 'kg'].includes(pathname.split('/').filter(Boolean)[0] || '') ? pathname.split('/').filter(Boolean)[0] : 'ru';
   const required = searchParams.get('required');
   const current = searchParams.get('current');
 
@@ -72,13 +74,13 @@ function AccessDeniedContent() {
           {/* Actions */}
           <div className="flex flex-col gap-3 w-full">
             <Link
-              href="/profile"
+              href={`/${locale}/profile`}
               className="w-full bg-amber-600 hover:bg-amber-700 text-white font-medium py-3 px-4 rounded-lg transition-colors min-h-[44px] flex items-center justify-center"
             >
               Перейти в профиль
             </Link>
             <Link
-              href="/"
+              href={`/${locale}`}
               className="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium py-3 px-4 rounded-lg transition-colors min-h-[44px] flex items-center justify-center"
             >
               На главную
