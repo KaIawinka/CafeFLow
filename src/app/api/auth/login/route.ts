@@ -12,6 +12,7 @@ import { createAuthSession, generateTokenPair, hashSessionToken } from '@/lib/au
 import { logger } from '@/lib/logger';
 import crypto from 'crypto';
 import { verifyRecaptcha } from '@/lib/recaptcha';
+import { getClientIp, isLoginRateLimited, recordLoginAttempt } from '@/lib/auth/login-attempts';
 
 interface LoginRequest {
   email: string;
@@ -51,14 +52,16 @@ export async function POST(request: NextRequest) {
         });
     }
 
-    // Get client IP for logging
-    const ipAddress: string = request.headers.get('x-forwarded-for') || 
-                              request.headers.get('x-real-ip') || 
-                              'unknown';
+    const normalizedEmail = email.trim().toLowerCase();
+    const ipAddress = getClientIp(request);
+    if (await isLoginRateLimited(normalizedEmail, ipAddress)) {
+      await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'rate_limit_exceeded' });
+      return NextResponse.json({ error: 'Слишком много попыток входа. Попробуйте позже.' }, { status: 429 });
+    }
 
     // Find user by email
     const user = await prisma.users.findFirst({
-      where: { email: email.toLowerCase() },
+      where: { email: normalizedEmail },
       select: {
         id: true,
         email: true,
@@ -78,6 +81,7 @@ export async function POST(request: NextRequest) {
 
     // User not found
     if (!user) {
+      await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'invalid_credentials' });
       logger.warn('Login failed: User not found', { email, ipAddress });
       
       return NextResponse.json(
@@ -88,6 +92,7 @@ export async function POST(request: NextRequest) {
 
     // Check if user is active
     if (user.status !== 'active') {
+      await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'account_inactive', userId: user.id });
       logger.warn('Login failed: User inactive', { email, status: user.status });
       
       return NextResponse.json(
@@ -108,6 +113,7 @@ export async function POST(request: NextRequest) {
     const isPasswordValid = await verifyPassword(password, user.password_hash);
 
     if (!isPasswordValid) {
+      await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'invalid_credentials', userId: user.id });
       logger.warn('Login failed: Invalid password', { email, ipAddress });
       
       return NextResponse.json(
@@ -117,6 +123,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Password is correct
+    await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: true, reason: user.two_fa_enabled && user.telegram_chat_id ? '2fa_required' : 'authenticated', userId: user.id });
     logger.info('Password verified', { email: user.email });
 
     // Check if 2FA is enabled and Telegram is connected
