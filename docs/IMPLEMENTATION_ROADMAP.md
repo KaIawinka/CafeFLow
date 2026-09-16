@@ -72,6 +72,7 @@ CafeFlow is a multi-tenant, white-label restaurant platform for cafes, restauran
 - **Done**: public API routes no longer select the first active tenant implicitly.
 - **Done**: public tenant is resolved by `?tenant=slug`, `x-cafeflow-tenant`, or the explicit `CAFEFLOW_DEFAULT_TENANT_SLUG` deployment setting.
 - **Partial**: custom-domain-to-tenant mapping and branch selection are still required for full SaaS rollout.
+- **Commit**: `8a46c52`.
 
 ### Notifications
 
@@ -96,7 +97,7 @@ CafeFlow is a multi-tenant, white-label restaurant platform for cafes, restauran
 ## To do: critical production work
 
 1. **Tenant isolation**
-	- Replace first-tenant public lookup with domain/slug/branch context.
+	- Add custom-domain-to-tenant mapping and explicit branch selection.
 	- Enforce tenant and branch scope in every admin and public business query.
 	- Add automated cross-tenant access tests and consider PostgreSQL RLS.
 
@@ -114,7 +115,7 @@ CafeFlow is a multi-tenant, white-label restaurant platform for cafes, restauran
 	- Add waitlist, deposits, cancellation policy, no-show and day timeline.
 
 5. **Admin operations**
-	- Add pagination and filters for users, orders and reservations.
+	- Add date/status/branch filters and pagination for reservations; users and orders pagination is implemented.
 	- Add complete menu/category CRUD, images, modifiers, allergens, preparation time and schedules.
 	- Add kitchen board, shift timeline, branch management, staff permissions and audit viewer.
 
