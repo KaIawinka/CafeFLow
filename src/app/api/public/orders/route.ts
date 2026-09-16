@@ -59,10 +59,18 @@ export async function POST(request: NextRequest) {
     });
     const subtotal = lines.reduce((sum, line) => sum + line.line_total, 0);
     const token = guestToken();
+    const newOrderNumber = orderNumber();
+    const staff = await prisma.users.findMany({
+      where: { tenant_id: context.tenant.id, status: 'active', role: { in: ['admin', 'manager', 'kitchen', 'employee'] } },
+      select: { id: true },
+    });
     let order;
     try {
       order = await prisma.$transaction(async (tx) => {
-        const createdOrder = await tx.orders.create({ data: { tenant_id: context.tenant.id, branch_id: branch.id, order_number: orderNumber(), idempotency_key: requestIdempotencyKey, customer_name: customerName, customer_phone: customerPhone, fulfillment_type: 'dine_in', status: 'new', payment_status: 'pending', subtotal, discount_total: 0, delivery_fee: 0, total: subtotal, currency: context.tenant.currency, comment: body.comment?.trim() || null, delivery_address: { tableId: table.id, tableName: table.name }, guest_token: token, order_items: { create: lines } }, select: { id: true, order_number: true, status: true, total: true, currency: true, created_at: true, guest_token: true } });
+        const createdOrder = await tx.orders.create({ data: { tenant_id: context.tenant.id, branch_id: branch.id, order_number: newOrderNumber, idempotency_key: requestIdempotencyKey, customer_name: customerName, customer_phone: customerPhone, fulfillment_type: 'dine_in', status: 'new', payment_status: 'pending', subtotal, discount_total: 0, delivery_fee: 0, total: subtotal, currency: context.tenant.currency, comment: body.comment?.trim() || null, delivery_address: { tableId: table.id, tableName: table.name }, guest_token: token, order_items: { create: lines } }, select: { id: true, order_number: true, status: true, total: true, currency: true, created_at: true, guest_token: true } });
+        if (staff.length) {
+          await tx.notifications.createMany({ data: staff.map((member) => ({ tenant_id: context.tenant.id, user_id: member.id, channel: 'in_app' as const, type: 'order_status' as const, subject: 'Новый заказ', body: `Заказ ${newOrderNumber} ожидает подтверждения`, status: 'queued' as const, attempts: 0 })) });
+        }
         const converted = await tx.carts.updateMany({ where: { id: cart.id, status: 'active' }, data: { status: 'converted', items: [], subtotal: 0 } });
         if (converted.count !== 1) throw new Error('CART_ALREADY_CONVERTED');
         return createdOrder;
