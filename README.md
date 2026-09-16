@@ -62,6 +62,9 @@ CAFEFLOW_DEFAULT_TENANT_SLUG="cafeflow-demo"
 
 # Required for the scheduled technical cleanup endpoint
 CRON_SECRET="your-random-cron-secret"
+
+# Shared HMAC secret for payment provider webhooks
+PAYMENT_WEBHOOK_SECRET="your-random-payment-webhook-secret"
 ```
 
 ### 4. Примените миграции базы данных
@@ -223,6 +226,7 @@ git push origin main
 - `TELEGRAM_WEBHOOK_SECRET`
 - `ADMIN_SETUP_TOKEN`
 - `CRON_SECRET`
+- `PAYMENT_WEBHOOK_SECRET`
 
 ### 4. Deploy!
 
