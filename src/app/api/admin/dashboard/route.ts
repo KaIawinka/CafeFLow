@@ -6,6 +6,7 @@ import { logger } from '@/lib/logger';
 const roles = ['guest', 'customer', 'employee', 'kitchen', 'manager', 'admin'] as const;
 const statuses = ['active', 'blocked', 'pending'] as const;
 const orderStatuses = ['new', 'confirmed', 'cooking', 'ready', 'delivering', 'completed', 'cancelled'] as const;
+const orderedStatuses = ['new', 'confirmed', 'cooking', 'ready', 'delivering', 'completed'] as const;
 
 type Role = (typeof roles)[number];
 type Status = (typeof statuses)[number];
@@ -196,9 +197,17 @@ export async function PATCH(request: NextRequest) {
 
     if (body.resource === 'order') {
       if (!body.id || !body.orderStatus || !orderStatuses.includes(body.orderStatus)) return NextResponse.json({ error: 'Недопустимый статус заказа' }, { status: 400 });
-      const order = await prisma.orders.findUnique({ where: { id: body.id }, select: { id: true, tenant_id: true, status: true } });
+      const order = await prisma.orders.findUnique({ where: { id: body.id }, select: { id: true, tenant_id: true, status: true, status_history: true } });
       if (!order || (actor.tenant_id && order.tenant_id !== actor.tenant_id)) return NextResponse.json({ error: 'Заказ не найден' }, { status: 404 });
-      const updated = await prisma.orders.update({ where: { id: body.id }, data: { status: body.orderStatus, ...(body.orderStatus === 'completed' ? { completed_at: new Date() } : {}), ...(body.orderStatus === 'cancelled' ? { cancelled_at: new Date() } : {}) }, select: { id: true, order_number: true, status: true, payment_status: true, total: true, currency: true, customer_name: true, created_at: true } });
+      const currentIndex = orderedStatuses.indexOf(order.status as (typeof orderedStatuses)[number]);
+      const nextIndex = body.orderStatus === 'cancelled' ? -1 : orderedStatuses.indexOf(body.orderStatus as (typeof orderedStatuses)[number]);
+      if (body.orderStatus !== 'cancelled' && (currentIndex < 0 || nextIndex <= currentIndex)) {
+        return NextResponse.json({ error: 'Нельзя вернуть заказ на предыдущий статус' }, { status: 409 });
+      }
+      if (body.orderStatus === order.status) return NextResponse.json({ error: 'Заказ уже находится в этом статусе' }, { status: 409 });
+      const history = Array.isArray(order.status_history) ? order.status_history : [];
+      const statusHistory = [...history, { from: order.status, to: body.orderStatus, changedAt: new Date().toISOString(), changedBy: actor.id }];
+      const updated = await prisma.orders.update({ where: { id: body.id }, data: { status: body.orderStatus, status_history: statusHistory, ...(body.orderStatus === 'completed' ? { completed_at: new Date() } : {}), ...(body.orderStatus === 'cancelled' ? { cancelled_at: new Date() } : {}) }, select: { id: true, order_number: true, status: true, payment_status: true, total: true, currency: true, customer_name: true, created_at: true } });
       await prisma.activity_logs.create({ data: { tenant_id: order.tenant_id, actor_user_id: actor.id, action: 'admin.order.updated', entity_type: 'orders', entity_id: order.id, before_data: order, after_data: updated } });
       return NextResponse.json({ success: true, order: updated });
     }
