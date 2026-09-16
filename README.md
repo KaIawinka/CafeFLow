@@ -59,6 +59,9 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 
 # Public tenant used when requests do not include ?tenant=slug or x-cafeflow-tenant
 CAFEFLOW_DEFAULT_TENANT_SLUG="cafeflow-demo"
+
+# Required for the scheduled technical cleanup endpoint
+CRON_SECRET="your-random-cron-secret"
 ```
 
 ### 4. Примените миграции базы данных
@@ -219,6 +222,7 @@ git push origin main
 - `TELEGRAM_BOT_TOKEN`
 - `TELEGRAM_WEBHOOK_SECRET`
 - `ADMIN_SETUP_TOKEN`
+- `CRON_SECRET`
 
 ### 4. Deploy!
 

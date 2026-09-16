@@ -82,6 +82,21 @@ CafeFlow is a multi-tenant, white-label restaurant platform for cafes, restauran
 - **Done**: admin panel and shared header show unread counts with polling.
 - **Commits**: `c3cbfbd`, `cef67ce`, `8286ab1`, `0efab17`.
 
+### Production foundation completed after the original roadmap snapshot
+
+- **Done**: production JWT configuration no longer falls back to a shared secret; Telegram setup requires server secrets.
+- **Done**: public context resolves verified custom domains and requires explicit branch selection when a tenant has multiple active branches.
+- **Done**: public branch discovery endpoint is available at `/api/public/branches`.
+- **Done**: admin dashboard order reads and mutations are scoped by assigned branch.
+- **Done**: guest cart and order status lookups are scoped by tenant and branch context.
+- **Done**: login attempts are persisted and rate-limited by normalized email and IP.
+- **Done**: expired sessions/codes and old login attempts have an authenticated hourly cleanup job.
+- **Done**: `/api/health` checks database readiness and baseline security headers are configured.
+- **Done**: active session listing and individual session revocation APIs are available at `/api/user/sessions`.
+- **Done**: landing contact form persists validated leads through `/api/public/contact`.
+- **Done**: first Vitest state-machine tests cover order transitions.
+- **Partial**: custom domain verification workflow, tenant-domain admin UI, branch selector UI, PostgreSQL RLS and full cross-tenant tests remain required.
+
 ## Partial
 
 - **Partial**: tenant and branch data are now explicit in public API context, but custom-domain mapping and branch selection are not finished. This is not yet ready for unrestricted commercial multi-tenant deployment.
