@@ -18,7 +18,8 @@ export async function getPublicCafeContext(request?: Request) {
   });
   if (!activeTenant) return null;
 
-  const requestedBranchId = urlBranch?.trim() || request?.headers.get('x-cafeflow-branch')?.trim();
+  const cookieBranch = request?.headers.get('cookie')?.match(/(?:^|;\s*)cafeflowBranch=([^;]+)/)?.[1];
+  const requestedBranchId = urlBranch?.trim() || request?.headers.get('x-cafeflow-branch')?.trim() || cookieBranch?.trim();
   const branches = await prisma.branches.findMany({
     where: {
       tenant_id: activeTenant.id,

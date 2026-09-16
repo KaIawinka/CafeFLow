@@ -7,6 +7,7 @@ import type { Locale } from '@/app/i18n/config';
 
 type Product = { id: string; name: string; description: string | null; price: string | number; currency: string; weight: string | number | null; preparation_minutes: number | null; category?: { name: string } | null };
 type Table = { id: string; name: string; zone: string | null; capacity: number; position?: unknown };
+type Branch = { id: string; name: string; code: string; address_text: string | null; phone: string | null; timezone: string | null };
 type CartItem = { product: Product; quantity: number };
 type Order = { id: string; order_number: string; status: string; total: string | number; currency: string; created_at: string; order_items: Array<{ product_name: string; quantity: number; line_total: string | number }> };
 
@@ -14,14 +15,19 @@ const copy = { ru: { menu: 'Меню', menuText: 'Меню из базы дан�
 type Copy = (typeof copy)[Locale];
 
 function money(value: string | number, currency = 'KGS') { return `${Number(value).toLocaleString('ru-RU')} ${currency === 'KGS' ? 'сом' : currency}`; }
+function publicPath(path: string) {
+  if (typeof window === 'undefined') return path;
+  const branch = new URLSearchParams(window.location.search).get('branch');
+  return branch ? `${path}${path.includes('?') ? '&' : '?'}branch=${encodeURIComponent(branch)}` : path;
+}
 async function loadServerCart() {
-  const response = await fetch('/api/public/cart', { cache: 'no-store' });
+  const response = await fetch(publicPath('/api/public/cart'), { cache: 'no-store' });
   if (!response.ok) throw new Error('Cart request failed');
   const data = await response.json() as { cart?: { items?: Array<{ productId: string; quantity: number }> } };
   return (data.cart?.items || []).filter((item) => item.quantity > 0).map((item) => ({ productId: item.productId, quantity: item.quantity }));
 }
 async function saveServerCart(items: Array<{ productId: string; quantity: number }>) {
-  const response = await fetch('/api/public/cart', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items }) });
+  const response = await fetch(publicPath('/api/public/cart'), { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items }) });
   if (!response.ok) throw new Error('Cart update failed');
 }
 
@@ -31,7 +37,7 @@ export function ServerCafeExperience({ view, locale }: { view: 'menu' | 'cart' |
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
       void loadServerCart().then(setCart).catch(() => setError(t.error));
-      if (view === 'menu' || view === 'cart') void fetch('/api/public/menu').then((response) => response.json()).then((data) => { if (!data.products) throw new Error(); setProducts(data.products); }).catch(() => setError(t.error));
+      if (view === 'menu' || view === 'cart') void fetch(publicPath('/api/public/menu')).then((response) => response.json()).then((data) => { if (!data.products) throw new Error(); setProducts(data.products); }).catch(() => setError(t.error));
     }, 0);
     return () => window.clearTimeout(timeoutId);
   }, [view, t.error]);
@@ -43,7 +49,9 @@ export function ServerCafeExperience({ view, locale }: { view: 'menu' | 'cart' |
   return <Shell locale={locale} title={t.booking} subtitle={t.menuText} cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}><Booking t={t} /></Shell>;
 }
 
-function Shell({ children, locale, title, subtitle, cartCount }: { children: React.ReactNode; locale: Locale; title: string; subtitle: string; cartCount: number }) { return <main className="min-h-[calc(100vh-4rem)] bg-[#f8f7f2] px-4 py-10 text-[#17332f] dark:bg-gray-950 dark:text-white"><div className="mx-auto max-w-7xl"><header className="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p className="mb-2 text-xs font-bold uppercase tracking-[.2em] text-[#d06b3c]">CaféFlow / database</p><h1 className="text-4xl font-black sm:text-5xl">{title}</h1><p className="mt-2 text-[#60706b] dark:text-gray-400">{subtitle}</p></div><Link href={`/${locale}/cart`} className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#17332f] px-5 font-bold text-white dark:bg-amber-500 dark:text-gray-950"><ShoppingCart className="h-4 w-4" />{cartCount}</Link></header>{children}</div></main>; }
+function Shell({ children, locale, title, subtitle, cartCount }: { children: React.ReactNode; locale: Locale; title: string; subtitle: string; cartCount: number }) { return <main className="min-h-[calc(100vh-4rem)] bg-[#f8f7f2] px-4 py-10 text-[#17332f] dark:bg-gray-950 dark:text-white"><div className="mx-auto max-w-7xl"><header className="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p className="mb-2 text-xs font-bold uppercase tracking-[.2em] text-[#d06b3c]">CaféFlow / database</p><h1 className="text-4xl font-black sm:text-5xl">{title}</h1><p className="mt-2 text-[#60706b] dark:text-gray-400">{subtitle}</p><BranchSelector /></div><Link href={publicPath(`/${locale}/cart`)} className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#17332f] px-5 font-bold text-white dark:bg-amber-500 dark:text-gray-950"><ShoppingCart className="h-4 w-4" />{cartCount}</Link></header>{children}</div></main>; }
+
+function BranchSelector() { const [branches, setBranches] = useState<Branch[]>([]); const [selected, setSelected] = useState(''); useEffect(() => { void fetch('/api/public/branches').then((response) => response.ok ? response.json() : null).then((data) => { if (!data) return; setBranches(data.branches || []); setSelected(data.selectedBranchId || ''); }); }, []); if (branches.length <= 1) return null; return <label className="mt-4 flex max-w-md items-center gap-3 text-sm font-semibold text-[#60706b] dark:text-gray-400"><span>Филиал</span><select value={selected} onChange={(event) => { document.cookie = `cafeflowBranch=${encodeURIComponent(event.target.value)}; path=/; max-age=${60 * 60 * 24 * 30}; samesite=lax`; const url = new URL(window.location.href); url.searchParams.set('branch', event.target.value); window.location.assign(url.toString()); }} className="min-h-10 rounded-lg border border-[#d9dfd8] bg-white px-3 text-[#17332f] dark:border-gray-700 dark:bg-gray-900 dark:text-white">{branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.name}{branch.address_text ? ` · ${branch.address_text}` : ''}</option>)}</select></label>; }
 
 function Menu({ products, t, add }: { products: Product[]; t: Copy; add: (id: string) => void }) { const [query, setQuery] = useState(''); const filtered = useMemo(() => products.filter((product) => `${product.name} ${product.description || ''}`.toLowerCase().includes(query.toLowerCase())), [products, query]); return <><label className="mb-6 flex h-12 items-center gap-3 rounded-xl border border-[#d9dfd8] bg-white px-4 dark:border-gray-800 dark:bg-gray-900"><Search className="h-4 w-4 text-[#d06b3c]" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t.search} className="w-full bg-transparent outline-none" /></label><div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{filtered.map((product) => <article key={product.id} className="rounded-2xl border border-[#dde4dc] bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"><div className="flex items-start justify-between gap-3"><h2 className="text-xl font-black">{product.name}</h2><strong className="text-[#d06b3c]">{money(product.price, product.currency)}</strong></div><p className="mt-3 min-h-12 text-sm text-[#60706b] dark:text-gray-400">{product.description}</p><p className="mt-3 text-xs text-[#87938d]"><Clock3 className="mr-1 inline h-3.5 w-3.5" />{product.preparation_minutes || 0} min</p><button onClick={() => add(product.id)} className="mt-5 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#17332f] font-bold text-white dark:bg-amber-500 dark:text-gray-950"><Plus className="h-4 w-4" />{t.add}</button></article>)}</div></>; }
 
