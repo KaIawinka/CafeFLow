@@ -5,6 +5,7 @@ import { getPublicCafeContext } from '@/lib/public-context';
 
 function serialize<T>(value: T): T { return JSON.parse(JSON.stringify(value, (_, item) => typeof item === 'bigint' ? item.toString() : item)); }
 function guestToken() { return randomBytes(48).toString('base64url'); }
+function idempotencyKey() { return randomBytes(24).toString('base64url'); }
 function orderNumber() { return `CF-${Date.now().toString(36).toUpperCase()}-${randomBytes(2).toString('hex').toUpperCase()}`; }
 
 type OrderItemInput = { productId: string; quantity: number; comment?: string };
@@ -14,21 +15,22 @@ export async function POST(request: NextRequest) {
     const body = await request.json() as { customerName?: string; customerPhone?: string; tableId?: string; comment?: string; idempotencyKey?: string; items?: OrderItemInput[] };
     const customerName = body.customerName?.trim();
     const customerPhone = body.customerPhone?.trim() || 'guest';
-    const idempotencyKey = body.idempotencyKey?.trim();
+    const requestIdempotencyKey = body.idempotencyKey?.trim() || request.cookies.get('guestOrderIdempotencyKey')?.value || idempotencyKey();
     const items = body.items || [];
-    if (!customerName || customerName.length > 200 || customerPhone.length > 40 || !body.tableId || !idempotencyKey || idempotencyKey.length > 120 || !items.length || items.some((item) => !item.productId || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 20)) {
+    if (!customerName || customerName.length > 200 || customerPhone.length > 40 || !body.tableId || requestIdempotencyKey.length > 120 || !items.length || items.some((item) => !item.productId || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 20)) {
       return NextResponse.json({ error: 'Укажите имя, столик и корректные позиции заказа' }, { status: 400 });
     }
     const context = await getPublicCafeContext();
     if (!context?.branch) return NextResponse.json({ error: 'Филиал кафе пока не настроен' }, { status: 503 });
 
     const existingOrder = await prisma.orders.findFirst({
-      where: { tenant_id: context.tenant.id, idempotency_key: idempotencyKey },
+      where: { tenant_id: context.tenant.id, idempotency_key: requestIdempotencyKey },
       select: { id: true, order_number: true, status: true, total: true, currency: true, created_at: true, guest_token: true },
     });
     if (existingOrder) {
       const response = NextResponse.json(serialize({ order: existingOrder }));
       response.cookies.set('guestOrderToken', existingOrder.guest_token || '', { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', maxAge: 60 * 60 * 24 * 30, path: '/' });
+      response.cookies.set('guestOrderIdempotencyKey', idempotencyKey(), { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', maxAge: 60 * 60 * 24, path: '/' });
       return response;
     }
 
@@ -46,16 +48,17 @@ export async function POST(request: NextRequest) {
     const token = guestToken();
     let order;
     try {
-      order = await prisma.orders.create({ data: { tenant_id: context.tenant.id, branch_id: context.branch.id, order_number: orderNumber(), idempotency_key: idempotencyKey, customer_name: customerName, customer_phone: customerPhone, fulfillment_type: 'dine_in', status: 'new', payment_status: 'pending', subtotal, discount_total: 0, delivery_fee: 0, total: subtotal, currency: context.tenant.currency, comment: body.comment?.trim() || null, delivery_address: { tableId: table.id, tableName: table.name }, guest_token: token, order_items: { create: lines } }, select: { id: true, order_number: true, status: true, total: true, currency: true, created_at: true, guest_token: true } });
+      order = await prisma.orders.create({ data: { tenant_id: context.tenant.id, branch_id: context.branch.id, order_number: orderNumber(), idempotency_key: requestIdempotencyKey, customer_name: customerName, customer_phone: customerPhone, fulfillment_type: 'dine_in', status: 'new', payment_status: 'pending', subtotal, discount_total: 0, delivery_fee: 0, total: subtotal, currency: context.tenant.currency, comment: body.comment?.trim() || null, delivery_address: { tableId: table.id, tableName: table.name }, guest_token: token, order_items: { create: lines } }, select: { id: true, order_number: true, status: true, total: true, currency: true, created_at: true, guest_token: true } });
     } catch (error) {
       if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
         const concurrentOrder = await prisma.orders.findFirst({
-          where: { tenant_id: context.tenant.id, idempotency_key: idempotencyKey },
+          where: { tenant_id: context.tenant.id, idempotency_key: requestIdempotencyKey },
           select: { id: true, order_number: true, status: true, total: true, currency: true, created_at: true, guest_token: true },
         });
         if (concurrentOrder) {
           const response = NextResponse.json(serialize({ order: concurrentOrder }));
           response.cookies.set('guestOrderToken', concurrentOrder.guest_token || '', { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', maxAge: 60 * 60 * 24 * 30, path: '/' });
+          response.cookies.set('guestOrderIdempotencyKey', idempotencyKey(), { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', maxAge: 60 * 60 * 24, path: '/' });
           return response;
         }
       }
@@ -63,6 +66,7 @@ export async function POST(request: NextRequest) {
     }
     const response = NextResponse.json(serialize({ order }), { status: 201 });
     response.cookies.set('guestOrderToken', token, { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', maxAge: 60 * 60 * 24 * 30, path: '/' });
+    response.cookies.set('guestOrderIdempotencyKey', idempotencyKey(), { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', maxAge: 60 * 60 * 24, path: '/' });
     return response;
   } catch (error) {
     console.error('Public order create error', error);
