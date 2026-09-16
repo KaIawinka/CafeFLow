@@ -18,8 +18,8 @@ async function getCartContext(request: NextRequest) {
   return { ...context, sessionKey: existingSession || sessionKey() };
 }
 
-async function loadCart(tenantId: string, session: string) {
-  return prisma.carts.findFirst({ where: { tenant_id: tenantId, session_key: session, status: 'active' } });
+async function loadCart(tenantId: string, branchId: string, session: string) {
+  return prisma.carts.findFirst({ where: { tenant_id: tenantId, branch_id: branchId, session_key: session, status: 'active' } });
 }
 
 function responseWithCart(cart: unknown, session: string, status = 200) {
@@ -32,7 +32,9 @@ export async function GET(request: NextRequest) {
   try {
     const context = await getCartContext(request);
     if (!context) return NextResponse.json({ error: 'Филиал кафе пока не настроен' }, { status: 503 });
-    const cart = await loadCart(context.tenant.id, context.sessionKey);
+    const branch = context.branch;
+    if (!branch) return NextResponse.json({ error: 'Филиал кафе пока не настроен' }, { status: 503 });
+    const cart = await loadCart(context.tenant.id, branch.id, context.sessionKey);
     return responseWithCart(cart || { items: [], subtotal: 0, status: 'active' }, context.sessionKey);
   } catch (error) {
     console.error('Public cart read error', error);
@@ -64,7 +66,7 @@ export async function PUT(request: NextRequest) {
 
     const items = products.map((product) => ({ productId: product.id, quantity: quantities.get(product.id) || 0, unitPrice: product.price.toString(), name: product.name, currency: product.currency }));
     const subtotal = items.reduce((sum, item) => sum.add(new Prisma.Decimal(item.unitPrice).mul(item.quantity)), new Prisma.Decimal(0));
-    const existing = await loadCart(context.tenant.id, context.sessionKey);
+    const existing = await loadCart(context.tenant.id, branch.id, context.sessionKey);
     const cart = existing
       ? await prisma.carts.update({ where: { id: existing.id }, data: { branch_id: branch.id, items, subtotal }, select: { id: true, items: true, subtotal: true, status: true, updated_at: true } })
       : await prisma.carts.create({ data: { tenant_id: context.tenant.id, branch_id: branch.id, session_key: context.sessionKey, status: 'active', items, subtotal }, select: { id: true, items: true, subtotal: true, status: true, updated_at: true } });
@@ -79,7 +81,9 @@ export async function DELETE(request: NextRequest) {
   try {
     const context = await getCartContext(request);
     if (!context) return NextResponse.json({ error: 'Филиал кафе пока не настроен' }, { status: 503 });
-    await prisma.carts.updateMany({ where: { tenant_id: context.tenant.id, session_key: context.sessionKey, status: 'active' }, data: { status: 'abandoned', items: [], subtotal: 0 } });
+    const branch = context.branch;
+    if (!branch) return NextResponse.json({ error: 'Филиал кафе пока не настроен' }, { status: 503 });
+    await prisma.carts.updateMany({ where: { tenant_id: context.tenant.id, branch_id: branch.id, session_key: context.sessionKey, status: 'active' }, data: { status: 'abandoned', items: [], subtotal: 0 } });
     return responseWithCart({ items: [], subtotal: 0, status: 'abandoned' }, context.sessionKey);
   } catch (error) {
     console.error('Public cart delete error', error);

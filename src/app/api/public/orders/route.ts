@@ -108,7 +108,9 @@ export async function GET(request: NextRequest) {
   const token = request.nextUrl.searchParams.get('token') || request.cookies.get('guestOrderToken')?.value;
   if (!token) return NextResponse.json({ error: 'Токен заказа обязателен' }, { status: 400 });
   try {
-    const order = await prisma.orders.findUnique({ where: { guest_token: token }, include: { order_items: true } });
+    const context = await getPublicCafeContext(request);
+    if (!context) return NextResponse.json({ error: 'Кафе пока не настроено' }, { status: 503 });
+    const order = await prisma.orders.findFirst({ where: { guest_token: token, tenant_id: context.tenant.id }, include: { order_items: true } });
     if (!order) return NextResponse.json({ error: 'Заказ не найден' }, { status: 404 });
     return NextResponse.json(serialize({ order }));
   } catch (error) {
