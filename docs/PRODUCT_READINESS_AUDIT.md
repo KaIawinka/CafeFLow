@@ -226,8 +226,47 @@ Feature считается завершённой только после цеп
 - выполнены accessibility, localization, dependency и secret scanning checks;
 - определена retention/privacy policy для IP, user-agent, addresses, payment payloads и audit records.
 
-## 10. Связь с roadmap
+## 10. Перенесённые правила и история реализации
 
-Документ `docs/IMPLEMENTATION_ROADMAP.md` содержит историю выполненных шагов и коммиты, но часть его статусов уже устарела относительно текущего кода. В частности, custom domains, branch selector, pickup/delivery, business hours, waitlist API, notification worker, menu CRUD API, promotions validation, favorites/reviews, history и repeat order уже имеют runtime-реализацию.
+CafeFlow — multi-tenant white-label платформа. Любое пользовательское действие должно иметь реальный server workflow, понятную обратную связь, локализацию и mobile layout. UI-контрол без persistence не считается завершённым.
 
-Этот аудит является актуальной сводкой фактического состояния на 2026-09-17. Roadmap следует синхронизировать с этой матрицей перед отметкой новых задач как `Done`.
+Правила реализации:
+
+- работать небольшими reviewable vertical slices;
+- проверять каждый шаг узким тестом и production build, если он затронут;
+- сохранять tenant и branch isolation во всех business queries;
+- выполнять денежные расчёты на сервере через Decimal-safe значения;
+- использовать явные state transitions, audit logs и idempotency;
+- не считать функцию готовой без loading, empty, error, success, mobile и translated states;
+- все завершённые шаги должны иметь commit и проверку перед публикацией.
+
+Статусы в этом документе означают:
+
+- **Готово** — runtime workflow реализован и проверен;
+- **Частично** — есть рабочий slice, но отсутствует полный production workflow;
+- **Не готово** — функция отсутствует либо представлена только schema/documentation.
+
+Ключевая история завершённых шагов:
+
+| Коммиты | Реализованный шаг |
+|---|---|
+| `5408951` | responsive admin search, debounce и отмена устаревших запросов |
+| `5206eb8`, `6e47423` | профиль, смена пароля, httpOnly auth cookies |
+| `d257614`, `e11fb39` | server auth sessions, refresh rotation и 2FA sessions |
+| `c021a7b`, `1c4299a`, `806e2fc`, `ea18d94`, `c780fab`, `d4fd795` | server cart, transactional checkout, idempotency и order transitions |
+| `1194972` | advisory lock и защита от double booking |
+| `8a46c52`, `dcc9cda`, `1ddc10e` | explicit tenant context, custom domains и branch discovery |
+| `f7ea04b`, `084034f` | tenant/branch scope в admin и guest flows |
+| `c3ba425`, `8155f43`, `96b54d`, `07c047c` | login rate limit, cleanup, session idle timeout и session management API |
+| `20a3356`, `36e48e9` | health/security headers и реальная contact form API |
+| `9ec055e`, `9d9faf4`, `f546b13`, `8a0a9bf` | menu/category APIs, admin menu UI и локализация |
+| `686e915`, `4e48df3` | pickup/delivery checkout, zones и payment method controls |
+| `1c2be8b`, `9b65968`, `2a24496` | business hours, timezone, guest reservation management и waitlist API |
+| `43e79bc`, `ca47571`, `0f58a71` | audit viewer API, reservation audit и retryable notification worker |
+| `4abee71`, `d89c212` | admin payment transitions и signed payment webhooks |
+| `741b7fb`, `01707c6`, `2d16c18`, `740d136` | favorites, reviews, promotions, history и repeat order |
+| `4dfc5cf` | первые state-machine tests для order transitions |
+
+## 11. Связь с roadmap
+
+Старая англоязычная версия roadmap удалена после переноса её полезных правил и истории коммитов в раздел 10. Этот аудит является единой актуальной сводкой фактического состояния на 2026-09-17.
