@@ -231,6 +231,7 @@ Feature считается завершённой только после цеп
 
 - Унифицированы persistent login rate limiting и audit records для admin password login и Telegram 2FA: блокировка по email/IP, журнал успешных и неуспешных попыток, причин отказа и доставки кода. Проверки: ESLint, TypeScript, Vitest и production build.
 - Добавлены `branch_memberships` и `branch_membership_capabilities` с tenant/branch/user FK, backfill для существующих branch-bound сотрудников и capability checks в основных admin dashboard/menu/payment/reservation/audit/domain routes. Проверки: Prisma validate, ESLint и TypeScript. Migration diff требует настроенного `datasource.shadowDatabaseUrl` и не запускался.
+- Промокод теперь применяется внутри transactional checkout: сервер повторно проверяет сроки, минимум и usage limit, атомарно увеличивает `usage_count`, сохраняет `promotion_id`, `discount_total` и уменьшенный `total` заказа. Проверки: Prisma validate, ESLint, TypeScript, Vitest и production build.
 
 Ограничение следующего security-среза: legacy `users.branch_id` пока сохраняется для обратной совместимости, tenant-wide admin остаётся без membership lookup, а bot-key API ещё использует прямую роль из JWT. Это не считается полной готовностью branch RBAC.
 

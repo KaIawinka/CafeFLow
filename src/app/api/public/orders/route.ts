@@ -13,11 +13,12 @@ type StoredCartItem = { productId?: unknown; quantity?: unknown };
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json() as { customerName?: string; customerPhone?: string; tableId?: string; comment?: string; idempotencyKey?: string; fulfillmentType?: 'dine_in' | 'pickup' | 'delivery'; paymentMethod?: 'cash' | 'card' | 'online' | 'other'; deliveryAddress?: Record<string, unknown>; zoneId?: string; desiredAt?: string };
+    const body = await request.json() as { customerName?: string; customerPhone?: string; tableId?: string; comment?: string; idempotencyKey?: string; fulfillmentType?: 'dine_in' | 'pickup' | 'delivery'; paymentMethod?: 'cash' | 'card' | 'online' | 'other'; deliveryAddress?: Record<string, unknown>; zoneId?: string; desiredAt?: string; promoCode?: string };
     const customerName = body.customerName?.trim();
     const customerPhone = body.customerPhone?.trim() || 'guest';
     const fulfillmentType = body.fulfillmentType || 'dine_in';
     const paymentMethod = body.paymentMethod || 'cash';
+    const promoCode = body.promoCode?.trim().toUpperCase() || null;
     const requestIdempotencyKey = body.idempotencyKey?.trim() || request.cookies.get('guestOrderIdempotencyKey')?.value || idempotencyKey();
     if (!customerName || customerName.length > 200 || customerPhone.length > 40 || !['dine_in', 'pickup', 'delivery'].includes(fulfillmentType) || !['cash', 'card', 'online', 'other'].includes(paymentMethod) || requestIdempotencyKey.length > 120) {
       return NextResponse.json({ error: 'Укажите имя, канал получения, оплату и корректные позиции заказа' }, { status: 400 });
@@ -70,7 +71,21 @@ export async function POST(request: NextRequest) {
     const subtotal = lines.reduce((sum, line) => sum.add(line.line_total), new Prisma.Decimal(0));
     if (zone && subtotal.lt(zone.min_order_amount)) return NextResponse.json({ error: `Минимальная сумма доставки: ${zone.min_order_amount.toString()}` }, { status: 409 });
     const deliveryFee = zone?.delivery_fee || new Prisma.Decimal(0);
-    const total = subtotal.add(deliveryFee);
+    let promotionId: string | null = null;
+    let promotionUsageLimit: number | null = null;
+    let discountTotal = new Prisma.Decimal(0);
+    if (promoCode) {
+      const promotion = await prisma.promotions.findFirst({ where: { tenant_id: context.tenant.id, code: promoCode, is_active: true, OR: [{ starts_at: null }, { starts_at: { lte: new Date() } }], AND: [{ OR: [{ ends_at: null }, { ends_at: { gte: new Date() } }] }] }, select: { id: true, type: true, value: true, min_order_amount: true, max_discount: true, usage_limit: true, usage_count: true } });
+      if (!promotion) return NextResponse.json({ error: 'Промокод недействителен' }, { status: 404 });
+      if (promotion.usage_limit !== null && promotion.usage_count >= promotion.usage_limit) return NextResponse.json({ error: 'Лимит промокода исчерпан' }, { status: 409 });
+      if (promotion.min_order_amount && subtotal.lt(promotion.min_order_amount)) return NextResponse.json({ error: `Минимальная сумма: ${promotion.min_order_amount.toString()}` }, { status: 409 });
+      discountTotal = promotion.type === 'percent' ? subtotal.mul(promotion.value).div(100) : promotion.type === 'fixed' ? promotion.value : promotion.type === 'free_delivery' ? deliveryFee : new Prisma.Decimal(0);
+      if (promotion.max_discount && discountTotal.gt(promotion.max_discount)) discountTotal = promotion.max_discount;
+      if (discountTotal.gt(subtotal.add(deliveryFee))) discountTotal = subtotal.add(deliveryFee);
+      promotionId = promotion.id;
+      promotionUsageLimit = promotion.usage_limit;
+    }
+    const total = subtotal.add(deliveryFee).sub(discountTotal);
     const desiredAt = body.desiredAt ? new Date(body.desiredAt) : null;
     if (desiredAt && Number.isNaN(desiredAt.getTime())) return NextResponse.json({ error: 'Некорректное желаемое время' }, { status: 400 });
     const token = guestToken();
@@ -84,7 +99,11 @@ export async function POST(request: NextRequest) {
       order = await prisma.$transaction(async (tx) => {
         const deliveryAddress = fulfillmentType === 'dine_in' ? { tableId: table?.id, tableName: table?.name } : body.deliveryAddress;
         const jsonDeliveryAddress = deliveryAddress ? deliveryAddress as Prisma.InputJsonValue : Prisma.JsonNull;
-        const createdOrder = await tx.orders.create({ data: { tenant_id: context.tenant.id, branch_id: branch.id, order_number: newOrderNumber, idempotency_key: requestIdempotencyKey, customer_name: customerName, customer_phone: customerPhone, fulfillment_type: fulfillmentType, status: 'new', payment_status: 'pending', subtotal, discount_total: new Prisma.Decimal(0), delivery_fee: deliveryFee, total, currency: context.tenant.currency, desired_at: desiredAt, comment: body.comment?.trim() || null, delivery_address: jsonDeliveryAddress, guest_token: token, order_items: { create: lines }, payment: { create: { tenant_id: context.tenant.id, method: paymentMethod, amount: total, currency: context.tenant.currency, status: 'pending' } }, ...(fulfillmentType === 'delivery' && zone ? { order_delivery: { create: { zone_id: zone.id, address_snapshot: body.deliveryAddress as Prisma.InputJsonValue, status: 'pending' } } } : {}) }, select: { id: true, order_number: true, status: true, total: true, currency: true, created_at: true, guest_token: true } });
+        if (promotionId) {
+          const consumed = await tx.promotions.updateMany({ where: { id: promotionId, tenant_id: context.tenant.id, is_active: true, ...(promoCode ? { code: promoCode } : {}), ...(promotionUsageLimit === null ? {} : { OR: [{ usage_limit: null }, { usage_count: { lt: promotionUsageLimit } }] }) }, data: { usage_count: { increment: 1 } } });
+          if (consumed.count !== 1) throw new Error('PROMOTION_UNAVAILABLE');
+        }
+        const createdOrder = await tx.orders.create({ data: { tenant_id: context.tenant.id, branch_id: branch.id, order_number: newOrderNumber, idempotency_key: requestIdempotencyKey, customer_name: customerName, customer_phone: customerPhone, fulfillment_type: fulfillmentType, status: 'new', payment_status: 'pending', promotion_id: promotionId, subtotal, discount_total: discountTotal, delivery_fee: deliveryFee, total, currency: context.tenant.currency, desired_at: desiredAt, comment: body.comment?.trim() || null, delivery_address: jsonDeliveryAddress, guest_token: token, order_items: { create: lines }, payment: { create: { tenant_id: context.tenant.id, method: paymentMethod, amount: total, currency: context.tenant.currency, status: 'pending' } }, ...(fulfillmentType === 'delivery' && zone ? { order_delivery: { create: { zone_id: zone.id, address_snapshot: body.deliveryAddress as Prisma.InputJsonValue, status: 'pending' } } } : {}) }, select: { id: true, order_number: true, status: true, total: true, currency: true, created_at: true, guest_token: true } });
         if (staff.length) {
           await tx.notifications.createMany({ data: staff.map((member) => ({ tenant_id: context.tenant.id, user_id: member.id, channel: 'in_app' as const, type: 'order_status' as const, subject: 'Новый заказ', body: `Заказ ${newOrderNumber} ожидает подтверждения`, status: 'queued' as const, attempts: 0 })) });
         }
@@ -95,6 +114,9 @@ export async function POST(request: NextRequest) {
     } catch (error) {
       if (error instanceof Error && error.message === 'CART_ALREADY_CONVERTED') {
         return NextResponse.json({ error: 'Корзина уже использована для заказа' }, { status: 409 });
+      }
+      if (error instanceof Error && error.message === 'PROMOTION_UNAVAILABLE') {
+        return NextResponse.json({ error: 'Промокод больше недоступен' }, { status: 409 });
       }
       if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
         const concurrentOrder = await prisma.orders.findFirst({
