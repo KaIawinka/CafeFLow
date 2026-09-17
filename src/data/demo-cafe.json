@@ -1,0 +1,35 @@
+{
+  "tenant": {
+    "name": "CafeFlow Demo",
+    "slug": "cafeflow-demo",
+    "currency": "KGS",
+    "timezone": "Asia/Bishkek"
+  },
+  "branch": {
+    "name": "Основной зал",
+    "code": "MAIN",
+    "status": "active"
+  },
+  "categories": ["Завтраки", "Основные блюда", "Напитки", "Десерты"],
+  "menu": [
+    { "slug": "flat-white", "name": "Флэт уайт", "price": 180, "currency": "KGS", "category": "Напитки", "featured": true },
+    { "slug": "avocado-toast", "name": "Тост с авокадо", "price": 420, "currency": "KGS", "category": "Завтраки", "featured": true },
+    { "slug": "salmon-bowl", "name": "Боул с лососем", "price": 680, "currency": "KGS", "category": "Основные блюда", "featured": false },
+    { "slug": "chicken-waffle", "name": "Вафля с курицей", "price": 560, "currency": "KGS", "category": "Основные блюда", "featured": false },
+    { "slug": "matcha-tonic", "name": "Матча-тоник", "price": 260, "currency": "KGS", "category": "Напитки", "featured": false },
+    { "slug": "berry-cheesecake", "name": "Чизкейк с ягодами", "price": 320, "currency": "KGS", "category": "Десерты", "featured": false }
+  ],
+  "tables": [
+    { "name": "Столик 01", "zone": "Зал", "capacity": 2 },
+    { "name": "Столик 02", "zone": "Зал", "capacity": 4 },
+    { "name": "Столик 03", "zone": "Тихая зона", "capacity": 2 },
+    { "name": "Столик 04", "zone": "Веранда", "capacity": 4 },
+    { "name": "Столик 05", "zone": "Веранда", "capacity": 6 },
+    { "name": "Столик 06", "zone": "Зал", "capacity": 8 }
+  ],
+  "promotions": [
+    { "type": "discount", "title": "Завтрак для двоих", "discountPercent": 20, "activeUntil": "12:00" },
+    { "type": "new", "title": "Сезонное меню", "discountPercent": 0, "activeUntil": null },
+    { "type": "booking", "title": "Бронируйте заранее", "discountPercent": 0, "activeUntil": null }
+  ]
+}

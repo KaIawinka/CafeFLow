@@ -19,14 +19,14 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     disabled,
     ...props 
   }, ref) => {
-    const baseStyles = 'inline-flex items-center justify-center font-semibold rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation';
+    const baseStyles = 'inline-flex items-center justify-center font-semibold rounded-md transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation';
     
     const variants = {
-      primary: 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white shadow-md hover:shadow-lg focus:ring-amber-500',
-      secondary: 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white focus:ring-gray-500',
-      outline: 'border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 focus:ring-gray-500',
-      ghost: 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 focus:ring-gray-500',
-      danger: 'bg-red-600 hover:bg-red-700 text-white shadow-md hover:shadow-lg focus:ring-red-500',
+      primary: 'bg-[var(--primary)] hover:bg-[#c95743] text-white shadow-sm hover:-translate-y-0.5 hover:shadow-md focus:ring-[var(--ring)]',
+      secondary: 'bg-[var(--secondary)] hover:bg-[#d3e4d8] dark:hover:bg-[#355242] text-[var(--secondary-foreground)] focus:ring-[var(--ring)]',
+      outline: 'border border-[var(--border)] hover:bg-[var(--muted)] text-[var(--foreground)] focus:ring-[var(--ring)]',
+      ghost: 'hover:bg-[var(--muted)] text-[var(--foreground)] focus:ring-[var(--ring)]',
+      danger: 'bg-red-600 hover:bg-red-700 text-white shadow-sm hover:shadow-md focus:ring-red-500',
     };
     
     const sizes = {

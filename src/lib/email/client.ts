@@ -148,7 +148,7 @@ export async function sendVerificationEmail(
           <tr>
             <td style="padding: 30px 40px; text-align: center; background-color: #f9fafb; border-radius: 0 0 16px 16px;">
               <p style="margin: 0 0 10px 0; color: #6b7280; font-size: 14px;">
-                © 2024 ${APP_NAME}. Все права защищены.
+                © ${new Date().getFullYear()} ${APP_NAME}. Все права защищены.
               </p>
               <p style="margin: 0; color: #9ca3af; font-size: 12px;">
                 Это автоматическое письмо, не отвечайте на него.
@@ -176,7 +176,7 @@ ${APP_NAME} - Подтверждение email
 
 Если вы не регистрировались в ${APP_NAME}, просто проигнорируйте это письмо.
 
-© 2024 ${APP_NAME}
+© ${new Date().getFullYear()} ${APP_NAME}
   `;
 
   return sendEmail({
@@ -253,7 +253,7 @@ export async function sendPasswordResetEmail(
           <tr>
             <td style="padding: 30px 40px; text-align: center; background-color: #f9fafb; border-radius: 0 0 16px 16px;">
               <p style="margin: 0 0 10px 0; color: #6b7280; font-size: 14px;">
-                © 2024 ${APP_NAME}. Все права защищены.
+                © ${new Date().getFullYear()} ${APP_NAME}. Все права защищены.
               </p>
             </td>
           </tr>
@@ -278,7 +278,7 @@ ${APP_NAME} - Сброс пароля
 
 Если вы не запрашивали сброс пароля, немедленно проигнорируйте это письмо и свяжитесь с поддержкой.
 
-© 2024 ${APP_NAME}
+© ${new Date().getFullYear()} ${APP_NAME}
   `;
 
   return sendEmail({

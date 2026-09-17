@@ -3,51 +3,47 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* Light theme colors */
-  --background: #ffffff;
-  --foreground: #0f172a;
-  --card: #ffffff;
-  --card-foreground: #0f172a;
-  --primary: #f59e0b;
+  --background: #f7f5f0;
+  --foreground: #151a1e;
+  --card: #fffdf8;
+  --card-foreground: #151a1e;
+  --primary: #e76f51;
   --primary-foreground: #ffffff;
-  --secondary: #f3f4f6;
-  --secondary-foreground: #1f2937;
-  --muted: #f3f4f6;
-  --muted-foreground: #6b7280;
-  --accent: #fef3c7;
-  --accent-foreground: #92400e;
-  --border: #e5e7eb;
-  --input: #e5e7eb;
-  --ring: #f59e0b;
-  --radius: 0.75rem;
-
-  /* Gradients */
-  --gradient-primary: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
-  --gradient-secondary: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  --gradient-bg: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+  --secondary: #e7efe9;
+  --secondary-foreground: #244336;
+  --muted: #eeeae1;
+  --muted-foreground: #687078;
+  --accent: #f5c98a;
+  --accent-foreground: #63391f;
+  --border: #ddd8cd;
+  --input: #d9d4c9;
+  --ring: #e76f51;
+  --radius: 0.625rem;
+  --gradient-primary: linear-gradient(120deg, #e76f51 0%, #c84f3e 100%);
+  --gradient-secondary: linear-gradient(120deg, #e7efe9 0%, #cfe2d4 100%);
+  --gradient-bg: radial-gradient(circle at top right, #fff8ea 0%, #f7f5f0 48%, #ece8df 100%);
   color-scheme: light;
 }
 
 .light {
-  --background: #ffffff;
-  --foreground: #0f172a;
-  --card: #ffffff;
-  --card-foreground: #0f172a;
-  --primary: #f59e0b;
+  --background: #f7f5f0;
+  --foreground: #151a1e;
+  --card: #fffdf8;
+  --card-foreground: #151a1e;
+  --primary: #e76f51;
   --primary-foreground: #ffffff;
-  --secondary: #f3f4f6;
-  --secondary-foreground: #1f2937;
-  --muted: #f3f4f6;
-  --muted-foreground: #6b7280;
-  --accent: #fef3c7;
-  --accent-foreground: #92400e;
-  --border: #e5e7eb;
-  --input: #e5e7eb;
-  --ring: #f59e0b;
-
-  --gradient-primary: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
-  --gradient-secondary: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  --gradient-bg: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+  --secondary: #e7efe9;
+  --secondary-foreground: #244336;
+  --muted: #eeeae1;
+  --muted-foreground: #687078;
+  --accent: #f5c98a;
+  --accent-foreground: #63391f;
+  --border: #ddd8cd;
+  --input: #d9d4c9;
+  --ring: #e76f51;
+  --gradient-primary: linear-gradient(120deg, #e76f51 0%, #c84f3e 100%);
+  --gradient-secondary: linear-gradient(120deg, #e7efe9 0%, #cfe2d4 100%);
+  --gradient-bg: radial-gradient(circle at top right, #fff8ea 0%, #f7f5f0 48%, #ece8df 100%);
 }
 
 @theme inline {
@@ -59,33 +55,31 @@
 
 /* Dark theme */
 .dark {
-  --background: #0f172a;
-  --foreground: #f1f5f9;
-  --card: #1e293b;
-  --card-foreground: #f1f5f9;
-  --primary: #f59e0b;
+  --background: #151a1e;
+  --foreground: #f6f2e9;
+  --card: #20272c;
+  --card-foreground: #f6f2e9;
+  --primary: #ef8267;
   --primary-foreground: #ffffff;
-  --secondary: #1e293b;
-  --secondary-foreground: #f1f5f9;
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
-  --accent: #422006;
-  --accent-foreground: #fbbf24;
-  --border: #334155;
-  --input: #334155;
-  --ring: #f59e0b;
-
-  /* Gradients */
-  --gradient-primary: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
-  --gradient-secondary: linear-gradient(135deg, #422006 0%, #78350f 100%);
-  --gradient-bg: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  --secondary: #26372f;
+  --secondary-foreground: #d6ead9;
+  --muted: #252d32;
+  --muted-foreground: #a7b0b4;
+  --accent: #5b422a;
+  --accent-foreground: #f5c98a;
+  --border: #3b454a;
+  --input: #465157;
+  --ring: #ef8267;
+  --gradient-primary: linear-gradient(120deg, #ef8267 0%, #d85c48 100%);
+  --gradient-secondary: linear-gradient(120deg, #26372f 0%, #304c3d 100%);
+  --gradient-bg: radial-gradient(circle at top right, #263129 0%, #151a1e 56%, #101417 100%);
   color-scheme: dark;
 }
 
 body {
-  background: var(--background);
+  background: var(--gradient-bg);
   color: var(--foreground);
-  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: var(--font-geist-sans), sans-serif;
   font-feature-settings: "rlig" 1, "calt" 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -184,31 +178,8 @@ select {
 }
 
 /* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #94a3b8;
-  border-radius: 5px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  background: #475569;
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
-}
+html, body { scrollbar-width: none; }
+html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar { width: 0; height: 0; }
 
 /* Glass effect */
 .glass {

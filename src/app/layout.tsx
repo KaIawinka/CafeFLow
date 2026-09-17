@@ -16,8 +16,8 @@ export const metadata: Metadata = {
   title: 'CafeFlow',
   description: 'CafeFlow restaurant management platform',
   icons: {
-    icon: '/Logo-CafeFlow.png',
-    apple: '/Logo-CafeFlow.png',
+    icon: '/cafeflow-logo.svg',
+    apple: '/cafeflow-logo.svg',
   },
 };
 

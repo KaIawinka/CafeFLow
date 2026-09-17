@@ -143,7 +143,7 @@ export default function AdminPage() {
   const [siteSettings, setSiteSettings] = useState<SiteSettings>({
     siteName: 'CaféFlow',
     siteDescription: ui.admin.description,
-    logoUrl: '/Logo-CafeFlow.png',
+    logoUrl: '/cafeflow-logo.svg',
     logoData: '',
     primaryColor: '#f59e0b',
     maintenanceMode: false,
@@ -397,12 +397,12 @@ export default function AdminPage() {
         )}
 
         {/* Tabs */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden mb-6">
-          <div className="border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
-            <nav className="flex min-w-max sm:min-w-0">
+        <div className="mb-6 grid overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-[0_12px_30px_rgba(21,26,30,0.08)] lg:grid-cols-[220px_minmax(0,1fr)]">
+          <div className="border-b border-gray-200 dark:border-gray-700 overflow-x-auto lg:border-b-0 lg:border-r">
+            <nav className="flex min-w-max sm:min-w-0 lg:flex-col lg:gap-1 lg:p-3">
               <button
                 onClick={() => setActiveTab('users')}
-                className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation ${
+                className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
                   activeTab === 'users'
                     ? 'border-b-2 border-amber-600 text-amber-600 bg-amber-50 dark:bg-amber-900/20'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
@@ -413,7 +413,7 @@ export default function AdminPage() {
               </button>
               <button
                 onClick={() => setActiveTab('settings')}
-                className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation ${
+                className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
                   activeTab === 'settings'
                     ? 'border-b-2 border-amber-600 text-amber-600 bg-amber-50 dark:bg-amber-900/20'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
@@ -424,7 +424,7 @@ export default function AdminPage() {
               </button>
               <button
                 onClick={() => setActiveTab('orders')}
-                className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation ${
+                className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
                   activeTab === 'orders'
                     ? 'border-b-2 border-amber-600 text-amber-600 bg-amber-50 dark:bg-amber-900/20'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
@@ -435,7 +435,7 @@ export default function AdminPage() {
               </button>
               <button
                 onClick={() => setActiveTab('products')}
-                className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation ${
+                className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
                   activeTab === 'products'
                     ? 'border-b-2 border-amber-600 text-amber-600 bg-amber-50 dark:bg-amber-900/20'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
@@ -446,7 +446,7 @@ export default function AdminPage() {
               </button>
               <button
                 onClick={() => setActiveTab('reservations')}
-                className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation ${
+                className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
                   activeTab === 'reservations'
                     ? 'border-b-2 border-amber-600 text-amber-600 bg-amber-50 dark:bg-amber-900/20'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
@@ -457,7 +457,7 @@ export default function AdminPage() {
               </button>
               <button
                 onClick={() => setActiveTab('stats')}
-                className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation ${
+                className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
                   activeTab === 'stats'
                     ? 'border-b-2 border-amber-600 text-amber-600 bg-amber-50 dark:bg-amber-900/20'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
@@ -777,7 +777,7 @@ export default function AdminPage() {
                     />
                     <div className="mt-3 flex items-center gap-3">
                       <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
-                        <Image unoptimized width={56} height={56} src={siteSettings.logoData || siteSettings.logoUrl || '/Logo-CafeFlow.png'} alt={siteSettings.siteName} className="h-full w-full object-cover" />
+                        <Image unoptimized width={56} height={56} src={siteSettings.logoData || siteSettings.logoUrl || '/cafeflow-logo.svg'} alt={siteSettings.siteName} className="h-full w-full object-cover" />
                       </div>
                       <label className="inline-flex min-h-10 cursor-pointer items-center rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700">
                         {ui.admin.logoUpload}

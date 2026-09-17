@@ -42,7 +42,7 @@ export default function NotFound() {
 
         {/* Decorative element */}
         <div className="mt-16 text-9xl opacity-10">
-          ☕
+          404
         </div>
       </div>
     </div>

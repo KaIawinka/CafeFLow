@@ -1,0 +1,10 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">CafeFlow</title>
+  <desc id="desc">CafeFlow mark with a warm coral plate and flowing line</desc>
+  <rect width="1024" height="1024" rx="224" fill="#151A1E"/>
+  <circle cx="512" cy="512" r="296" fill="#E76F51"/>
+  <circle cx="512" cy="512" r="214" fill="#151A1E"/>
+  <path d="M334 554C383 465 433 420 512 420C591 420 641 465 690 554" stroke="#F5C98A" stroke-width="34" stroke-linecap="round"/>
+  <path d="M390 604C431 650 472 672 512 672C552 672 593 650 634 604" stroke="#F5C98A" stroke-width="34" stroke-linecap="round"/>
+  <circle cx="512" cy="334" r="28" fill="#B9D9C3"/>
+</svg>

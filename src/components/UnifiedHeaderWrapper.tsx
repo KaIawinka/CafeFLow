@@ -10,7 +10,7 @@ import { UnifiedHeader } from './UnifiedHeader';
 export async function UnifiedHeaderWrapper() {
   let userData = null;
   let siteName = 'CaféFlow';
-  let siteLogo = '/Logo-CafeFlow.png';
+  let siteLogo = '/cafeflow-logo.svg';
 
   const applyTenantBranding = (tenant: { name: string; settings: unknown } | null) => {
     if (!tenant) return;

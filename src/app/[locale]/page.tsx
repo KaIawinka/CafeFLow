@@ -4,6 +4,7 @@ import { HeroSection } from "@/components/landing/HeroSection";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { CTASection } from "@/components/landing/CTASection";
 import { Footer } from "@/components/landing/Footer";
+import { PromoCarousel } from "@/components/landing/PromoCarousel";
 
 export default async function Home({
   params,
@@ -16,6 +17,7 @@ export default async function Home({
   return (
     <div className="flex flex-col">
       <HeroSection t={t} />
+      <PromoCarousel locale={locale} />
       <FeaturesSection t={t} />
       <CTASection t={t} />
       <Footer t={t} />

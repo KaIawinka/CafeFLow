@@ -189,7 +189,7 @@ function VerifyEmailContent() {
         </div>
 
         <div className="text-center mb-8">
-          <Image src="/Logo-CafeFlow.png" alt="CafeFlow" width={64} height={64} className="mx-auto mb-4 h-16 w-16 rounded-2xl object-cover shadow-lg" />
+          <Image src="/cafeflow-logo.svg" alt="CafeFlow" width={64} height={64} className="mx-auto mb-4 h-16 w-16 rounded-2xl object-cover shadow-lg" />
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">CaféFlow</h1>
         </div>
 
@@ -274,7 +274,7 @@ function VerifyEmailContent() {
         </div>
 
         <div className="text-center mt-8 text-sm text-gray-600">
-          <p>© 2024 CaféFlow. Все права защищены.</p>
+          <p>© {new Date().getFullYear()} CaféFlow. Все права защищены.</p>
         </div>
       </div>
     </div>

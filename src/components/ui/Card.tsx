@@ -16,9 +16,9 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
     ...props 
   }, ref) => {
     const variants = {
-      default: 'bg-white dark:bg-gray-800 rounded-2xl',
-      bordered: 'bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700',
-      elevated: 'bg-white dark:bg-gray-800 rounded-2xl shadow-lg',
+      default: 'bg-[var(--card)] rounded-lg',
+      bordered: 'bg-[var(--card)] rounded-lg border border-[var(--border)]',
+      elevated: 'bg-[var(--card)] rounded-lg border border-[var(--border)] shadow-[0_12px_30px_rgba(21,26,30,0.08)]',
     };
     
     const paddings = {

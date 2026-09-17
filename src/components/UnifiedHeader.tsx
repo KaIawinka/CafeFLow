@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';
+import { startTransition, useState, useEffect, useRef } from 'react';
 import { locales, localeNames, type Locale } from '@/app/i18n/config';
 import { useTheme } from '@/components/ThemeProvider';
 import { getUiTranslations } from '@/lib/ui-translations';
@@ -64,7 +64,7 @@ function getPreferredLocale(pathname: string): Locale {
   return locales.includes(cookieLocale as Locale) ? cookieLocale as Locale : 'ru';
 }
 
-export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/Logo-CafeFlow.png' }: UnifiedHeaderProps) {
+export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafeflow-logo.svg' }: UnifiedHeaderProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -148,7 +148,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/Logo-
       segments.shift();
     }
     const newPath = `/${newLocale}${segments.length ? '/' + segments.join('/') : ''}`;
-    router.push(newPath);
+    startTransition(() => router.push(newPath));
     setIsLangDropdownOpen(false);
   };
 
