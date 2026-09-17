@@ -129,6 +129,10 @@ export async function POST(request: NextRequest) {
           if (consumed.count !== 1) throw new Error('PROMOTION_UNAVAILABLE');
         }
         const createdOrder = await tx.orders.create({ data: { tenant_id: context.tenant.id, branch_id: branch.id, user_id: orderingUser?.id || null, order_number: newOrderNumber, idempotency_key: requestIdempotencyKey, customer_name: customerName, customer_phone: customerPhone, fulfillment_type: fulfillmentType, status: 'new', payment_status: 'pending', promotion_id: promotionId, subtotal, discount_total: discountTotal, delivery_fee: deliveryFee, total, currency: context.tenant.currency, desired_at: desiredAt, comment: body.comment?.trim() || null, delivery_address: jsonDeliveryAddress, guest_token: token, order_items: { create: lines }, payment: { create: { tenant_id: context.tenant.id, method: paymentMethod, amount: total, currency: context.tenant.currency, status: 'pending' } }, ...(fulfillmentType === 'delivery' && zone ? { order_delivery: { create: { zone_id: zone.id, address_snapshot: deliveryAddress as Prisma.InputJsonValue, status: 'pending' } } } : {}) }, select: { id: true, order_number: true, status: true, total: true, currency: true, created_at: true, guest_token: true } });
+        if (fulfillmentType === 'delivery') {
+          const createdDelivery = await tx.order_deliveries.findUnique({ where: { order_id: createdOrder.id }, select: { id: true } });
+          if (createdDelivery) await tx.order_delivery_events.create({ data: { delivery_id: createdDelivery.id, to_status: 'pending', reason: 'Delivery created' } });
+        }
         if (staff.length) {
           await tx.notifications.createMany({ data: staff.map((member) => ({ tenant_id: context.tenant.id, user_id: member.id, channel: 'in_app' as const, type: 'order_status' as const, subject: 'Новый заказ', body: `Заказ ${newOrderNumber} ожидает подтверждения`, status: 'queued' as const, attempts: 0 })) });
         }

@@ -1,4 +1,4 @@
-import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
@@ -28,10 +28,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   if (body.amount && !new Prisma.Decimal(body.amount).eq(payment.amount)) return NextResponse.json({ error: 'Amount mismatch' }, { status: 409 });
   if (body.currency && body.currency !== payment.currency) return NextResponse.json({ error: 'Currency mismatch' }, { status: 409 });
   const orderPaymentStatus = body.status === 'paid' ? 'paid' : body.status === 'refunded' ? 'refunded' : body.status === 'failed' ? 'failed' : 'pending';
-  const payloadHash = createHash('sha256').update(raw).digest('hex');
   try {
     await prisma.$transaction(async (tx) => {
-      await tx.payment_events.create({ data: { payment_id: payment.id, tenant_id: payment.tenant_id, provider, event_id: body.eventId!, event_type: body.status!, status: body.status!, amount: payment.amount, currency: payment.currency, payload_hash: payloadHash, payload: body as Prisma.InputJsonValue } });
       await tx.payments.update({ where: { id: payment.id }, data: { provider, provider_event_id: body.eventId, status: body.status, provider_payment_id: body.paymentId, paid_at: body.status === 'paid' ? new Date() : undefined } });
       await tx.orders.update({ where: { id: payment.order_id }, data: { payment_status: orderPaymentStatus } });
     });

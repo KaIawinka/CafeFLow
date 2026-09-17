@@ -12,3 +12,11 @@ const transitions: Record<DeliveryStatus, readonly DeliveryStatus[]> = {
 export function canTransitionDeliveryStatus(from: DeliveryStatus, to: DeliveryStatus) {
   return from === to || transitions[from].includes(to);
 }
+
+export function deliveryRequiresCourier(status: DeliveryStatus) {
+  return status === 'assigned' || status === 'delivering' || status === 'delivered';
+}
+
+export function isDeliveryRetry(from: DeliveryStatus, to: DeliveryStatus) {
+  return from === 'failed' && to === 'assigned';
+}

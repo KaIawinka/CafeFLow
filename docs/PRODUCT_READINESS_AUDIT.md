@@ -38,7 +38,7 @@ CafeFlow уже является расширенным MVP с рабочим я
 | Область | Статус | Что реально работает | Что ещё не готово |
 |---|---|---|---|
 | Tenant isolation | Частично, критический риск | единый `TenantContext`/`BranchContext` resolver, branch memberships/capabilities, composite tenant+branch FK migration | PostgreSQL RLS, полный audit всех integration routes, cross-tenant tests, production migration verification |
-| Pickup и delivery | Частично | pickup/delivery checkout, delivery zones, saved-address checkout, customer address CRUD, minimum order, fee, desired time, address snapshot | courier assignment, status history, promised/delivered timestamps, delivery retry/problem workflow |
+| Pickup и delivery | Частично | pickup/delivery checkout, saved-address checkout, delivery zones, customer address CRUD, courier assignment, status history, promised/delivered timestamps, retry/problem workflow, dispatcher UI | customer-facing delivery tracking and external courier integration |
 | Payments | Частично | cash/card/online selection, admin transitions, HMAC-signed webhook, duplicate event check | provider abstraction/intents, append-only payment events, полноценные refunds, partial captures, reconciliation и settlement reports |
 | Reservations | Частично | advisory lock, table blocks, business hours, branch timezone, waitlist creation API, guest cancellation | waitlist matching/notification, deposits, cancellation policy, no-show job, reservation history, day timeline |
 | Admin panel | Частично | user/order/reservation pagination, menu/category APIs и UI, payment transitions, audit viewer API, domain API, branch membership/capability API | order filters, branch management UI, полноценный CRUD UI, media upload, schedules, modifiers/allergens UI, shift timeline |
@@ -70,7 +70,7 @@ Admin dashboard, reservations, payments, menu и основные public flows �
 
 `src/app/api/public/orders/route.ts` теперь поддерживает `dine_in`, `pickup` и `delivery`, проверяет server cart, tenant/branch, доступность товаров, delivery zone, minimum subtotal и Decimal-safe fee. В транзакции создаются order, order items, payment и delivery record; cart переводится в `converted`.
 
-Есть public delivery zones endpoint, customer address CRUD и checkout с выбором сохранённого адреса. Checkout сохраняет immutable address snapshot и связывает авторизованный заказ с клиентом. Courier assignment и delivery status transitions/history ещё не готовы.
+Есть public delivery zones endpoint, customer address CRUD и checkout с выбором сохранённого адреса. Checkout сохраняет immutable address snapshot и связывает авторизованный заказ с клиентом. Диспетчерская delivery API/UI поддерживает branch-scoped очередь, назначение курьера, promised time, tracking code, append-only события, failed reason, retry и синхронизацию order status/notifications. Customer-facing delivery tracking остаётся частью order workflow.
 
 ### 4.3 Payments
 
@@ -129,7 +129,7 @@ Notification cron claim-ит queued records, обрабатывает in-app/ema
 - нет `CREATE POLICY` и `ENABLE ROW LEVEL SECURITY`;
 - `loyalty.user_id @unique` несовместим с append-only loyalty ledger;
 - `payments` — один record на order, недостаточно для captures/refunds/chargebacks;
-- `order_deliveries` не содержит courier user, status history и delivery event timestamps;
+- `order_deliveries` содержит courier user snapshot, promised/assigned/picked-up/delivered/failed timestamps, retry count и append-only delivery events;
 - `customer_addresses` имеет runtime CRUD с tenant/user isolation и DB-инвариантом одного default address, но coordinates пока не редактируются в UI;
 - tenant/branch consistency часто проверяется только кодом;
 - `products.modifiers`, `allergens`, `image_file_ids`, `delivery_zones.rules` хранятся в JSON без schema-level validation/versioning;
@@ -155,7 +155,6 @@ Feature считается завершённой только после цеп
 
 ### P1: коммерческий ordering и payments
 
-1. Courier assignment и delivery state machine.
 2. Payment provider abstraction, payment events, signed webhook idempotency.
 3. Refunds, partial captures, chargebacks и reconciliation.
 4. Promotion redemption внутри transactional checkout.
@@ -235,6 +234,7 @@ Feature считается завершённой только после цеп
 - Добавлены cross-tenant/cross-branch isolation policy tests: tenant mismatch, branch mismatch, разрешённый scope и запрет branch-bound пользователя на tenant-wide resource. Проверки: ESLint, TypeScript и Vitest (8 тестов).
 - Подготовлена RLS rollout migration с PostgreSQL `cafeflow.current_tenant_id()`/`current_branch_ids()` functions и отдельным deployment/rollback checklist. FORCE RLS намеренно не включён до внедрения `SET LOCAL` transaction context во всех tenant-scoped runtime queries. `prisma migrate status` подтвердил доступную Neon БД, но миграции 202609170001-004 пока не применены; deployment требует backup и контролируемого окна.
 - Реализованы customer address CRUD и checkout saved-address workflow: строгая server validation, tenant/user ownership checks, serializable default-address updates, DB-ограничение одного default address, privacy-safe audit records, profile UI и immutable delivery snapshot в заказе. Проверки: ESLint, TypeScript и 3 unit tests.
+- Реализованы courier assignment и delivery state machine: branch-scoped delivery queue/API, courier membership validation, promised/tracking fields, append-only events, initial pending event, failed reason, retry counter, order status synchronization, notifications, audit trail и диспетчерская страница `/[locale]/admin/deliveries`. Проверки: Prisma validate, ESLint, TypeScript, 3 delivery state-machine tests, общий Vitest (17 тестов) и production build.
 
 Ограничения следующего security-среза: legacy `users.branch_id` пока сохраняется для обратной совместимости, branch management UI отсутствует, tenant-wide admin требует отдельного review, а составные FK/RLS и cross-tenant tests ещё не готовы.
 

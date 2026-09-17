@@ -226,6 +226,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/Logo-
     
     if (user.role === 'admin' || user.role === 'manager') {
       links.push({ href: `/${currentLocale}/admin`, label: ui.header.admin });
+      links.push({ href: `/${currentLocale}/admin/deliveries`, label: currentLocale === 'en' ? 'Deliveries' : currentLocale === 'kg' ? 'Жеткирүү' : 'Доставка' });
     }
     
     if (user.role === 'kitchen') {
