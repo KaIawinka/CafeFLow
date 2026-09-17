@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 
 type Theme = 'light' | 'dark';
 
@@ -23,33 +23,15 @@ function applyTheme(newTheme: Theme) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('light');
-  const hasHydrated = useRef(false);
+  const [theme, setThemeState] = useState<Theme>(() => {
+    if (typeof window === 'undefined') return 'light';
+    const savedTheme = window.localStorage.getItem('theme');
+    return savedTheme === 'dark' || (savedTheme === null && document.documentElement.classList.contains('dark')) ? 'dark' : 'light';
+  });
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    const initialTheme: Theme = savedTheme === 'dark' ? 'dark' : 'light';
-
-    applyTheme(initialTheme);
-
-    if (initialTheme === 'light') {
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => setThemeState(initialTheme), 0);
-    return () => window.clearTimeout(timeoutId);
-  }, []);
-
-  useEffect(() => {
-    if (!hasHydrated.current) {
-      hasHydrated.current = true;
-      return;
-    }
-
     applyTheme(theme);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('theme', theme);
-    }
+    localStorage.setItem('theme', theme);
   }, [theme]);
 
   const setTheme = (newTheme: Theme) => {

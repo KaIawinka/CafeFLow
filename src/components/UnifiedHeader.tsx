@@ -178,12 +178,12 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
   const roleConfig: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
     admin: { 
       label: ui.profile.roleLabels.admin, 
-      color: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
+      color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
       icon: <ShieldCheck className="w-3 h-3" />
     },
     manager: { 
       label: ui.profile.roleLabels.manager, 
-      color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
+      color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
       icon: <LayoutDashboard className="w-3 h-3" />
     },
     kitchen: { 
@@ -193,7 +193,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
     },
     employee: { 
       label: ui.profile.roleLabels.employee, 
-      color: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+      color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
       icon: <User className="w-3 h-3" />
     },
     customer: { 
@@ -209,6 +209,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
   };
 
   const currentRole = user ? roleConfig[user.role] || roleConfig.customer : null;
+  const isStaff = Boolean(user && ['employee', 'kitchen', 'manager', 'admin'].includes(user.role));
 
   const getNavLinks = () => {
     const labels = {
@@ -216,23 +217,22 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
       en: { menu: 'Menu', booking: 'Booking', orders: 'My orders' },
       kg: { menu: 'Меню', booking: 'Брондоо', orders: 'Менин заказдарым' },
     }[currentLocale];
+    if (isStaff) {
+      const staffLinks = [] as Array<{ href: string; label: string }>;
+      if (user?.role === 'admin' || user?.role === 'manager') {
+        staffLinks.push({ href: `/${currentLocale}/admin`, label: ui.header.admin });
+        staffLinks.push({ href: `/${currentLocale}/admin/deliveries`, label: currentLocale === 'en' ? 'Deliveries' : currentLocale === 'kg' ? 'Жеткирүү' : 'Доставка' });
+      }
+      if (user?.role === 'kitchen') staffLinks.push({ href: '/kitchen', label: ui.header.kitchen });
+      return staffLinks;
+    }
+
     const links = [
       { href: `/${currentLocale}/menu`, label: labels.menu },
       { href: `/${currentLocale}/booking`, label: labels.booking },
       { href: `/${currentLocale}/orders`, label: labels.orders },
     ];
 
-    if (!user) return links;
-    
-    if (user.role === 'admin' || user.role === 'manager') {
-      links.push({ href: `/${currentLocale}/admin`, label: ui.header.admin });
-      links.push({ href: `/${currentLocale}/admin/deliveries`, label: currentLocale === 'en' ? 'Deliveries' : currentLocale === 'kg' ? 'Жеткирүү' : 'Доставка' });
-    }
-    
-    if (user.role === 'kitchen') {
-      links.push({ href: '/kitchen', label: ui.header.kitchen });
-    }
-    
     return links;
   };
 
@@ -241,7 +241,8 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
     && !pathname.includes('/admin')
     && !pathname.includes('/login')
     && !pathname.includes('/register')
-    && !pathname.includes('/forgot-password');
+    && !pathname.includes('/forgot-password')
+    && !isStaff;
   const mobileNavLinks = [
     { href: `/${currentLocale}/menu`, label: currentLocale === 'en' ? 'Menu' : 'Меню', icon: Utensils },
     { href: `/${currentLocale}/booking`, label: currentLocale === 'en' ? 'Booking' : 'Бронь', icon: CalendarDays },
@@ -261,7 +262,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm">
+      <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#151a1e]/95 shadow-sm backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14 sm:h-16">
           {/* Logo */}
@@ -273,7 +274,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
               height={40} 
               className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl object-cover shadow-lg" 
             />
-            <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+            <span className="text-lg font-bold text-[#f5c98a] sm:text-xl">
               {siteName}
             </span>
           </Link>
@@ -286,9 +287,9 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
                 href={link.href}
                 className={`inline-flex min-h-10 items-center text-sm font-medium transition-colors ${
                   pathname === link.href
-                    ? 'text-amber-600 dark:text-amber-400'
-                    : 'text-gray-700 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400'
-                }`}
+                    ? 'text-orange-500'
+                    : 'text-white/70 hover:text-orange-400'
+                  }`}
               >
                 {link.label}
               </Link>
@@ -301,10 +302,10 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
               <button
                 type="button"
                 onClick={() => void markNotificationsRead()}
-                className="relative flex h-10 w-10 items-center justify-center rounded-lg text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                className="relative flex h-10 w-10 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-orange-500 hover:text-white"
                 aria-label="Уведомления"
                 title="Уведомления"
-              >
+                >
                 <Bell className="h-4 w-4" />
                 {unreadNotifications > 0 && <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-red-600 px-1 text-center text-[10px] font-bold leading-5 text-white">{unreadNotifications > 99 ? '99+' : unreadNotifications}</span>}
               </button>
@@ -314,7 +315,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
             <div className="hidden md:block">
               <button
                 onClick={toggleTheme}
-                className="flex h-10 w-10 items-center justify-center rounded-lg text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                  className="flex h-10 w-10 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-orange-500 hover:text-white"
                 aria-label={theme === 'light' ? ui.header.darkTheme : ui.header.lightTheme}
                 title={theme === 'light' ? ui.header.darkTheme : ui.header.lightTheme}
               >
@@ -326,7 +327,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
             <div className="hidden md:block relative" ref={langDropdownRef}>
               <button
                 onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
-                className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300 touch-manipulation"
+                  className="flex items-center gap-1.5 rounded-lg px-2 py-2 text-white/70 transition-colors hover:bg-orange-500 hover:text-white sm:gap-2 sm:px-3"
               >
                 <Globe className="w-4 h-4" />
                 <span className="text-xs sm:text-sm font-medium hidden sm:inline">{localeNames[currentLocale]}</span>

@@ -18,9 +18,9 @@ export default async function Home({
     <div className="flex flex-col">
       <HeroSection t={t} />
       <PromoCarousel locale={locale} />
-      <FeaturesSection t={t} />
-      <CTASection t={t} />
-      <Footer t={t} />
+      <FeaturesSection t={t} locale={locale} />
+      <CTASection t={t} locale={locale} />
+      <Footer t={t} locale={locale} />
     </div>
   );
 }

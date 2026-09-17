@@ -51,12 +51,12 @@ export function ContactForm() {
       </p>
 
       {status === "success" ? (
-        <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-center">
+        <div className="rounded-xl border border-orange-200 bg-orange-50 p-6 text-center">
           <div className="text-4xl mb-4">✅</div>
-          <h4 className="text-xl font-semibold text-green-900 mb-2">
+          <h4 className="mb-2 text-xl font-semibold text-orange-900">
             Спасибо за заявку!
           </h4>
-          <p className="text-green-700">
+          <p className="text-orange-700">
             Мы свяжемся с вами в ближайшее время
           </p>
         </div>
@@ -82,7 +82,7 @@ export function ContactForm() {
                 required
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full px-4 py-3 rounded-xl border border-zinc-300 bg-white text-zinc-900 focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+                className="w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-zinc-900 transition-all focus:border-transparent focus:ring-2 focus:ring-orange-500"
                 placeholder="Иван Иванов"
               />
             </div>
@@ -101,7 +101,7 @@ export function ContactForm() {
                 required
                 value={formData.phone}
                 onChange={handleChange}
-                className="w-full px-4 py-3 rounded-xl border border-zinc-300 bg-white text-zinc-900 focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+                className="w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-zinc-900 transition-all focus:border-transparent focus:ring-2 focus:ring-orange-500"
                 placeholder="+7 (999) 123-45-67"
               />
             </div>
@@ -121,7 +121,7 @@ export function ContactForm() {
               required
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl border border-zinc-300 bg-white text-zinc-900 focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+              className="w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-zinc-900 transition-all focus:border-transparent focus:ring-2 focus:ring-orange-500"
               placeholder="ivan@example.com"
             />
           </div>
@@ -139,7 +139,7 @@ export function ContactForm() {
               name="company"
               value={formData.company}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl border border-zinc-300 bg-white text-zinc-900 focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+              className="w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-zinc-900 transition-all focus:border-transparent focus:ring-2 focus:ring-orange-500"
               placeholder="Кафе 'Уют'"
             />
           </div>
@@ -157,7 +157,7 @@ export function ContactForm() {
               rows={4}
               value={formData.message}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl border border-zinc-300 bg-white text-zinc-900 focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all resize-none"
+              className="w-full resize-none rounded-xl border border-zinc-300 bg-white px-4 py-3 text-zinc-900 transition-all focus:border-transparent focus:ring-2 focus:ring-orange-500"
               placeholder="Расскажите о вашем заведении..."
             />
           </div>
@@ -165,7 +165,7 @@ export function ContactForm() {
           <button
             type="submit"
             disabled={status === "loading"}
-            className="w-full py-4 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 text-white font-semibold text-lg hover:from-amber-700 hover:to-orange-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full rounded-md bg-orange-500 py-4 text-lg font-semibold text-white shadow-lg transition-all hover:bg-orange-600 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
           >
             {status === "loading" ? (
               <span className="flex items-center justify-center gap-2">
@@ -194,7 +194,7 @@ export function ContactForm() {
 
           <p className="text-center text-sm text-zinc-500">
             Нажимая кнопку, вы соглашаетесь с{" "}
-            <Link href="/privacy" className="text-amber-600 hover:text-amber-700 underline">
+            <Link href="/privacy" className="text-orange-600 underline hover:text-orange-700">
               политикой конфиденциальности
             </Link>
           </p>

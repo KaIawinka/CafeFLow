@@ -49,7 +49,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               border rounded-lg
               ${error 
                 ? 'border-red-300 dark:border-red-700 focus:ring-red-500 focus:border-red-500' 
-                : 'border-gray-300 dark:border-gray-600 focus:ring-amber-500 focus:border-amber-500'
+                : 'border-gray-300 dark:border-gray-600 focus:ring-orange-500 focus:border-orange-500'
               }
               bg-white dark:bg-gray-700
               text-gray-900 dark:text-white

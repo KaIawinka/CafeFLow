@@ -7,20 +7,20 @@
   --foreground: #151a1e;
   --card: #fffdf8;
   --card-foreground: #151a1e;
-  --primary: #e76f51;
+  --primary: #f97316;
   --primary-foreground: #ffffff;
-  --secondary: #e7efe9;
-  --secondary-foreground: #244336;
+  --secondary: #fff1e7;
+  --secondary-foreground: #9a3412;
   --muted: #eeeae1;
   --muted-foreground: #687078;
-  --accent: #f5c98a;
-  --accent-foreground: #63391f;
+  --accent: #ffedd5;
+  --accent-foreground: #c2410c;
   --border: #ddd8cd;
   --input: #d9d4c9;
-  --ring: #e76f51;
+  --ring: #f97316;
   --radius: 0.625rem;
-  --gradient-primary: linear-gradient(120deg, #e76f51 0%, #c84f3e 100%);
-  --gradient-secondary: linear-gradient(120deg, #e7efe9 0%, #cfe2d4 100%);
+  --gradient-primary: linear-gradient(120deg, #f97316 0%, #ea580c 100%);
+  --gradient-secondary: linear-gradient(120deg, #fff1e7 0%, #fed7aa 100%);
   --gradient-bg: radial-gradient(circle at top right, #fff8ea 0%, #f7f5f0 48%, #ece8df 100%);
   color-scheme: light;
 }
@@ -30,19 +30,19 @@
   --foreground: #151a1e;
   --card: #fffdf8;
   --card-foreground: #151a1e;
-  --primary: #e76f51;
+  --primary: #f97316;
   --primary-foreground: #ffffff;
-  --secondary: #e7efe9;
-  --secondary-foreground: #244336;
+  --secondary: #fff1e7;
+  --secondary-foreground: #9a3412;
   --muted: #eeeae1;
   --muted-foreground: #687078;
-  --accent: #f5c98a;
-  --accent-foreground: #63391f;
+  --accent: #ffedd5;
+  --accent-foreground: #c2410c;
   --border: #ddd8cd;
   --input: #d9d4c9;
-  --ring: #e76f51;
-  --gradient-primary: linear-gradient(120deg, #e76f51 0%, #c84f3e 100%);
-  --gradient-secondary: linear-gradient(120deg, #e7efe9 0%, #cfe2d4 100%);
+  --ring: #f97316;
+  --gradient-primary: linear-gradient(120deg, #f97316 0%, #ea580c 100%);
+  --gradient-secondary: linear-gradient(120deg, #fff1e7 0%, #fed7aa 100%);
   --gradient-bg: radial-gradient(circle at top right, #fff8ea 0%, #f7f5f0 48%, #ece8df 100%);
 }
 
@@ -59,19 +59,19 @@
   --foreground: #f6f2e9;
   --card: #20272c;
   --card-foreground: #f6f2e9;
-  --primary: #ef8267;
+  --primary: #fb923c;
   --primary-foreground: #ffffff;
-  --secondary: #26372f;
-  --secondary-foreground: #d6ead9;
+  --secondary: #3a2418;
+  --secondary-foreground: #fed7aa;
   --muted: #252d32;
   --muted-foreground: #a7b0b4;
-  --accent: #5b422a;
-  --accent-foreground: #f5c98a;
+  --accent: #5a2a12;
+  --accent-foreground: #fdba74;
   --border: #3b454a;
   --input: #465157;
-  --ring: #ef8267;
-  --gradient-primary: linear-gradient(120deg, #ef8267 0%, #d85c48 100%);
-  --gradient-secondary: linear-gradient(120deg, #26372f 0%, #304c3d 100%);
+  --ring: #fb923c;
+  --gradient-primary: linear-gradient(120deg, #fb923c 0%, #ea580c 100%);
+  --gradient-secondary: linear-gradient(120deg, #3a2418 0%, #5a2a12 100%);
   --gradient-bg: radial-gradient(circle at top right, #263129 0%, #151a1e 56%, #101417 100%);
   color-scheme: dark;
 }
@@ -84,6 +84,61 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-width: 320px;
+}
+
+/* Keep legacy utility classes theme-aware on screens that predate the token system. */
+.dark [class~="bg-white"] {
+  background-color: var(--card) !important;
+}
+
+.dark [class~="bg-[#fffdf8]"] {
+  background-color: var(--card) !important;
+}
+
+.dark [class~="bg-[#f7f5f0]"] {
+  background-color: var(--background) !important;
+}
+
+.dark [class~="text-[#151a1e]"] {
+  color: var(--foreground) !important;
+}
+
+.dark [class~="text-zinc-900"],
+.dark [class~="text-gray-900"] {
+  color: var(--foreground) !important;
+}
+
+.dark [class~="border-zinc-200"],
+.dark [class~="border-[#ddd8cd]"],
+.dark [class~="border-[#dde4dc]"],
+.dark [class~="border-[#d9dfd8]"] {
+  border-color: var(--border) !important;
+}
+
+/* Legacy cafe surfaces use these exact colors; keep them in the shared palette. */
+[class~="bg-[#17332f]"] {
+  background-color: var(--primary) !important;
+}
+
+[class~="text-[#d06b3c]"] {
+  color: var(--primary) !important;
+}
+
+[class~="text-[#60706b]"] {
+  color: var(--muted-foreground) !important;
+}
+
+[class~="bg-[#fff1e9]"] {
+  background-color: var(--secondary) !important;
+}
+
+[class~="text-[#9e4a25]"] {
+  color: var(--secondary-foreground) !important;
+}
+
+[class~="border-[#dde4dc]"],
+[class~="border-[#d9dfd8]"] {
+  border-color: var(--border) !important;
 }
 
 /* Grid background pattern */
@@ -108,6 +163,28 @@ body {
   opacity: 1 !important;
   transform: translateY(0) !important;
 }
+
+@keyframes landing-reveal {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.landing-reveal {
+  animation: landing-reveal 700ms ease-out both;
+}
+
+@keyframes carousel-slide {
+  from { opacity: 0; transform: scale(1.08); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes carousel-copy {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.carousel-slide { background-position: center; background-size: cover; animation: carousel-slide 800ms ease-out both; }
+.carousel-copy { animation: carousel-copy 500ms 120ms ease-out both; }
 
 /* Custom animations */
 @keyframes shimmer {
@@ -190,7 +267,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar { width: 
 }
 
 .dark .glass {
-  background: rgba(30, 41, 59, 0.8);
+  background: rgba(32, 24, 20, 0.86);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -236,8 +313,8 @@ html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar { width: 
 }
 
 .mobile-bottom-nav__item--active {
-  color: var(--accent-foreground);
-  background: var(--accent);
+  color: #ffffff;
+  background: var(--primary);
 }
 
 @media (min-width: 768px) {
