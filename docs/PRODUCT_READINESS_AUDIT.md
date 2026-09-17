@@ -38,7 +38,7 @@ CafeFlow уже является расширенным MVP с рабочим я
 | Область | Статус | Что реально работает | Что ещё не готово |
 |---|---|---|---|
 | Tenant isolation | Частично, критический риск | единый `TenantContext`/`BranchContext` resolver, branch memberships/capabilities, composite tenant+branch FK migration | PostgreSQL RLS, полный audit всех integration routes, cross-tenant tests, production migration verification |
-| Pickup и delivery | Частично | pickup/delivery checkout, saved-address checkout, delivery zones, customer address CRUD, courier assignment, status history, promised/delivered timestamps, retry/problem workflow, dispatcher UI | customer-facing delivery tracking and external courier integration |
+| Pickup и delivery | Частично | pickup/delivery checkout, saved-address checkout, delivery zones, customer address CRUD, customer cancellation/problem reporting, courier assignment, status history, promised/delivered timestamps, retry/problem workflow, dispatcher UI | customer-facing delivery tracking and external courier integration |
 | Payments | Частично | cash/card/online selection, provider contract, HMAC-signed webhook, append-only events, duplicate event check, captured/refunded/chargeback accounting fields | production provider adapter/intents, полноценные refund/capture operations, reconciliation и settlement reports |
 | Reservations | Частично | advisory lock, table blocks, business hours, branch timezone, waitlist creation API, guest cancellation | waitlist matching/notification, deposits, cancellation policy, no-show job, reservation history, day timeline |
 | Admin panel | Частично | user/order/reservation pagination, menu/category APIs и UI, payment transitions, audit viewer API, domain API, branch membership/capability API | order filters, branch management UI, полноценный CRUD UI, media upload, schedules, modifiers/allergens UI, shift timeline |
@@ -71,6 +71,8 @@ Admin dashboard, reservations, payments, menu и основные public flows �
 `src/app/api/public/orders/route.ts` теперь поддерживает `dine_in`, `pickup` и `delivery`, проверяет server cart, tenant/branch, доступность товаров, delivery zone, minimum subtotal и Decimal-safe fee. В транзакции создаются order, order items, payment и delivery record; cart переводится в `converted`.
 
 Есть public delivery zones endpoint, customer address CRUD и checkout с выбором сохранённого адреса. Checkout сохраняет immutable address snapshot и связывает авторизованный заказ с клиентом. Диспетчерская delivery API/UI поддерживает branch-scoped очередь, назначение курьера, promised time, tracking code, append-only события, failed reason, retry и синхронизацию order status/notifications. Customer-facing delivery tracking остаётся частью order workflow.
+
+Авторизованный клиент может отменить заказ только в статусах `new`/`confirmed`; операция транзакционно добавляет status history, уведомляет персонал и сохраняет payment status для последующего refund. Отдельно доступна фиксация проблемы заказа с audit log.
 
 ### 4.3 Payments
 
@@ -158,7 +160,7 @@ Feature считается завершённой только после цеп
 2. Payment provider abstraction, payment events, signed webhook idempotency.
 3. Refunds, partial captures, chargebacks и reconciliation.
 4. Promotion redemption внутри transactional checkout.
-5. Order cancellation/problem rules и customer status workflow.
+5. Refund orchestration после customer cancellation и customer-facing delivery tracking.
 
 ### P2: reservations и back office
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canTransitionOrderStatus } from './status';
+import { canCustomerCancelOrder, canTransitionOrderStatus } from './status';
 
 describe('order status transitions', () => {
   it('allows the operational forward path', () => {
@@ -22,5 +22,12 @@ describe('order status transitions', () => {
     expect(canTransitionOrderStatus('new', 'new')).toBe(false);
     expect(canTransitionOrderStatus('completed', 'cancelled')).toBe(false);
     expect(canTransitionOrderStatus('cancelled', 'confirmed')).toBe(false);
+  });
+
+  it('allows customer cancellation only before preparation starts', () => {
+    expect(canCustomerCancelOrder('new')).toBe(true);
+    expect(canCustomerCancelOrder('confirmed')).toBe(true);
+    expect(canCustomerCancelOrder('cooking')).toBe(false);
+    expect(canCustomerCancelOrder('delivering')).toBe(false);
   });
 });

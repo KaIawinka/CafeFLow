@@ -14,3 +14,7 @@ const transitions: Record<OrderStatus, readonly OrderStatus[]> = {
 export function canTransitionOrderStatus(from: OrderStatus, to: OrderStatus): boolean {
   return transitions[from].includes(to);
 }
+
+export function canCustomerCancelOrder(status: OrderStatus): boolean {
+  return status === 'new' || status === 'confirmed';
+}
