@@ -37,7 +37,7 @@ CafeFlow уже является расширенным MVP с рабочим я
 
 | Область | Статус | Что реально работает | Что ещё не готово |
 |---|---|---|---|
-| Tenant isolation | Частично, критический риск | единый `TenantContext`/`BranchContext` resolver, tenant/branch predicates в основных public/admin API, branch memberships/capabilities | PostgreSQL RLS, составные tenant/branch FK, полный audit всех integration routes, cross-tenant tests |
+| Tenant isolation | Частично, критический риск | единый `TenantContext`/`BranchContext` resolver, branch memberships/capabilities, composite tenant+branch FK migration | PostgreSQL RLS, полный audit всех integration routes, cross-tenant tests, production migration verification |
 | Pickup и delivery | Частично | pickup/delivery checkout, delivery zones, minimum order, fee, desired time, address snapshot | customer address CRUD, courier assignment, status history, promised/delivered timestamps, delivery retry/problem workflow |
 | Payments | Частично | cash/card/online selection, admin transitions, HMAC-signed webhook, duplicate event check | provider abstraction/intents, append-only payment events, полноценные refunds, partial captures, reconciliation и settlement reports |
 | Reservations | Частично | advisory lock, table blocks, business hours, branch timezone, waitlist creation API, guest cancellation | waitlist matching/notification, deposits, cancellation policy, no-show job, reservation history, day timeline |
@@ -62,7 +62,7 @@ Admin dashboard, reservations, payments, menu и основные public flows �
 
 - RLS policies отсутствуют во всех миграциях;
 - legacy `users.branch_id` сохраняется для обратной совместимости, но branch memberships/capabilities теперь являются runtime-источником доступа для защищённых admin routes;
-- многие модели имеют независимые `tenant_id` и `branch_id` без составного FK;
+- composite tenant+branch FK добавлены для branch-scoped моделей, но migration ещё требует staging/production deployment verification;
 - не каждый admin/integration route приведён к единому `TenantContext`;
 - automated cross-tenant/cross-branch tests отсутствуют.
 
@@ -151,9 +151,8 @@ Feature считается завершённой только после цеп
 
 ### P0: security boundary
 
-3. Добавить составные FK/constraints для tenant + branch consistency.
 4. Добавить cross-tenant/cross-branch authorization tests.
-5. Включить PostgreSQL RLS и подготовить migration verification/rollback checklist.
+5. Включить PostgreSQL RLS.
 
 ### P1: коммерческий ordering и payments
 
@@ -233,6 +232,7 @@ Feature считается завершённой только после цеп
 - Введён единый типизированный `TenantContext`/`BranchContext` resolver для public и admin API; dashboard, reservations, payments, menu, domains и audit routes используют tenant/branch scope из middleware, включая несколько memberships. Проверки: ESLint и TypeScript.
 - Реализован mobile-first customer shell: фиксированная нижняя навигация для главной, меню, бронирования, заказов и корзины, active states, safe-area отступы и компактная адаптация заголовков/контента. Проверки: ESLint, TypeScript, Vitest и production build.
 - Реализован runtime workflow branch RBAC: admin API для списка, выдачи, обновления и отзыва memberships/capabilities, ограничения выдачи системных capabilities для manager, tenant/branch scope bot-key API и 4 policy tests. Проверки: ESLint, TypeScript, Vitest (7 тестов) и production build.
+- Добавлены composite tenant+branch unique key и FK constraints для users, memberships, carts, orders, delivery zones, tables, reservations, waitlist, table blocks, business hours и analytics; миграция содержит preflight mismatch checks, deployment/rollback checklist и отдельную документацию. Проверки: Prisma validate, ESLint, TypeScript, Vitest (7 тестов) и production build. Реальное применение в PostgreSQL ещё не выполнено в текущем окружении.
 
 Ограничения следующего security-среза: legacy `users.branch_id` пока сохраняется для обратной совместимости, branch management UI отсутствует, tenant-wide admin требует отдельного review, а составные FK/RLS и cross-tenant tests ещё не готовы.
 
