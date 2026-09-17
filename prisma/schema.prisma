@@ -7,102 +7,104 @@ datasource db {
 }
 
 model tenants {
-  id                 String               @id @default(uuid()) @db.Uuid
-  name               String               @db.VarChar(200)
-  slug               String               @unique @db.VarChar(100)
-  status             tenant_status
-  currency           String               @db.Char(3)
-  timezone           String               @db.VarChar(64)
-  logo_file_id       String?              @db.Uuid
-  primary_color      String?              @db.VarChar(20)
-  contact_phone      String?              @db.VarChar(40)
-  contact_email      String?              @db.VarChar(255)
-  address_text       String?
-  latitude           Decimal?             @db.Decimal(9, 6)
-  longitude          Decimal?             @db.Decimal(9, 6)
-  settings           Json?
-  created_at         DateTime             @default(now()) @db.Timestamptz(6)
-  updated_at         DateTime             @updatedAt @db.Timestamptz(6)
-  activity_logs      activity_logs[]
-  ai_requests        ai_requests[]
-  analytics_daily    analytics_daily[]
-  branches           branches[]
-  business_hours     business_hours[]
-  carts              carts[]
-  content            content[]
-  customer_addresses customer_addresses[]
-  delivery_zones     delivery_zones[]
-  favorites          favorites[]
-  files              files[]              @relation("tenant_files")
-  loyalty            loyalty[]
-  menu_categories    menu_categories[]
-  notifications      notifications[]
-  orders             orders[]
-  payments           payments[]
-  products           products[]
-  promotions         promotions[]
-  reservations       reservations[]
+  id                   String                 @id @default(uuid()) @db.Uuid
+  name                 String                 @db.VarChar(200)
+  slug                 String                 @unique @db.VarChar(100)
+  status               tenant_status
+  currency             String                 @db.Char(3)
+  timezone             String                 @db.VarChar(64)
+  logo_file_id         String?                @db.Uuid
+  primary_color        String?                @db.VarChar(20)
+  contact_phone        String?                @db.VarChar(40)
+  contact_email        String?                @db.VarChar(255)
+  address_text         String?
+  latitude             Decimal?               @db.Decimal(9, 6)
+  longitude            Decimal?               @db.Decimal(9, 6)
+  settings             Json?
+  created_at           DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime               @updatedAt @db.Timestamptz(6)
+  activity_logs        activity_logs[]
+  ai_requests          ai_requests[]
+  analytics_daily      analytics_daily[]
+  branches             branches[]
+  branch_memberships   branch_memberships[]
+  business_hours       business_hours[]
+  carts                carts[]
+  content              content[]
+  customer_addresses   customer_addresses[]
+  delivery_zones       delivery_zones[]
+  favorites            favorites[]
+  files                files[]                @relation("tenant_files")
+  loyalty              loyalty[]
+  menu_categories      menu_categories[]
+  notifications        notifications[]
+  orders               orders[]
+  payments             payments[]
+  products             products[]
+  promotions           promotions[]
+  reservations         reservations[]
   reservation_waitlist reservation_waitlist[]
-  restaurant_tables  restaurant_tables[]
-  reviews            reviews[]
-  table_blocks       table_blocks[]
-  tenant_domains     tenant_domains[]
-  logo_file          files?               @relation("tenant_logo_file", fields: [logo_file_id], references: [id])
-  users              users[]
+  restaurant_tables    restaurant_tables[]
+  reviews              reviews[]
+  table_blocks         table_blocks[]
+  tenant_domains       tenant_domains[]
+  logo_file            files?                 @relation("tenant_logo_file", fields: [logo_file_id], references: [id])
+  users                users[]
 }
 
 model tenant_domains {
-  id          String        @id @default(uuid()) @db.Uuid
-  tenant_id   String        @db.Uuid
-  hostname    String        @unique @db.VarChar(255)
-  status      domain_status @default(pending)
-  verification_token String  @unique @db.VarChar(120)
-  verified_at DateTime?     @db.Timestamptz(6)
-  created_at  DateTime      @default(now()) @db.Timestamptz(6)
-  updated_at  DateTime      @updatedAt @db.Timestamptz(6)
-  tenant      tenants       @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  id                 String        @id @default(uuid()) @db.Uuid
+  tenant_id          String        @db.Uuid
+  hostname           String        @unique @db.VarChar(255)
+  status             domain_status @default(pending)
+  verification_token String        @unique @db.VarChar(120)
+  verified_at        DateTime?     @db.Timestamptz(6)
+  created_at         DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime      @updatedAt @db.Timestamptz(6)
+  tenant             tenants       @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
 
   @@index([tenant_id])
   @@index([hostname, status])
 }
 
 model contact_leads {
-  id         String       @id @default(uuid()) @db.Uuid
-  name       String       @db.VarChar(160)
-  email      String       @db.VarChar(255)
-  phone      String?      @db.VarChar(40)
-  company    String?      @db.VarChar(200)
+  id         String      @id @default(uuid()) @db.Uuid
+  name       String      @db.VarChar(160)
+  email      String      @db.VarChar(255)
+  phone      String?     @db.VarChar(40)
+  company    String?     @db.VarChar(200)
   message    String?
-  status     lead_status  @default(new)
-  ip_address String?      @db.Inet
-  created_at DateTime     @default(now()) @db.Timestamptz(6)
-  updated_at DateTime     @updatedAt @db.Timestamptz(6)
+  status     lead_status @default(new)
+  ip_address String?     @db.Inet
+  created_at DateTime    @default(now()) @db.Timestamptz(6)
+  updated_at DateTime    @updatedAt @db.Timestamptz(6)
 
   @@index([email])
   @@index([status, created_at])
 }
 
 model branches {
-  id                String              @id @default(uuid()) @db.Uuid
-  tenant_id         String              @db.Uuid
-  name              String              @db.VarChar(200)
-  code              String              @db.VarChar(50)
-  address_text      String?
-  phone             String?             @db.VarChar(40)
-  timezone          String?             @db.VarChar(64)
-  status            branch_status
-  created_at        DateTime            @default(now()) @db.Timestamptz(6)
-  updated_at        DateTime            @updatedAt @db.Timestamptz(6)
-  analytics_daily   analytics_daily[]
-  tenant            tenants             @relation(fields: [tenant_id], references: [id])
-  business_hours    business_hours[]
-  delivery_zones    delivery_zones[]
-  orders            orders[]
-  reservations      reservations[]
+  id                   String                 @id @default(uuid()) @db.Uuid
+  tenant_id            String                 @db.Uuid
+  name                 String                 @db.VarChar(200)
+  code                 String                 @db.VarChar(50)
+  address_text         String?
+  phone                String?                @db.VarChar(40)
+  timezone             String?                @db.VarChar(64)
+  status               branch_status
+  created_at           DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime               @updatedAt @db.Timestamptz(6)
+  analytics_daily      analytics_daily[]
+  branch_memberships   branch_memberships[]
+  tenant               tenants                @relation(fields: [tenant_id], references: [id])
+  business_hours       business_hours[]
+  delivery_zones       delivery_zones[]
+  orders               orders[]
+  reservations         reservations[]
   reservation_waitlist reservation_waitlist[]
-  restaurant_tables restaurant_tables[]
-  table_blocks      table_blocks[]
-  users             users[]
+  restaurant_tables    restaurant_tables[]
+  table_blocks         table_blocks[]
+  users                users[]
 
   @@index([tenant_id])
 }
@@ -161,6 +163,7 @@ model users {
   auth_sessions               auth_sessions[]
   bot_access_keys             bot_access_keys[]
   bot_key_activations         bot_key_activations[]
+  branch_memberships          branch_memberships[]
   carts                       carts[]
   customer_addresses          customer_addresses[]
   favorites                   favorites[]
@@ -183,6 +186,34 @@ model users {
   @@index([role])
   @@index([status])
   @@index([telegram_chat_id])
+}
+
+model branch_memberships {
+  id           String                           @id @default(uuid()) @db.Uuid
+  tenant_id    String                           @db.Uuid
+  branch_id    String                           @db.Uuid
+  user_id      String                           @db.Uuid
+  status       branch_membership_status         @default(active)
+  created_at   DateTime                         @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime                         @updatedAt @db.Timestamptz(6)
+  branch       branches                         @relation(fields: [branch_id], references: [id], onDelete: Cascade)
+  tenant       tenants                          @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  user         users                            @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  capabilities branch_membership_capabilities[]
+
+  @@unique([user_id, branch_id])
+  @@index([tenant_id, branch_id, status])
+  @@index([user_id, status])
+}
+
+model branch_membership_capabilities {
+  id            String             @id @default(uuid()) @db.Uuid
+  membership_id String             @db.Uuid
+  capability    branch_capability
+  membership    branch_memberships @relation(fields: [membership_id], references: [id], onDelete: Cascade)
+
+  @@unique([membership_id, capability])
+  @@index([capability])
 }
 
 model menu_categories {
@@ -427,7 +458,7 @@ model reservations {
   table_ids     Json?
   comment       String?
   cancel_reason String?
-  guest_token   String?   @unique @db.VarChar(120)
+  guest_token   String?            @unique @db.VarChar(120)
   created_at    DateTime           @default(now()) @db.Timestamptz(6)
   updated_at    DateTime           @updatedAt @db.Timestamptz(6)
   branch        branches           @relation(fields: [branch_id], references: [id])
@@ -440,21 +471,21 @@ model reservations {
 }
 
 model reservation_waitlist {
-  id           String             @id @default(uuid()) @db.Uuid
-  tenant_id    String             @db.Uuid
-  branch_id    String             @db.Uuid
-  guest_name   String             @db.VarChar(200)
-  guest_phone  String             @db.VarChar(40)
+  id           String          @id @default(uuid()) @db.Uuid
+  tenant_id    String          @db.Uuid
+  branch_id    String          @db.Uuid
+  guest_name   String          @db.VarChar(200)
+  guest_phone  String          @db.VarChar(40)
   guests_count Int
-  desired_date DateTime           @db.Date
-  desired_time String             @db.VarChar(5)
+  desired_date DateTime        @db.Date
+  desired_time String          @db.VarChar(5)
   status       waitlist_status
-  guest_token  String             @unique @db.VarChar(120)
+  guest_token  String          @unique @db.VarChar(120)
   note         String?
-  created_at   DateTime           @default(now()) @db.Timestamptz(6)
-  updated_at   DateTime           @updatedAt @db.Timestamptz(6)
-  tenant       tenants            @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
-  branch       branches           @relation(fields: [branch_id], references: [id], onDelete: Cascade)
+  created_at   DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime        @updatedAt @db.Timestamptz(6)
+  tenant       tenants         @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  branch       branches        @relation(fields: [branch_id], references: [id], onDelete: Cascade)
 
   @@index([tenant_id, branch_id, desired_date, desired_time, status])
 }
@@ -850,6 +881,24 @@ enum lead_status {
 enum branch_status {
   active
   inactive
+}
+
+enum branch_membership_status {
+  active
+  suspended
+  revoked
+}
+
+enum branch_capability {
+  view_orders
+  manage_orders
+  manage_menu
+  manage_reservations
+  manage_staff
+  manage_settings
+  manage_payments
+  manage_domains
+  view_audit
 }
 
 enum file_purpose {

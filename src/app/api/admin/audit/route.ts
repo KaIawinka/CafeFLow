@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { verifyAdminOrManager } from '@/lib/api-middleware';
 
 export async function GET(request: NextRequest) {
-  const auth = await verifyAdminOrManager(request);
+  const auth = await verifyAdminOrManager(request, 'view_audit');
   if (!auth.success || !auth.userId) return auth.error || NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
   const actor = await prisma.users.findUnique({ where: { id: auth.userId }, select: { tenant_id: true, branch_id: true } });
   if (!actor?.tenant_id) return NextResponse.json({ logs: [], pagination: { page: 1, pageSize: 50, total: 0 } });

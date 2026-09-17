@@ -14,7 +14,7 @@ async function actorScope(userId: string) {
 }
 
 export async function GET(request: NextRequest) {
-  const auth = await verifyAdminOrManager(request);
+  const auth = await verifyAdminOrManager(request, 'manage_reservations');
   if (!auth.success || !auth.userId) return auth.error;
   try {
     const actor = await actorScope(auth.userId);
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const auth = await verifyAdminOrManager(request);
+  const auth = await verifyAdminOrManager(request, 'manage_reservations');
   if (!auth.success || !auth.userId) return auth.error;
   try {
     const actor = await actorScope(auth.userId);

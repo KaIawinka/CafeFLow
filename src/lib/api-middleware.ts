@@ -4,8 +4,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { branch_capability } from '@prisma/client';
 import { verifyAccessToken } from '@/lib/auth/jwt';
 import { logger } from '@/lib/logger';
+import { prisma } from '@/lib/prisma';
 
 export interface AuthResult {
   success: boolean;
@@ -81,13 +83,22 @@ export async function verifyAdmin(request: NextRequest): Promise<AuthResult> {
     };
   }
 
+  const user = await prisma.users.findUnique({ where: { id: auth.userId }, select: { status: true, branch_id: true } });
+  if (!user || user.status !== 'active') {
+    return { success: false, error: NextResponse.json({ error: 'Учетная запись недоступна' }, { status: 403 }) };
+  }
+  if (user.branch_id) {
+    const membership = await prisma.branch_memberships.findFirst({ where: { user_id: auth.userId, branch_id: user.branch_id, status: 'active', capabilities: { some: { capability: 'manage_domains' } } }, select: { id: true } });
+    if (!membership) return { success: false, error: NextResponse.json({ error: 'Нет активного доступа к филиалу' }, { status: 403 }) };
+  }
+
   return auth;
 }
 
 /**
  * Проверяет что пользователь - админ или менеджер
  */
-export async function verifyAdminOrManager(request: NextRequest): Promise<AuthResult> {
+export async function verifyAdminOrManager(request: NextRequest, capability?: string): Promise<AuthResult> {
   const auth = await verifyAuth(request);
 
   if (!auth.success) {
@@ -102,6 +113,35 @@ export async function verifyAdminOrManager(request: NextRequest): Promise<AuthRe
         { status: 403 }
       ),
     };
+  }
+
+  const user = await prisma.users.findUnique({
+    where: { id: auth.userId },
+    select: { status: true, branch_id: true },
+  });
+  if (!user || user.status !== 'active') {
+    return {
+      success: false,
+      error: NextResponse.json({ error: 'Учетная запись недоступна' }, { status: 403 }),
+    };
+  }
+
+  if (user.branch_id) {
+    const membership = await prisma.branch_memberships.findFirst({
+      where: {
+        user_id: auth.userId,
+        branch_id: user.branch_id,
+        status: 'active',
+        ...(capability ? { capabilities: { some: { capability: capability as branch_capability } } } : {}),
+      },
+      select: { id: true },
+    });
+    if (!membership) {
+      return {
+        success: false,
+        error: NextResponse.json({ error: 'Нет активного доступа к филиалу' }, { status: 403 }),
+      };
+    }
   }
 
   return auth;

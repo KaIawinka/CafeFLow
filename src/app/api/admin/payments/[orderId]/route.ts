@@ -7,7 +7,7 @@ const allowed = ['pending', 'authorized', 'paid', 'failed', 'refunded', 'partial
 type PaymentStatus = (typeof allowed)[number];
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ orderId: string }> }) {
-  const auth = await verifyAdminOrManager(request);
+  const auth = await verifyAdminOrManager(request, 'manage_payments');
   if (!auth.success || !auth.userId) return auth.error || NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
   const { orderId } = await params;
   const body = await request.json().catch(() => ({})) as { status?: PaymentStatus; amount?: string; reason?: string };

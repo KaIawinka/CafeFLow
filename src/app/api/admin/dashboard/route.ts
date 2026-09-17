@@ -41,7 +41,7 @@ function branchScope(branchId: string | null | undefined): { branch_id?: string 
 }
 
 export async function GET(request: NextRequest) {
-  const auth = await verifyAdminOrManager(request);
+  const auth = await verifyAdminOrManager(request, 'view_orders');
   if (!auth.success || !auth.userId) return auth.error;
 
   try {
@@ -124,7 +124,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const auth = await verifyAdminOrManager(request);
+  const auth = await verifyAdminOrManager(request, 'manage_orders');
   if (!auth.success || !auth.userId) return auth.error;
 
   try {
