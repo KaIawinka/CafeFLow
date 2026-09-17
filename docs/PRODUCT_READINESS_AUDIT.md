@@ -47,7 +47,7 @@ CafeFlow уже является расширенным MVP с рабочим я
 | Mobile/PWA | Частично | mobile-first customer shell, responsive pages, bottom navigation, server cart, fixed cart link | fast order status, touch-first checkout, manifest, service worker, offline drafts, robust loading/error/empty states |
 | Notifications | Частично | in-app notifications, email worker, retry attempts, cron processing | Telegram order delivery, SMS, browser push, delivery attempts/dead-letter/status dashboard |
 | Auth operations | Частично | active sessions API, single-session revoke, cleanup job, login rate limiting, login attempts table | полноценный devices UI, security activity viewer, единый rate limit для admin login, полный security audit trail |
-| Automated tests | Не готово | 3 unit tests order state machine | auth, authorization, cross-tenant, race, checkout, idempotency, notification permission tests |
+| Automated tests | Частично | order state machine tests и tenant/branch isolation policy tests | API/integration tests с реальной БД, auth routes, races, checkout, idempotency, notification permission tests |
 | Production readiness | Частично | lint/build, health endpoint, security headers, cron configuration, logger | external error tracking, metrics/tracing, smoke tests, accessibility audit, load tests, backup/restore drill, RPO/RTO |
 
 ## 4. Подтверждённые реализации
@@ -151,7 +151,6 @@ Feature считается завершённой только после цеп
 
 ### P0: security boundary
 
-4. Добавить cross-tenant/cross-branch authorization tests.
 5. Включить PostgreSQL RLS.
 
 ### P1: коммерческий ordering и payments
@@ -233,6 +232,7 @@ Feature считается завершённой только после цеп
 - Реализован mobile-first customer shell: фиксированная нижняя навигация для главной, меню, бронирования, заказов и корзины, active states, safe-area отступы и компактная адаптация заголовков/контента. Проверки: ESLint, TypeScript, Vitest и production build.
 - Реализован runtime workflow branch RBAC: admin API для списка, выдачи, обновления и отзыва memberships/capabilities, ограничения выдачи системных capabilities для manager, tenant/branch scope bot-key API и 4 policy tests. Проверки: ESLint, TypeScript, Vitest (7 тестов) и production build.
 - Добавлены composite tenant+branch unique key и FK constraints для users, memberships, carts, orders, delivery zones, tables, reservations, waitlist, table blocks, business hours и analytics; миграция содержит preflight mismatch checks, deployment/rollback checklist и отдельную документацию. Проверки: Prisma validate, ESLint, TypeScript, Vitest (7 тестов) и production build. Реальное применение в PostgreSQL ещё не выполнено в текущем окружении.
+- Добавлены cross-tenant/cross-branch isolation policy tests: tenant mismatch, branch mismatch, разрешённый scope и запрет branch-bound пользователя на tenant-wide resource. Проверки: ESLint, TypeScript и Vitest (8 тестов).
 
 Ограничения следующего security-среза: legacy `users.branch_id` пока сохраняется для обратной совместимости, branch management UI отсутствует, tenant-wide admin требует отдельного review, а составные FK/RLS и cross-tenant tests ещё не готовы.
 

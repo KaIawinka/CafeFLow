@@ -14,3 +14,14 @@ export function canGrantCapabilities(role: string | undefined, capabilities: bra
 export function canAccessBranch(branchId: string, accessibleBranchIds: string[] | null) {
   return accessibleBranchIds === null || accessibleBranchIds.includes(branchId);
 }
+
+export function canAccessTenantResource(params: {
+  tenantId: string;
+  accessibleTenantId: string | null;
+  branchId: string | null;
+  accessibleBranchIds: string[] | null;
+}) {
+  if (!params.accessibleTenantId || params.accessibleTenantId !== params.tenantId) return false;
+  if (!params.branchId) return params.accessibleBranchIds === null;
+  return canAccessBranch(params.branchId, params.accessibleBranchIds);
+}
