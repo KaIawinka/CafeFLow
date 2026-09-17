@@ -44,7 +44,7 @@ CafeFlow уже является расширенным MVP с рабочим я
 | Admin panel | Частично | user/order/reservation pagination, menu/category APIs и UI, payment transitions, audit viewer API, domain API | order filters, branch management, staff permissions, полноценный CRUD UI, media upload, schedules, modifiers/allergens UI, shift timeline |
 | Retention | Частично | promotion validation, favorites API, verified reviews API, histories, repeat-order API | promotion redemption in checkout, append-only loyalty ledger, moderation UI, customer-facing retention screens |
 | Tenant content и landing | Частично/не готово | menu загружается из БД, contact API сохраняет leads, tenant settings API | tenant content API/UI, часы, map, branches/promotions/reviews on landing, dynamic metadata, JSON-LD, полная замена hardcoded CTA/content |
-| Mobile/PWA | Частично | responsive pages, server cart, fixed cart link | bottom navigation, fast order status, touch-first checkout, manifest, service worker, offline drafts, robust loading/error/empty states |
+| Mobile/PWA | Частично | mobile-first customer shell, responsive pages, bottom navigation, server cart, fixed cart link | fast order status, touch-first checkout, manifest, service worker, offline drafts, robust loading/error/empty states |
 | Notifications | Частично | in-app notifications, email worker, retry attempts, cron processing | Telegram order delivery, SMS, browser push, delivery attempts/dead-letter/status dashboard |
 | Auth operations | Частично | active sessions API, single-session revoke, cleanup job, login rate limiting, login attempts table | полноценный devices UI, security activity viewer, единый rate limit для admin login, полный security audit trail |
 | Automated tests | Не готово | 3 unit tests order state machine | auth, authorization, cross-tenant, race, checkout, idempotency, notification permission tests |
@@ -176,7 +176,7 @@ Feature считается завершённой только после цеп
 1. Append-only loyalty ledger с reversal и concurrency control.
 2. Reviews moderation, customer retention UI, promotion redemption.
 3. Tenant-driven landing, hours, map, branches, promotions, reviews, metadata и JSON-LD.
-4. Bottom navigation, fixed status/cart access, PWA и offline drafts.
+4. Fixed status/cart access, PWA и offline drafts.
 
 ### P4: release quality
 
@@ -232,6 +232,7 @@ Feature считается завершённой только после цеп
 - Добавлены `branch_memberships` и `branch_membership_capabilities` с tenant/branch/user FK, backfill для существующих branch-bound сотрудников и capability checks в основных admin dashboard/menu/payment/reservation/audit/domain routes. Проверки: Prisma validate, ESLint и TypeScript. Migration diff требует настроенного `datasource.shadowDatabaseUrl` и не запускался.
 - Промокод теперь применяется внутри transactional checkout: сервер повторно проверяет сроки, минимум и usage limit, атомарно увеличивает `usage_count`, сохраняет `promotion_id`, `discount_total` и уменьшенный `total` заказа. Проверки: Prisma validate, ESLint, TypeScript, Vitest и production build.
 - Введён единый типизированный `TenantContext`/`BranchContext` resolver для public и admin API; dashboard, reservations, payments, menu, domains и audit routes используют tenant/branch scope из middleware, включая несколько memberships. Проверки: ESLint и TypeScript.
+- Реализован mobile-first customer shell: фиксированная нижняя навигация для главной, меню, бронирования, заказов и корзины, active states, safe-area отступы и компактная адаптация заголовков/контента. Проверки: ESLint, TypeScript, Vitest и production build.
 
 Ограничение следующего security-среза: legacy `users.branch_id` пока сохраняется для обратной совместимости, tenant-wide admin остаётся без membership lookup, а bot-key API ещё использует прямую роль из JWT. Это не считается полной готовностью branch RBAC.
 

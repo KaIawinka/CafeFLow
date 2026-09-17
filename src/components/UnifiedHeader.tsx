@@ -21,6 +21,11 @@ import {
   Sun,
   Moon,
   Bell,
+  CalendarDays,
+  ClipboardList,
+  Home,
+  ShoppingCart,
+  Utensils,
 } from 'lucide-react';
 
 interface UserData {
@@ -231,6 +236,17 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/Logo-
   };
 
   const navLinks = getNavLinks();
+  const isCustomerSurface = pathname.startsWith(`/${currentLocale}`)
+    && !pathname.includes('/admin')
+    && !pathname.includes('/login')
+    && !pathname.includes('/register')
+    && !pathname.includes('/forgot-password');
+  const mobileNavLinks = [
+    { href: `/${currentLocale}/menu`, label: currentLocale === 'en' ? 'Menu' : 'Меню', icon: Utensils },
+    { href: `/${currentLocale}/booking`, label: currentLocale === 'en' ? 'Booking' : 'Бронь', icon: CalendarDays },
+    { href: `/${currentLocale}/orders`, label: currentLocale === 'en' ? 'Orders' : 'Заказы', icon: ClipboardList },
+    { href: `/${currentLocale}/cart`, label: currentLocale === 'en' ? 'Cart' : 'Корзина', icon: ShoppingCart },
+  ];
 
   // Get localized language names
   const getLocalizedLanguageName = (locale: Locale, inLocale: Locale): string => {
@@ -243,7 +259,8 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/Logo-
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm">
+    <>
+      <header className="sticky top-0 z-50 w-full border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14 sm:h-16">
           {/* Logo */}
@@ -572,5 +589,24 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/Logo-
         )}
       </div>
     </header>
+
+      {isCustomerSurface && (
+        <nav className="mobile-bottom-nav md:hidden" aria-label={currentLocale === 'en' ? 'Main navigation' : 'Основная навигация'}>
+        <Link href={`/${currentLocale}`} className={`mobile-bottom-nav__item ${pathname === `/${currentLocale}` ? 'mobile-bottom-nav__item--active' : ''}`}>
+          <Home className="h-5 w-5" aria-hidden="true" />
+          <span>{currentLocale === 'en' ? 'Home' : 'Главная'}</span>
+        </Link>
+        {mobileNavLinks.map(({ href, label, icon: Icon }) => {
+          const active = pathname === href;
+          return (
+            <Link key={href} href={href} className={`mobile-bottom-nav__item ${active ? 'mobile-bottom-nav__item--active' : ''}`}>
+              <Icon className="h-5 w-5" aria-hidden="true" />
+              <span>{label}</span>
+            </Link>
+          );
+        })}
+        </nav>
+      )}
+    </>
   );
 }
