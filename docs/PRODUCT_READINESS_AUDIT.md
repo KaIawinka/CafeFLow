@@ -38,7 +38,7 @@ CafeFlow уже является расширенным MVP с рабочим я
 | Область | Статус | Что реально работает | Что ещё не готово |
 |---|---|---|---|
 | Tenant isolation | Частично, критический риск | единый `TenantContext`/`BranchContext` resolver, branch memberships/capabilities, composite tenant+branch FK migration | PostgreSQL RLS, полный audit всех integration routes, cross-tenant tests, production migration verification |
-| Pickup и delivery | Частично | pickup/delivery checkout, delivery zones, minimum order, fee, desired time, address snapshot | customer address CRUD, courier assignment, status history, promised/delivered timestamps, delivery retry/problem workflow |
+| Pickup и delivery | Частично | pickup/delivery checkout, delivery zones, minimum order, fee, desired time, customer address CRUD, courier assignment, delivery state machine, event history and timestamps | checkout saved-address selection, delivery retry/problem UI, courier operations UI, promised/delivered customer status surface |
 | Payments | Частично | cash/card/online selection, admin transitions, HMAC-signed webhook, duplicate event check | provider abstraction/intents, append-only payment events, полноценные refunds, partial captures, reconciliation и settlement reports |
 | Reservations | Частично | advisory lock, table blocks, business hours, branch timezone, waitlist creation API, guest cancellation | waitlist matching/notification, deposits, cancellation policy, no-show job, reservation history, day timeline |
 | Admin panel | Частично | user/order/reservation pagination, menu/category APIs и UI, payment transitions, audit viewer API, domain API, branch membership/capability API | order filters, branch management UI, полноценный CRUD UI, media upload, schedules, modifiers/allergens UI, shift timeline |
@@ -70,7 +70,7 @@ Admin dashboard, reservations, payments, menu и основные public flows �
 
 `src/app/api/public/orders/route.ts` теперь поддерживает `dine_in`, `pickup` и `delivery`, проверяет server cart, tenant/branch, доступность товаров, delivery zone, minimum subtotal и Decimal-safe fee. В транзакции создаются order, order items, payment и delivery record; cart переводится в `converted`.
 
-Есть public delivery zones endpoint и customer checkout controls. Однако `delivery_address` пока передаётся как JSON snapshot, customer addresses не имеют API, courier хранится строковым полем, а delivery status transitions/history отсутствуют.
+Есть public delivery zones endpoint и customer checkout controls. Однако checkout пока передаёт `delivery_address` как JSON snapshot без saved-address selection, а customer-facing delivery status surface и courier operations UI отсутствуют.
 
 ### 4.3 Payments
 
@@ -235,6 +235,7 @@ Feature считается завершённой только после цеп
 - Добавлены cross-tenant/cross-branch isolation policy tests: tenant mismatch, branch mismatch, разрешённый scope и запрет branch-bound пользователя на tenant-wide resource. Проверки: ESLint, TypeScript и Vitest (8 тестов).
 - Подготовлена RLS rollout migration с PostgreSQL `cafeflow.current_tenant_id()`/`current_branch_ids()` functions и отдельным deployment/rollback checklist. FORCE RLS намеренно не включён до внедрения `SET LOCAL` transaction context во всех tenant-scoped runtime queries. `prisma migrate status` подтвердил доступную Neon БД, но миграции 202609170001-004 пока не применены; deployment требует backup и контролируемого окна.
 - Добавлен customer address CRUD API с tenant/user isolation, транзакционной сменой default address и update/delete ownership checks. Проверки: ESLint, TypeScript, Vitest (11 тестов). Courier assignment и delivery state machine остаются в следующем P1-срезе.
+- Добавлен delivery lifecycle: courier user assignment, promised/assigned/picked-up/delivered/failed timestamps, append-only delivery events, retry transition и tenant/branch-scoped admin API. Проверки: Prisma validate, ESLint, TypeScript, Vitest (14 тестов) и production build.
 
 Ограничения следующего security-среза: legacy `users.branch_id` пока сохраняется для обратной совместимости, branch management UI отсутствует, tenant-wide admin требует отдельного review, а составные FK/RLS и cross-tenant tests ещё не готовы.
 
