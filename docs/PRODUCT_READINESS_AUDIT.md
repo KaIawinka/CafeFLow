@@ -39,7 +39,7 @@ CafeFlow уже является расширенным MVP с рабочим я
 |---|---|---|---|
 | Tenant isolation | Частично, критический риск | единый `TenantContext`/`BranchContext` resolver, branch memberships/capabilities, composite tenant+branch FK migration | PostgreSQL RLS, полный audit всех integration routes, cross-tenant tests, production migration verification |
 | Pickup и delivery | Частично | pickup/delivery checkout, saved-address checkout, delivery zones, customer address CRUD, courier assignment, status history, promised/delivered timestamps, retry/problem workflow, dispatcher UI | customer-facing delivery tracking and external courier integration |
-| Payments | Частично | cash/card/online selection, admin transitions, HMAC-signed webhook, duplicate event check | provider abstraction/intents, append-only payment events, полноценные refunds, partial captures, reconciliation и settlement reports |
+| Payments | Частично | cash/card/online selection, provider contract, HMAC-signed webhook, append-only events, duplicate event check, captured/refunded/chargeback accounting fields | production provider adapter/intents, полноценные refund/capture operations, reconciliation и settlement reports |
 | Reservations | Частично | advisory lock, table blocks, business hours, branch timezone, waitlist creation API, guest cancellation | waitlist matching/notification, deposits, cancellation policy, no-show job, reservation history, day timeline |
 | Admin panel | Частично | user/order/reservation pagination, menu/category APIs и UI, payment transitions, audit viewer API, domain API, branch membership/capability API | order filters, branch management UI, полноценный CRUD UI, media upload, schedules, modifiers/allergens UI, shift timeline |
 | Retention | Частично | promotion validation, favorites API, verified reviews API, histories, repeat-order API | promotion redemption in checkout, append-only loyalty ledger, moderation UI, customer-facing retention screens |
@@ -76,7 +76,7 @@ Admin dashboard, reservations, payments, menu и основные public flows �
 
 Checkout сохраняет `cash`, `card`, `online` или `other`. Admin payment API поддерживает ручные переходы, а webhook API проверяет HMAC signature, amount/currency и повторный `provider_event_id`.
 
-Это foundation, а не полноценная платёжная система: нет provider adapter, payment intent lifecycle, отдельной таблицы событий, idempotency record с payload hash, refund history, chargeback и reconciliation с провайдером.
+Это foundation, а не полноценная платёжная система: `PaymentProvider` и append-only `payment_events` теперь фиксируют подписанные события с payload hash, а `payments` хранит captured/refunded/chargeback totals. Реальные provider adapters, intent lifecycle, управляемые refund/capture operations и reconciliation с провайдером ещё не реализованы.
 
 ### 4.4 Reservations
 
