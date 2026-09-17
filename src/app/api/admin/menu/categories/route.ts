@@ -5,9 +5,8 @@ import { verifyAdminOrManager } from '@/lib/api-middleware';
 async function tenantId(request: NextRequest) {
   const auth = await verifyAdminOrManager(request, 'manage_menu');
   if (!auth.success || !auth.userId) return { error: auth.error || NextResponse.json({ error: 'Не авторизован' }, { status: 401 }) };
-  const user = await prisma.users.findUnique({ where: { id: auth.userId }, select: { tenant_id: true } });
-  if (!user?.tenant_id) return { error: NextResponse.json({ error: 'Tenant не настроен' }, { status: 409 }) };
-  return { id: user.tenant_id };
+  if (!auth.tenantId) return { error: NextResponse.json({ error: 'Tenant не настроен' }, { status: 409 }) };
+  return { id: auth.tenantId };
 }
 
 export async function GET(request: NextRequest) {

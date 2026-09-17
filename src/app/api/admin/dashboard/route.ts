@@ -36,10 +36,6 @@ function tenantScope(tenantId: string | null | undefined): { tenant_id?: string 
   return tenantId ? { tenant_id: tenantId } : {};
 }
 
-function branchScope(branchId: string | null | undefined): { branch_id?: string } {
-  return branchId ? { branch_id: branchId } : {};
-}
-
 export async function GET(request: NextRequest) {
   const auth = await verifyAdminOrManager(request, 'view_orders');
   if (!auth.success || !auth.userId) return auth.error;
@@ -47,6 +43,8 @@ export async function GET(request: NextRequest) {
   try {
     const actor = await getActor(auth.userId);
     if (!actor) return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
+    const tenantId = auth.tenantId ?? actor.tenant_id;
+    const branchIds = auth.branchIds ?? (actor.branch_id ? [actor.branch_id] : null);
 
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get('search')?.trim() || '';
@@ -65,11 +63,11 @@ export async function GET(request: NextRequest) {
       } : {}),
       ...(roles.includes(role as Role) ? { role: role as Role } : {}),
       ...(statuses.includes(status as Status) ? { status: status as Status } : {}),
-      ...tenantScope(actor.tenant_id),
+      ...tenantScope(tenantId),
     };
 
-    const orderWhere = { ...tenantScope(actor.tenant_id), ...branchScope(actor.branch_id) };
-    const productWhere = { deleted_at: null, ...tenantScope(actor.tenant_id) };
+    const orderWhere = { ...tenantScope(tenantId), ...(branchIds ? { branch_id: { in: branchIds } } : {}) };
+    const productWhere = { deleted_at: null, ...tenantScope(tenantId) };
       const [users, filteredUsersCount, usersCount, activeUsersCount, adminCount, ordersCount, revenue, productsCount, activeProductsCount, recentOrders, recentOrdersCount, products, tenant] = await Promise.all([
       prisma.users.findMany({
         where: userWhere,
@@ -83,9 +81,9 @@ export async function GET(request: NextRequest) {
         take: pageSize,
       }),
         prisma.users.count({ where: userWhere }),
-        prisma.users.count({ where: tenantScope(actor.tenant_id) }),
-        prisma.users.count({ where: { ...tenantScope(actor.tenant_id), status: 'active' } }),
-        prisma.users.count({ where: { ...tenantScope(actor.tenant_id), role: 'admin' } }),
+        prisma.users.count({ where: tenantScope(tenantId) }),
+        prisma.users.count({ where: { ...tenantScope(tenantId), status: 'active' } }),
+        prisma.users.count({ where: { ...tenantScope(tenantId), role: 'admin' } }),
       prisma.orders.count({ where: orderWhere }),
       prisma.orders.aggregate({ where: orderWhere, _sum: { total: true } }),
       prisma.products.count({ where: productWhere }),
@@ -104,7 +102,7 @@ export async function GET(request: NextRequest) {
         orderBy: [{ sort_order: 'asc' }, { created_at: 'desc' }],
         take: 100,
       }),
-      actor.tenant_id ? prisma.tenants.findUnique({ where: { id: actor.tenant_id }, select: { id: true, name: true, slug: true, status: true, currency: true, timezone: true, primary_color: true, contact_phone: true, contact_email: true, address_text: true, settings: true } }) : null,
+      tenantId ? prisma.tenants.findUnique({ where: { id: tenantId }, select: { id: true, name: true, slug: true, status: true, currency: true, timezone: true, primary_color: true, contact_phone: true, contact_email: true, address_text: true, settings: true } }) : null,
     ]);
 
     return NextResponse.json(serialize({
@@ -130,6 +128,8 @@ export async function PATCH(request: NextRequest) {
   try {
     const actor = await getActor(auth.userId);
     if (!actor) return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
+    const tenantId = auth.tenantId ?? actor.tenant_id;
+    const branchIds = auth.branchIds ?? (actor.branch_id ? [actor.branch_id] : null);
     const body = await request.json() as {
       resource?: 'user' | 'tenant' | 'order' | 'product';
       id?: string;
@@ -159,7 +159,7 @@ export async function PATCH(request: NextRequest) {
       if (auth.role !== 'admin' && body.role === 'admin') return NextResponse.json({ error: 'Менеджер не может назначать администратора' }, { status: 403 });
 
       const target = await prisma.users.findUnique({ where: { id: body.id }, select: { id: true, tenant_id: true, branch_id: true, role: true, status: true, requires_approval: true } });
-      if (!target || (actor.tenant_id && target.tenant_id !== actor.tenant_id) || (actor.branch_id && target.branch_id && target.branch_id !== actor.branch_id)) return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
+      if (!target || (tenantId && target.tenant_id !== tenantId) || (branchIds && target.branch_id && !branchIds.includes(target.branch_id))) return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
       if (body.role === 'admin' && auth.role !== 'admin') return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 });
 
       const updated = await prisma.users.update({
@@ -217,12 +217,12 @@ export async function PATCH(request: NextRequest) {
     if (body.resource === 'order') {
       if (!body.id || !body.orderStatus || !orderStatuses.includes(body.orderStatus)) return NextResponse.json({ error: 'Недопустимый статус заказа' }, { status: 400 });
       const order = await prisma.orders.findUnique({ where: { id: body.id }, select: { id: true, tenant_id: true, branch_id: true, user_id: true, order_number: true, status: true, status_history: true } });
-      if (!order || (actor.tenant_id && order.tenant_id !== actor.tenant_id) || (actor.branch_id && order.branch_id !== actor.branch_id)) return NextResponse.json({ error: 'Заказ не найден' }, { status: 404 });
+      if (!order || (tenantId && order.tenant_id !== tenantId) || (branchIds && (!order.branch_id || !branchIds.includes(order.branch_id)))) return NextResponse.json({ error: 'Заказ не найден' }, { status: 404 });
       if (!canTransitionOrderStatus(order.status as OrderStatus, body.orderStatus)) return NextResponse.json({ error: 'Недопустимый переход статуса заказа' }, { status: 409 });
       const history = Array.isArray(order.status_history) ? order.status_history : [];
       const statusHistory = [...history, { from: order.status, to: body.orderStatus, changedAt: new Date().toISOString(), changedBy: actor.id }];
       const staff = await prisma.users.findMany({
-        where: { tenant_id: order.tenant_id, status: 'active', role: { in: ['admin', 'manager', 'kitchen', 'employee'] }, id: { not: actor.id } },
+        where: { tenant_id: order.tenant_id, ...(order.branch_id ? { branch_id: order.branch_id } : {}), status: 'active', role: { in: ['admin', 'manager', 'kitchen', 'employee'] }, id: { not: actor.id } },
         select: { id: true },
       });
       const statusLabel = orderStatusLabels[body.orderStatus];

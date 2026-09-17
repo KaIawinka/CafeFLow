@@ -6,9 +6,8 @@ import { verifyAdminOrManager } from '@/lib/api-middleware';
 async function scope(request: NextRequest, id: string) {
   const auth = await verifyAdminOrManager(request, 'manage_menu');
   if (!auth.success || !auth.userId) return { error: auth.error || NextResponse.json({ error: 'Не авторизован' }, { status: 401 }) };
-  const user = await prisma.users.findUnique({ where: { id: auth.userId }, select: { tenant_id: true } });
-  if (!user?.tenant_id) return { error: NextResponse.json({ error: 'Tenant не настроен' }, { status: 409 }) };
-  const product = await prisma.products.findFirst({ where: { id, tenant_id: user.tenant_id, deleted_at: null } });
+  if (!auth.tenantId) return { error: NextResponse.json({ error: 'Tenant не настроен' }, { status: 409 }) };
+  const product = await prisma.products.findFirst({ where: { id, tenant_id: auth.tenantId, deleted_at: null } });
   if (!product) return { error: NextResponse.json({ error: 'Блюдо не найдено' }, { status: 404 }) };
   return { product };
 }

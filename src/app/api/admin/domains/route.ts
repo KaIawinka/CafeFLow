@@ -17,9 +17,8 @@ type ActorResult =
 async function actor(request: NextRequest): Promise<ActorResult> {
   const auth = await verifyAdmin(request);
   if (!auth.success || !auth.userId) return { error: auth.error || NextResponse.json({ error: 'Не авторизован' }, { status: 401 }) };
-  const user = await prisma.users.findUnique({ where: { id: auth.userId }, select: { id: true, tenant_id: true } });
-  if (!user?.tenant_id) return { error: NextResponse.json({ error: 'Tenant не настроен' }, { status: 409 }) };
-  return { user: { id: user.id, tenant_id: user.tenant_id } };
+  if (!auth.tenantId) return { error: NextResponse.json({ error: 'Tenant не настроен' }, { status: 409 }) };
+  return { user: { id: auth.userId, tenant_id: auth.tenantId } };
 }
 
 export async function GET(request: NextRequest) {

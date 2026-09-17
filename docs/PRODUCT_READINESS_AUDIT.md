@@ -37,7 +37,7 @@ CafeFlow уже является расширенным MVP с рабочим я
 
 | Область | Статус | Что реально работает | Что ещё не готово |
 |---|---|---|---|
-| Tenant isolation | Частично, критический риск | tenant slug, verified domain mapping, branch selector, tenant/branch predicates в основных public/admin API | PostgreSQL RLS, составные tenant/branch FK, branch membership/RBAC, полный audit всех admin routes, cross-tenant tests |
+| Tenant isolation | Частично, критический риск | единый `TenantContext`/`BranchContext` resolver, tenant/branch predicates в основных public/admin API, branch memberships/capabilities | PostgreSQL RLS, составные tenant/branch FK, полный audit всех integration routes, cross-tenant tests |
 | Pickup и delivery | Частично | pickup/delivery checkout, delivery zones, minimum order, fee, desired time, address snapshot | customer address CRUD, courier assignment, status history, promised/delivered timestamps, delivery retry/problem workflow |
 | Payments | Частично | cash/card/online selection, admin transitions, HMAC-signed webhook, duplicate event check | provider abstraction/intents, append-only payment events, полноценные refunds, partial captures, reconciliation и settlement reports |
 | Reservations | Частично | advisory lock, table blocks, business hours, branch timezone, waitlist creation API, guest cancellation | waitlist matching/notification, deposits, cancellation policy, no-show job, reservation history, day timeline |
@@ -151,7 +151,6 @@ Feature считается завершённой только после цеп
 
 ### P0: security boundary
 
-1. Ввести единые `TenantContext` и `BranchContext` для всех admin/public business queries.
 2. Сделать branch membership/capability model вместо одного `users.branch_id`.
 3. Добавить составные FK/constraints для tenant + branch consistency.
 4. Добавить cross-tenant/cross-branch authorization tests.
@@ -232,6 +231,7 @@ Feature считается завершённой только после цеп
 - Унифицированы persistent login rate limiting и audit records для admin password login и Telegram 2FA: блокировка по email/IP, журнал успешных и неуспешных попыток, причин отказа и доставки кода. Проверки: ESLint, TypeScript, Vitest и production build.
 - Добавлены `branch_memberships` и `branch_membership_capabilities` с tenant/branch/user FK, backfill для существующих branch-bound сотрудников и capability checks в основных admin dashboard/menu/payment/reservation/audit/domain routes. Проверки: Prisma validate, ESLint и TypeScript. Migration diff требует настроенного `datasource.shadowDatabaseUrl` и не запускался.
 - Промокод теперь применяется внутри transactional checkout: сервер повторно проверяет сроки, минимум и usage limit, атомарно увеличивает `usage_count`, сохраняет `promotion_id`, `discount_total` и уменьшенный `total` заказа. Проверки: Prisma validate, ESLint, TypeScript, Vitest и production build.
+- Введён единый типизированный `TenantContext`/`BranchContext` resolver для public и admin API; dashboard, reservations, payments, menu, domains и audit routes используют tenant/branch scope из middleware, включая несколько memberships. Проверки: ESLint и TypeScript.
 
 Ограничение следующего security-среза: legacy `users.branch_id` пока сохраняется для обратной совместимости, tenant-wide admin остаётся без membership lookup, а bot-key API ещё использует прямую роль из JWT. Это не считается полной готовностью branch RBAC.
 

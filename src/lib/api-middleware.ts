@@ -8,11 +8,15 @@ import { branch_capability } from '@prisma/client';
 import { verifyAccessToken } from '@/lib/auth/jwt';
 import { logger } from '@/lib/logger';
 import { prisma } from '@/lib/prisma';
+import { resolveAdminContext } from '@/lib/tenant-context';
 
 export interface AuthResult {
   success: boolean;
   userId?: string;
   role?: string;
+  tenantId?: string | null;
+  branchId?: string | null;
+  branchIds?: string[] | null;
   error?: NextResponse;
 }
 
@@ -82,6 +86,7 @@ export async function verifyAdmin(request: NextRequest): Promise<AuthResult> {
       ),
     };
   }
+  if (!auth.userId) return { success: false, error: NextResponse.json({ error: 'Не авторизован' }, { status: 401 }) };
 
   const user = await prisma.users.findUnique({ where: { id: auth.userId }, select: { status: true, branch_id: true } });
   if (!user || user.status !== 'active') {
@@ -92,7 +97,8 @@ export async function verifyAdmin(request: NextRequest): Promise<AuthResult> {
     if (!membership) return { success: false, error: NextResponse.json({ error: 'Нет активного доступа к филиалу' }, { status: 403 }) };
   }
 
-  return auth;
+  const context = await resolveAdminContext(auth.userId);
+  return { ...auth, tenantId: context?.tenantId, branchId: context?.branchId, branchIds: context?.branchIds };
 }
 
 /**
@@ -114,6 +120,7 @@ export async function verifyAdminOrManager(request: NextRequest, capability?: st
       ),
     };
   }
+  if (!auth.userId) return { success: false, error: NextResponse.json({ error: 'Не авторизован' }, { status: 401 }) };
 
   const user = await prisma.users.findUnique({
     where: { id: auth.userId },
@@ -144,5 +151,6 @@ export async function verifyAdminOrManager(request: NextRequest, capability?: st
     }
   }
 
-  return auth;
+  const context = await resolveAdminContext(auth.userId);
+  return { ...auth, tenantId: context?.tenantId, branchId: context?.branchId, branchIds: context?.branchIds };
 }
