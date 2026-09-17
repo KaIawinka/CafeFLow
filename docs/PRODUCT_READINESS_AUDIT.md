@@ -38,8 +38,8 @@ CafeFlow уже является расширенным MVP с рабочим я
 | Область | Статус | Что реально работает | Что ещё не готово |
 |---|---|---|---|
 | Tenant isolation | Частично, критический риск | единый `TenantContext`/`BranchContext` resolver, branch memberships/capabilities, composite tenant+branch FK migration | PostgreSQL RLS, полный audit всех integration routes, cross-tenant tests, production migration verification |
-| Pickup и delivery | Частично | pickup/delivery checkout, delivery zones, minimum order, fee, desired time, customer address CRUD, courier assignment, delivery state machine, event history and timestamps | checkout saved-address selection, delivery retry/problem UI, courier operations UI, promised/delivered customer status surface |
-| Payments | Частично | cash/card/online selection, provider interface, admin transitions, HMAC-signed webhook, append-only events and duplicate event check | configured external provider adapter/intents, полноценные refunds, partial captures, reconciliation и settlement reports |
+| Pickup и delivery | Частично | pickup/delivery checkout, delivery zones, saved-address checkout, customer address CRUD, minimum order, fee, desired time, address snapshot | courier assignment, status history, promised/delivered timestamps, delivery retry/problem workflow |
+| Payments | Частично | cash/card/online selection, admin transitions, HMAC-signed webhook, duplicate event check | provider abstraction/intents, append-only payment events, полноценные refunds, partial captures, reconciliation и settlement reports |
 | Reservations | Частично | advisory lock, table blocks, business hours, branch timezone, waitlist creation API, guest cancellation | waitlist matching/notification, deposits, cancellation policy, no-show job, reservation history, day timeline |
 | Admin panel | Частично | user/order/reservation pagination, menu/category APIs и UI, payment transitions, audit viewer API, domain API, branch membership/capability API | order filters, branch management UI, полноценный CRUD UI, media upload, schedules, modifiers/allergens UI, shift timeline |
 | Retention | Частично | promotion validation, favorites API, verified reviews API, histories, repeat-order API | promotion redemption in checkout, append-only loyalty ledger, moderation UI, customer-facing retention screens |
@@ -70,13 +70,13 @@ Admin dashboard, reservations, payments, menu и основные public flows �
 
 `src/app/api/public/orders/route.ts` теперь поддерживает `dine_in`, `pickup` и `delivery`, проверяет server cart, tenant/branch, доступность товаров, delivery zone, minimum subtotal и Decimal-safe fee. В транзакции создаются order, order items, payment и delivery record; cart переводится в `converted`.
 
-Есть public delivery zones endpoint и customer checkout controls. Однако checkout пока передаёт `delivery_address` как JSON snapshot без saved-address selection, а customer-facing delivery status surface и courier operations UI отсутствуют.
+Есть public delivery zones endpoint, customer address CRUD и checkout с выбором сохранённого адреса. Checkout сохраняет immutable address snapshot и связывает авторизованный заказ с клиентом. Courier assignment и delivery status transitions/history ещё не готовы.
 
 ### 4.3 Payments
 
 Checkout сохраняет `cash`, `card`, `online` или `other`. Admin payment API поддерживает ручные переходы, а webhook API проверяет HMAC signature, amount/currency и повторный `provider_event_id`.
 
-Это foundation, а не полноценная платёжная система: provider interface и payment events добавлены, но внешний provider adapter, refund history, chargeback и reconciliation с провайдером ещё не подключены.
+Это foundation, а не полноценная платёжная система: нет provider adapter, payment intent lifecycle, отдельной таблицы событий, idempotency record с payload hash, refund history, chargeback и reconciliation с провайдером.
 
 ### 4.4 Reservations
 
@@ -130,7 +130,7 @@ Notification cron claim-ит queued records, обрабатывает in-app/ema
 - `loyalty.user_id @unique` несовместим с append-only loyalty ledger;
 - `payments` — один record на order, недостаточно для captures/refunds/chargebacks;
 - `order_deliveries` не содержит courier user, status history и delivery event timestamps;
-- `customer_addresses` существует только в schema, runtime API отсутствует;
+- `customer_addresses` имеет runtime CRUD с tenant/user isolation и DB-инвариантом одного default address, но coordinates пока не редактируются в UI;
 - tenant/branch consistency часто проверяется только кодом;
 - `products.modifiers`, `allergens`, `image_file_ids`, `delivery_zones.rules` хранятся в JSON без schema-level validation/versioning;
 - `activity_logs` не имеют request id, correlation id, result/reason и immutable guarantee;
@@ -155,7 +155,7 @@ Feature считается завершённой только после цеп
 
 ### P1: коммерческий ordering и payments
 
-1. Customer addresses, courier assignment и delivery state machine.
+1. Courier assignment и delivery state machine.
 2. Payment provider abstraction, payment events, signed webhook idempotency.
 3. Refunds, partial captures, chargebacks и reconciliation.
 4. Promotion redemption внутри transactional checkout.
@@ -234,9 +234,7 @@ Feature считается завершённой только после цеп
 - Добавлены composite tenant+branch unique key и FK constraints для users, memberships, carts, orders, delivery zones, tables, reservations, waitlist, table blocks, business hours и analytics; миграция содержит preflight mismatch checks, deployment/rollback checklist и отдельную документацию. Проверки: Prisma validate, ESLint, TypeScript, Vitest (7 тестов) и production build. Реальное применение в PostgreSQL ещё не выполнено в текущем окружении.
 - Добавлены cross-tenant/cross-branch isolation policy tests: tenant mismatch, branch mismatch, разрешённый scope и запрет branch-bound пользователя на tenant-wide resource. Проверки: ESLint, TypeScript и Vitest (8 тестов).
 - Подготовлена RLS rollout migration с PostgreSQL `cafeflow.current_tenant_id()`/`current_branch_ids()` functions и отдельным deployment/rollback checklist. FORCE RLS намеренно не включён до внедрения `SET LOCAL` transaction context во всех tenant-scoped runtime queries. `prisma migrate status` подтвердил доступную Neon БД, но миграции 202609170001-004 пока не применены; deployment требует backup и контролируемого окна.
-- Добавлен customer address CRUD API с tenant/user isolation, транзакционной сменой default address и update/delete ownership checks. Проверки: ESLint, TypeScript, Vitest (11 тестов). Courier assignment и delivery state machine остаются в следующем P1-срезе.
-- Добавлен delivery lifecycle: courier user assignment, promised/assigned/picked-up/delivered/failed timestamps, append-only delivery events, retry transition и tenant/branch-scoped admin API. Проверки: Prisma validate, ESLint, TypeScript, Vitest (14 тестов) и production build.
-- Добавлены `PaymentProvider` contract/registry и append-only `payment_events`; signed webhook теперь сохраняет payload hash, event type и tenant-scoped event до обновления payment/order. Проверки: Prisma validate, ESLint, TypeScript и Vitest (14 тестов). Внешний provider adapter и refunds остаются следующими P1-срезами.
+- Реализованы customer address CRUD и checkout saved-address workflow: строгая server validation, tenant/user ownership checks, serializable default-address updates, DB-ограничение одного default address, privacy-safe audit records, profile UI и immutable delivery snapshot в заказе. Проверки: ESLint, TypeScript и 3 unit tests.
 
 Ограничения следующего security-среза: legacy `users.branch_id` пока сохраняется для обратной совместимости, branch management UI отсутствует, tenant-wide admin требует отдельного review, а составные FK/RLS и cross-tenant tests ещё не готовы.
 

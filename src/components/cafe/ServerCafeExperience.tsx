@@ -1,6 +1,6 @@
 'use client';
 
-function CheckoutCart({ items, t, update, onDone }: { items: CartItem[]; t: Copy; update: (id: string, quantity: number) => void; onDone: () => void }) {
+export function CheckoutCart({ items, t, update, onDone }: { items: CartItem[]; t: Copy; update: (id: string, quantity: number) => void; onDone: () => void }) {
   const [form, setForm] = useState({ name: '', phone: '', fulfillmentType: 'dine_in', paymentMethod: 'cash', tableId: '', addressText: '', zoneId: '', comment: '' });
   const [message, setMessage] = useState('');
   const total = items.reduce((sum, item) => sum + Number(item.product.price) * item.quantity, 0);
@@ -17,6 +17,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Clock3, Minus, Plus, Search, ShoppingCart, Table2, Trash2 } from 'lucide-react';
 import type { Locale } from '@/app/i18n/config';
+import { CustomerCheckout } from '@/components/cafe/CustomerCheckout';
 
 type Product = { id: string; name: string; description: string | null; price: string | number; currency: string; weight: string | number | null; preparation_minutes: number | null; category?: { name: string } | null };
 type Table = { id: string; name: string; zone: string | null; capacity: number; position?: unknown };
@@ -55,9 +56,9 @@ export function ServerCafeExperience({ view, locale }: { view: 'menu' | 'cart' |
     return () => window.clearTimeout(timeoutId);
   }, [view, t.error]);
   const items: CartItem[] = cart.map((item) => { const product = products.find((candidate) => candidate.id === item.productId); return product ? { product, quantity: item.quantity } : null; }).filter((item): item is CartItem => Boolean(item));
-  const update = (productId: string, quantity: number) => { const next = [...cart.filter((item) => item.productId !== productId), { productId, quantity }]; setCart(next); void saveServerCart(next).catch(() => setError(t.error)); };
+  const update = (productId: string, quantity: number) => { const next = quantity <= 0 ? cart.filter((item) => item.productId !== productId) : [...cart.filter((item) => item.productId !== productId), { productId, quantity }]; setCart(next); void saveServerCart(next).catch(() => setError(t.error)); };
   if (view === 'menu') return <Shell locale={locale} title={t.menu} subtitle={error || t.menuText} cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}><Menu products={products} t={t} add={(id) => update(id, (cart.find((item) => item.productId === id)?.quantity || 0) + 1)} /></Shell>;
-  if (view === 'cart') return <Shell locale={locale} title={t.order} subtitle={error || t.menuText} cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}><CheckoutCart items={items} t={t} update={update} onDone={() => { setCart([]); void saveServerCart([]); }} /></Shell>;
+  if (view === 'cart') return <Shell locale={locale} title={t.order} subtitle={error || t.menuText} cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}><CustomerCheckout items={items} locale={locale} onQuantityChange={update} onComplete={() => { setCart([]); void saveServerCart([]); }} /></Shell>;
   if (view === 'orders') return <Shell locale={locale} title={t.orders} subtitle={t.menuText} cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}><Orders t={t} /></Shell>;
   return <Shell locale={locale} title={t.booking} subtitle={t.menuText} cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}><Booking t={t} /></Shell>;
 }

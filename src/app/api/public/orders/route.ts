@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { getPublicCafeContext } from '@/lib/public-context';
+import { verifyAccessToken } from '@/lib/auth/jwt';
+import { addressSnapshot } from '@/lib/customer-address';
 
 function serialize<T>(value: T): T { return JSON.parse(JSON.stringify(value, (_, item) => typeof item === 'bigint' ? item.toString() : item)); }
 function guestToken() { return randomBytes(48).toString('base64url'); }
@@ -11,9 +13,19 @@ function orderNumber() { return `CF-${Date.now().toString(36).toUpperCase()}-${r
 
 type StoredCartItem = { productId?: unknown; quantity?: unknown };
 
+async function getOrderingUser(request: NextRequest, tenantId: string) {
+  const token = request.cookies.get('accessToken')?.value;
+  const payload = token ? await verifyAccessToken(token) : null;
+  if (!payload) return null;
+  return prisma.users.findFirst({
+    where: { id: payload.userId, tenant_id: tenantId, status: 'active' },
+    select: { id: true },
+  });
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json() as { customerName?: string; customerPhone?: string; tableId?: string; comment?: string; idempotencyKey?: string; fulfillmentType?: 'dine_in' | 'pickup' | 'delivery'; paymentMethod?: 'cash' | 'card' | 'online' | 'other'; deliveryAddress?: Record<string, unknown>; zoneId?: string; desiredAt?: string; promoCode?: string };
+    const body = await request.json() as { customerName?: string; customerPhone?: string; tableId?: string; comment?: string; idempotencyKey?: string; fulfillmentType?: 'dine_in' | 'pickup' | 'delivery'; paymentMethod?: 'cash' | 'card' | 'online' | 'other'; deliveryAddress?: Record<string, unknown>; addressId?: string; zoneId?: string; desiredAt?: string; promoCode?: string };
     const customerName = body.customerName?.trim();
     const customerPhone = body.customerPhone?.trim() || 'guest';
     const fulfillmentType = body.fulfillmentType || 'dine_in';
@@ -26,6 +38,19 @@ export async function POST(request: NextRequest) {
     const context = await getPublicCafeContext(request);
     if (!context?.branch) return NextResponse.json({ error: 'Филиал кафе пока не настроен' }, { status: 503 });
     const branch = context.branch;
+    const orderingUser = await getOrderingUser(request, context.tenant.id);
+    let deliveryAddress: Record<string, unknown> | undefined = body.deliveryAddress;
+    const addressId = body.addressId?.trim();
+    if (addressId) {
+      if (fulfillmentType !== 'delivery') return NextResponse.json({ error: 'Сохранённый адрес доступен только для доставки' }, { status: 400 });
+      if (!orderingUser) return NextResponse.json({ error: 'Войдите в аккаунт, чтобы использовать сохранённый адрес' }, { status: 401 });
+      const savedAddress = await prisma.customer_addresses.findFirst({
+        where: { id: addressId, tenant_id: context.tenant.id, user_id: orderingUser.id },
+        select: { id: true, label: true, address_text: true, entrance: true, floor: true, apartment: true, comment: true, latitude: true, longitude: true },
+      });
+      if (!savedAddress) return NextResponse.json({ error: 'Сохранённый адрес не найден' }, { status: 404 });
+      deliveryAddress = addressSnapshot(savedAddress);
+    }
 
     const existingOrder = await prisma.orders.findFirst({
       where: { tenant_id: context.tenant.id, idempotency_key: requestIdempotencyKey },
@@ -57,7 +82,7 @@ export async function POST(request: NextRequest) {
       ? await prisma.restaurant_tables.findFirst({ where: { id: body.tableId, tenant_id: context.tenant.id, branch_id: branch.id, status: 'active' }, select: { id: true, name: true } })
       : null;
     if (fulfillmentType === 'dine_in' && !table) return NextResponse.json({ error: 'Столик недоступен' }, { status: 409 });
-    if (fulfillmentType === 'delivery' && (!body.deliveryAddress || typeof body.deliveryAddress.addressText !== 'string' || !body.zoneId)) return NextResponse.json({ error: 'Для доставки нужны адрес и зона' }, { status: 400 });
+    if (fulfillmentType === 'delivery' && (!deliveryAddress || typeof deliveryAddress.addressText !== 'string' || !deliveryAddress.addressText.trim() || deliveryAddress.addressText.length > 500 || !body.zoneId)) return NextResponse.json({ error: 'Для доставки нужны адрес и зона' }, { status: 400 });
     const zone = fulfillmentType === 'delivery' && body.zoneId
       ? await prisma.delivery_zones.findFirst({ where: { id: body.zoneId, tenant_id: context.tenant.id, branch_id: branch.id, is_active: true }, select: { id: true, delivery_fee: true, min_order_amount: true, estimated_minutes: true } })
       : null;
@@ -97,13 +122,13 @@ export async function POST(request: NextRequest) {
     let order;
     try {
       order = await prisma.$transaction(async (tx) => {
-        const deliveryAddress = fulfillmentType === 'dine_in' ? { tableId: table?.id, tableName: table?.name } : body.deliveryAddress;
-        const jsonDeliveryAddress = deliveryAddress ? deliveryAddress as Prisma.InputJsonValue : Prisma.JsonNull;
+        const orderAddress = fulfillmentType === 'dine_in' ? { tableId: table?.id, tableName: table?.name } : deliveryAddress;
+        const jsonDeliveryAddress = orderAddress ? orderAddress as Prisma.InputJsonValue : Prisma.JsonNull;
         if (promotionId) {
           const consumed = await tx.promotions.updateMany({ where: { id: promotionId, tenant_id: context.tenant.id, is_active: true, ...(promoCode ? { code: promoCode } : {}), ...(promotionUsageLimit === null ? {} : { OR: [{ usage_limit: null }, { usage_count: { lt: promotionUsageLimit } }] }) }, data: { usage_count: { increment: 1 } } });
           if (consumed.count !== 1) throw new Error('PROMOTION_UNAVAILABLE');
         }
-        const createdOrder = await tx.orders.create({ data: { tenant_id: context.tenant.id, branch_id: branch.id, order_number: newOrderNumber, idempotency_key: requestIdempotencyKey, customer_name: customerName, customer_phone: customerPhone, fulfillment_type: fulfillmentType, status: 'new', payment_status: 'pending', promotion_id: promotionId, subtotal, discount_total: discountTotal, delivery_fee: deliveryFee, total, currency: context.tenant.currency, desired_at: desiredAt, comment: body.comment?.trim() || null, delivery_address: jsonDeliveryAddress, guest_token: token, order_items: { create: lines }, payment: { create: { tenant_id: context.tenant.id, method: paymentMethod, amount: total, currency: context.tenant.currency, status: 'pending' } }, ...(fulfillmentType === 'delivery' && zone ? { order_delivery: { create: { zone_id: zone.id, address_snapshot: body.deliveryAddress as Prisma.InputJsonValue, status: 'pending' } } } : {}) }, select: { id: true, order_number: true, status: true, total: true, currency: true, created_at: true, guest_token: true } });
+        const createdOrder = await tx.orders.create({ data: { tenant_id: context.tenant.id, branch_id: branch.id, user_id: orderingUser?.id || null, order_number: newOrderNumber, idempotency_key: requestIdempotencyKey, customer_name: customerName, customer_phone: customerPhone, fulfillment_type: fulfillmentType, status: 'new', payment_status: 'pending', promotion_id: promotionId, subtotal, discount_total: discountTotal, delivery_fee: deliveryFee, total, currency: context.tenant.currency, desired_at: desiredAt, comment: body.comment?.trim() || null, delivery_address: jsonDeliveryAddress, guest_token: token, order_items: { create: lines }, payment: { create: { tenant_id: context.tenant.id, method: paymentMethod, amount: total, currency: context.tenant.currency, status: 'pending' } }, ...(fulfillmentType === 'delivery' && zone ? { order_delivery: { create: { zone_id: zone.id, address_snapshot: deliveryAddress as Prisma.InputJsonValue, status: 'pending' } } } : {}) }, select: { id: true, order_number: true, status: true, total: true, currency: true, created_at: true, guest_token: true } });
         if (staff.length) {
           await tx.notifications.createMany({ data: staff.map((member) => ({ tenant_id: context.tenant.id, user_id: member.id, channel: 'in_app' as const, type: 'order_status' as const, subject: 'Новый заказ', body: `Заказ ${newOrderNumber} ожидает подтверждения`, status: 'queued' as const, attempts: 0 })) });
         }

@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { locales, type Locale } from '@/app/i18n/config';
 import { getUiTranslations } from '@/lib/ui-translations';
+import { CustomerAddresses } from '@/components/profile/CustomerAddresses';
 
 interface UserProfile {
   id: string;
@@ -499,6 +500,8 @@ function ProfileContent() {
                       </>
                     )}
                   </button>
+
+                  <CustomerAddresses locale={locale} />
                 </div>
               ) : (
                 <div className="space-y-6">
