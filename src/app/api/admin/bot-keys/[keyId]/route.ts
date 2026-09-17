@@ -7,8 +7,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyAccessToken } from '@/lib/auth/jwt';
 import { logger } from '@/lib/logger';
+import { verifyAdminOrManager } from '@/lib/api-middleware';
 
 interface RouteContext {
   params: Promise<{
@@ -25,26 +25,11 @@ export async function GET(
 ) {
   try {
     const { keyId } = await context.params;
-    const token = request.cookies.get('accessToken')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'Не авторизован' },
-        { status: 401 }
-      );
-    }
-
-    const payload = await verifyAccessToken(token);
-
-    if (!payload || payload.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Доступ запрещён' },
-        { status: 403 }
-      );
-    }
+    const auth = await verifyAdminOrManager(request, 'manage_staff');
+    if (!auth.success || !auth.userId || !auth.tenantId) return auth.error || NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
 
     const key = await prisma.bot_access_keys.findUnique({
-      where: { id: keyId },
+      where: { id: keyId, creator: { tenant_id: auth.tenantId } },
       include: {
         creator: {
           select: {
@@ -108,30 +93,15 @@ export async function PATCH(
 ) {
   try {
     const { keyId } = await context.params;
-    const token = request.cookies.get('accessToken')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'Не авторизован' },
-        { status: 401 }
-      );
-    }
-
-    const payload = await verifyAccessToken(token);
-
-    if (!payload || payload.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Доступ запрещён' },
-        { status: 403 }
-      );
-    }
+    const auth = await verifyAdminOrManager(request, 'manage_staff');
+    if (!auth.success || !auth.userId || !auth.tenantId) return auth.error || NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
 
     const body = await request.json();
     const { description, maxUses, isActive, expiresAt } = body;
 
     // Check if key exists
     const existingKey = await prisma.bot_access_keys.findUnique({
-      where: { id: keyId },
+      where: { id: keyId, creator: { tenant_id: auth.tenantId } },
     });
 
     if (!existingKey) {
@@ -166,7 +136,7 @@ export async function PATCH(
 
     logger.info('Bot key updated', { 
       keyId,
-      updatedBy: payload.userId 
+      updatedBy: auth.userId
     });
 
     return NextResponse.json({
@@ -193,27 +163,12 @@ export async function DELETE(
 ) {
   try {
     const { keyId } = await context.params;
-    const token = request.cookies.get('accessToken')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'Не авторизован' },
-        { status: 401 }
-      );
-    }
-
-    const payload = await verifyAccessToken(token);
-
-    if (!payload || payload.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Доступ запрещён' },
-        { status: 403 }
-      );
-    }
+    const auth = await verifyAdminOrManager(request, 'manage_staff');
+    if (!auth.success || !auth.userId || !auth.tenantId) return auth.error || NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
 
     // Check if key exists
     const existingKey = await prisma.bot_access_keys.findUnique({
-      where: { id: keyId },
+      where: { id: keyId, creator: { tenant_id: auth.tenantId } },
     });
 
     if (!existingKey) {
@@ -230,7 +185,7 @@ export async function DELETE(
 
     logger.info('Bot key deleted', { 
       keyId,
-      deletedBy: payload.userId 
+      deletedBy: auth.userId
     });
 
     return NextResponse.json({

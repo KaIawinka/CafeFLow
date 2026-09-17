@@ -6,9 +6,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyAccessToken } from '@/lib/auth/jwt';
 import { logger } from '@/lib/logger';
 import crypto from 'crypto';
+import { verifyAdminOrManager } from '@/lib/api-middleware';
 
 /**
  * Generate a unique bot access key
@@ -26,26 +26,12 @@ function generateBotKey(keyType: string): string {
  */
 export async function GET(request: NextRequest) {
   try {
-    const token = request.cookies.get('accessToken')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'Не авторизован' },
-        { status: 401 }
-      );
-    }
-
-    const payload = await verifyAccessToken(token);
-
-    if (!payload || payload.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Доступ запрещён' },
-        { status: 403 }
-      );
-    }
+    const auth = await verifyAdminOrManager(request, 'manage_staff');
+    if (!auth.success || !auth.userId || !auth.tenantId) return auth.error || NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
 
     // Get all keys with creator info and activation count
     const keys = await prisma.bot_access_keys.findMany({
+      where: { creator: { tenant_id: auth.tenantId } },
       include: {
         creator: {
           select: {
@@ -98,23 +84,8 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const token = request.cookies.get('accessToken')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'Не авторизован' },
-        { status: 401 }
-      );
-    }
-
-    const payload = await verifyAccessToken(token);
-
-    if (!payload || payload.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Доступ запрещён' },
-        { status: 403 }
-      );
-    }
+    const auth = await verifyAdminOrManager(request, 'manage_staff');
+    if (!auth.success || !auth.userId || !auth.tenantId) return auth.error || NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
 
     const body = await request.json();
     const { keyType, description, maxUses, expiresInDays } = body;
@@ -159,7 +130,7 @@ export async function POST(request: NextRequest) {
         max_uses: maxUses || null,
         expires_at: expiresAt,
         is_active: true,
-        created_by: payload.userId,
+        created_by: auth.userId,
       },
       include: {
         creator: {
@@ -176,7 +147,7 @@ export async function POST(request: NextRequest) {
     logger.info('Bot access key created', { 
       keyId: newKey.id, 
       keyType, 
-      createdBy: payload.userId 
+      createdBy: auth.userId
     });
 
     return NextResponse.json({

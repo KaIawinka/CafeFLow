@@ -41,7 +41,7 @@ CafeFlow уже является расширенным MVP с рабочим я
 | Pickup и delivery | Частично | pickup/delivery checkout, delivery zones, minimum order, fee, desired time, address snapshot | customer address CRUD, courier assignment, status history, promised/delivered timestamps, delivery retry/problem workflow |
 | Payments | Частично | cash/card/online selection, admin transitions, HMAC-signed webhook, duplicate event check | provider abstraction/intents, append-only payment events, полноценные refunds, partial captures, reconciliation и settlement reports |
 | Reservations | Частично | advisory lock, table blocks, business hours, branch timezone, waitlist creation API, guest cancellation | waitlist matching/notification, deposits, cancellation policy, no-show job, reservation history, day timeline |
-| Admin panel | Частично | user/order/reservation pagination, menu/category APIs и UI, payment transitions, audit viewer API, domain API | order filters, branch management, staff permissions, полноценный CRUD UI, media upload, schedules, modifiers/allergens UI, shift timeline |
+| Admin panel | Частично | user/order/reservation pagination, menu/category APIs и UI, payment transitions, audit viewer API, domain API, branch membership/capability API | order filters, branch management UI, полноценный CRUD UI, media upload, schedules, modifiers/allergens UI, shift timeline |
 | Retention | Частично | promotion validation, favorites API, verified reviews API, histories, repeat-order API | promotion redemption in checkout, append-only loyalty ledger, moderation UI, customer-facing retention screens |
 | Tenant content и landing | Частично/не готово | menu загружается из БД, contact API сохраняет leads, tenant settings API | tenant content API/UI, часы, map, branches/promotions/reviews on landing, dynamic metadata, JSON-LD, полная замена hardcoded CTA/content |
 | Mobile/PWA | Частично | mobile-first customer shell, responsive pages, bottom navigation, server cart, fixed cart link | fast order status, touch-first checkout, manifest, service worker, offline drafts, robust loading/error/empty states |
@@ -61,7 +61,7 @@ Admin dashboard, reservations, payments, menu и основные public flows �
 Но текущая защита остаётся application-level:
 
 - RLS policies отсутствуют во всех миграциях;
-- `users.branch_id` не заменяет branch membership и capability model;
+- legacy `users.branch_id` сохраняется для обратной совместимости, но branch memberships/capabilities теперь являются runtime-источником доступа для защищённых admin routes;
 - многие модели имеют независимые `tenant_id` и `branch_id` без составного FK;
 - не каждый admin/integration route приведён к единому `TenantContext`;
 - automated cross-tenant/cross-branch tests отсутствуют.
@@ -151,7 +151,6 @@ Feature считается завершённой только после цеп
 
 ### P0: security boundary
 
-2. Сделать branch membership/capability model вместо одного `users.branch_id`.
 3. Добавить составные FK/constraints для tenant + branch consistency.
 4. Добавить cross-tenant/cross-branch authorization tests.
 5. Включить PostgreSQL RLS и подготовить migration verification/rollback checklist.
@@ -233,8 +232,9 @@ Feature считается завершённой только после цеп
 - Промокод теперь применяется внутри transactional checkout: сервер повторно проверяет сроки, минимум и usage limit, атомарно увеличивает `usage_count`, сохраняет `promotion_id`, `discount_total` и уменьшенный `total` заказа. Проверки: Prisma validate, ESLint, TypeScript, Vitest и production build.
 - Введён единый типизированный `TenantContext`/`BranchContext` resolver для public и admin API; dashboard, reservations, payments, menu, domains и audit routes используют tenant/branch scope из middleware, включая несколько memberships. Проверки: ESLint и TypeScript.
 - Реализован mobile-first customer shell: фиксированная нижняя навигация для главной, меню, бронирования, заказов и корзины, active states, safe-area отступы и компактная адаптация заголовков/контента. Проверки: ESLint, TypeScript, Vitest и production build.
+- Реализован runtime workflow branch RBAC: admin API для списка, выдачи, обновления и отзыва memberships/capabilities, ограничения выдачи системных capabilities для manager, tenant/branch scope bot-key API и 4 policy tests. Проверки: ESLint, TypeScript, Vitest (7 тестов) и production build.
 
-Ограничение следующего security-среза: legacy `users.branch_id` пока сохраняется для обратной совместимости, tenant-wide admin остаётся без membership lookup, а bot-key API ещё использует прямую роль из JWT. Это не считается полной готовностью branch RBAC.
+Ограничения следующего security-среза: legacy `users.branch_id` пока сохраняется для обратной совместимости, branch management UI отсутствует, tenant-wide admin требует отдельного review, а составные FK/RLS и cross-tenant tests ещё не готовы.
 
 CafeFlow — multi-tenant white-label платформа. Любое пользовательское действие должно иметь реальный server workflow, понятную обратную связь, локализацию и mobile layout. UI-контрол без persistence не считается завершённым.
 
