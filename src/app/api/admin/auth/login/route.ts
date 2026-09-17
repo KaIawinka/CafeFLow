@@ -9,6 +9,7 @@ import { prisma } from '@/lib/prisma';
 import { verifyPassword } from '@/lib/auth/password';
 import { logger } from '@/lib/logger';
 import crypto from 'crypto';
+import { getClientIp, isLoginRateLimited, recordLoginAttempt } from '@/lib/auth/login-attempts';
 
 interface LoginRequest {
   email: string;
@@ -29,14 +30,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Get client IP
-    const ipAddress: string = request.headers.get('x-forwarded-for') || 
-                              request.headers.get('x-real-ip') || 
-                              'unknown';
+    const normalizedEmail = email.trim().toLowerCase();
+    const ipAddress = getClientIp(request);
+
+    if (await isLoginRateLimited(normalizedEmail, ipAddress)) {
+      await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'admin_rate_limit_exceeded' });
+      return NextResponse.json({ error: 'Слишком много попыток входа. Попробуйте позже.' }, { status: 429 });
+    }
 
     // Find admin user by email
     const user = await prisma.users.findFirst({
       where: { 
-        email: email.toLowerCase(),
+        email: normalizedEmail,
         role: 'admin', // Only admins can login to admin panel
       },
       select: {
@@ -53,6 +58,7 @@ export async function POST(request: NextRequest) {
 
     // User not found or not admin
     if (!user) {
+      await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'admin_invalid_credentials' });
       logger.warn('Admin login failed: User not found or not admin', { email, ipAddress });
       
       return NextResponse.json(
@@ -63,6 +69,7 @@ export async function POST(request: NextRequest) {
 
     // Check if user is active
     if (user.status !== 'active') {
+      await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'admin_account_inactive', userId: user.id });
       logger.warn('Admin login failed: User inactive', { email, status: user.status });
       
       return NextResponse.json(
@@ -73,6 +80,7 @@ export async function POST(request: NextRequest) {
 
     // Verify password
     if (!user.password_hash) {
+      await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'admin_missing_password_hash', userId: user.id });
       logger.warn('Admin login failed: No password hash', { email });
       return NextResponse.json(
         { error: 'Неверный email или пароль' },
@@ -83,6 +91,7 @@ export async function POST(request: NextRequest) {
     const isPasswordValid = await verifyPassword(password, user.password_hash);
 
     if (!isPasswordValid) {
+      await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'admin_invalid_credentials', userId: user.id });
       logger.warn('Admin login failed: Invalid password', { email, ipAddress });
       
       return NextResponse.json(
@@ -92,10 +101,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Password is correct
+    await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: true, reason: 'admin_2fa_required', userId: user.id });
     logger.info('Admin password verified', { email: user.email });
 
     // Check if user has Telegram linked
     if (!user.telegram_chat_id) {
+      await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'admin_telegram_not_linked', userId: user.id });
       logger.error('Admin has no Telegram linked', { email: user.email });
       return NextResponse.json(
         { error: 'У вас не привязан Telegram. Обратитесь к администратору системы для настройки 2FA.' },
@@ -167,6 +178,7 @@ export async function POST(request: NextRequest) {
       });
 
     } catch (error) {
+      await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'admin_2fa_delivery_failed', userId: user.id });
       logger.error('Failed to send 2FA code via Telegram', error);
       
       return NextResponse.json(

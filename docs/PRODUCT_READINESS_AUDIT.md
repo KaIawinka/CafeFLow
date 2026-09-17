@@ -156,7 +156,6 @@ Feature считается завершённой только после цеп
 3. Добавить составные FK/constraints для tenant + branch consistency.
 4. Добавить cross-tenant/cross-branch authorization tests.
 5. Включить PostgreSQL RLS и подготовить migration verification/rollback checklist.
-6. Унифицировать login rate limiting и security audit для user/admin flows.
 
 ### P1: коммерческий ordering и payments
 
@@ -228,6 +227,10 @@ Feature считается завершённой только после цеп
 
 ## 10. Перенесённые правила и история реализации
 
+### 10.1. Выполнено 2026-09-17
+
+- Унифицированы persistent login rate limiting и audit records для admin password login и Telegram 2FA: блокировка по email/IP, журнал успешных и неуспешных попыток, причин отказа и доставки кода. Проверки: ESLint, TypeScript, Vitest и production build.
+
 CafeFlow — multi-tenant white-label платформа. Любое пользовательское действие должно иметь реальный server workflow, понятную обратную связь, локализацию и mobile layout. UI-контрол без persistence не считается завершённым.
 
 Правила реализации:
@@ -258,6 +261,7 @@ CafeFlow — multi-tenant white-label платформа. Любое польз�
 | `8a46c52`, `dcc9cda`, `1ddc10e` | explicit tenant context, custom domains и branch discovery |
 | `f7ea04b`, `084034f` | tenant/branch scope в admin и guest flows |
 | `c3ba425`, `8155f43`, `96b54d`, `07c047c` | login rate limit, cleanup, session idle timeout и session management API |
+| pending | единый login rate limit и security audit для admin password login и Telegram 2FA |
 | `20a3356`, `36e48e9` | health/security headers и реальная contact form API |
 | `9ec055e`, `9d9faf4`, `f546b13`, `8a0a9bf` | menu/category APIs, admin menu UI и локализация |
 | `686e915`, `4e48df3` | pickup/delivery checkout, zones и payment method controls |

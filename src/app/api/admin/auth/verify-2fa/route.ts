@@ -9,6 +9,7 @@ import { createAuthSession, generateTokenPair } from '@/lib/auth/jwt';
 import { logger } from '@/lib/logger';
 import { cookies } from 'next/headers';
 import crypto from 'crypto';
+import { getClientIp, isLoginRateLimited, recordLoginAttempt } from '@/lib/auth/login-attempts';
 
 interface Verify2FARequest {
   email: string;
@@ -28,6 +29,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
+    const ipAddress = getClientIp(request);
+    if (await isLoginRateLimited(normalizedEmail, ipAddress)) {
+      await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'admin_2fa_rate_limit_exceeded' });
+      return NextResponse.json({ error: 'Слишком много попыток входа. Попробуйте позже.' }, { status: 429 });
+    }
+
     // Validate code format (6 digits)
     if (!/^\d{6}$/.test(code)) {
       return NextResponse.json(
@@ -39,7 +47,7 @@ export async function POST(request: NextRequest) {
     // Find admin user
     const user = await prisma.users.findFirst({
       where: { 
-        email: email.toLowerCase(),
+        email: normalizedEmail,
         role: 'admin',
       },
       select: {
@@ -53,6 +61,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!user) {
+      await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'admin_2fa_unknown_user' });
       logger.warn('Admin 2FA verification failed: User not found', { email });
       
       return NextResponse.json(
@@ -93,6 +102,7 @@ export async function POST(request: NextRequest) {
       });
 
       if (expiredCode) {
+        await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'admin_2fa_expired', userId: user.id });
         logger.warn('Admin 2FA code expired', { email: user.email });
         return NextResponse.json(
           { error: 'Код истёк. Запросите новый код.' },
@@ -124,6 +134,7 @@ export async function POST(request: NextRequest) {
         });
 
         if (attemptsLeft === 0) {
+          await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'admin_2fa_attempts_exceeded', userId: user.id });
           return NextResponse.json(
             { 
               error: 'Превышено количество попыток. Запросите новый код.',
@@ -133,6 +144,7 @@ export async function POST(request: NextRequest) {
           );
         }
 
+        await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'admin_2fa_invalid_code', userId: user.id });
         return NextResponse.json(
           { 
             error: 'Неверный код',
@@ -143,6 +155,7 @@ export async function POST(request: NextRequest) {
       }
 
       logger.warn('Invalid admin 2FA code - no code found', { email: user.email });
+      await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'admin_2fa_invalid_code', userId: user.id });
       
       return NextResponse.json(
         { error: 'Неверный код' },
@@ -152,6 +165,7 @@ export async function POST(request: NextRequest) {
 
     // Check attempts limit
     if (verificationCode.attempts >= 3) {
+      await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'admin_2fa_attempts_exceeded', userId: user.id });
       return NextResponse.json(
         { error: 'Превышено количество попыток. Запросите новый код.' },
         { status: 401 }
@@ -159,6 +173,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Code is valid - mark as used
+    await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: true, reason: 'admin_authenticated', userId: user.id });
     await prisma.verification_codes.update({
       where: { id: verificationCode.id },
       data: { used_at: new Date() },
