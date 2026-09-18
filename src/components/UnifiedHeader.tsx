@@ -24,6 +24,9 @@ import {
   CalendarDays,
   ClipboardList,
   Home,
+  Info,
+  MapPin,
+  Phone,
   ShoppingCart,
   Utensils,
   Search,
@@ -94,7 +97,9 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
     { label: currentLocale === 'en' ? 'My orders' : currentLocale === 'kg' ? 'Буйрутмаларым' : 'Мои заказы', description: currentLocale === 'en' ? 'View your orders' : 'История и статусы заказов', href: `/${currentLocale}/orders`, keywords: ['заказы', 'заказ', 'orders', 'буйрутма'] },
     { label: currentLocale === 'en' ? 'Cart' : currentLocale === 'kg' ? 'Себет' : 'Корзина', description: currentLocale === 'en' ? 'Open your cart' : 'Товары для оформления', href: `/${currentLocale}/cart`, keywords: ['корзина', 'cart', 'себет'] },
     { label: currentLocale === 'en' ? 'Promotions' : currentLocale === 'kg' ? 'Акциялар' : 'Акции', description: currentLocale === 'en' ? 'Current CafeFlow offers' : 'Скидки и специальные предложения', href: `/${currentLocale}#promotions`, keywords: ['акции', 'скидки', 'промо', 'promo', 'sale', 'акция'] },
-    { label: currentLocale === 'en' ? 'Contacts' : currentLocale === 'kg' ? 'Байланыштар' : 'Контакты', description: currentLocale === 'en' ? 'Address, phone and opening hours' : 'Адрес, телефон и часы работы', href: `/${currentLocale}#contact`, keywords: ['контакты', 'адрес', 'телефон', 'contact'] },
+    { label: currentLocale === 'en' ? 'About us' : currentLocale === 'kg' ? 'Биз жөнүндө' : 'О нас', description: currentLocale === 'en' ? 'Learn more about CafeFlow' : 'История и атмосфера CaféFlow', href: `/${currentLocale}#about`, keywords: ['о нас', 'about', 'биз жөнүндө'] },
+    { label: currentLocale === 'en' ? 'Address' : currentLocale === 'kg' ? 'Дарек' : 'Адрес', description: currentLocale === 'en' ? 'Find our cafe' : 'Где находится CaféFlow', href: `/${currentLocale}#address`, keywords: ['адрес', 'address', 'дарек'] },
+    { label: currentLocale === 'en' ? 'Contact us' : currentLocale === 'kg' ? 'Байланышуу' : 'Связаться с нами', description: currentLocale === 'en' ? 'Phone and email' : 'Телефон и электронная почта', href: `/${currentLocale}#contact`, keywords: ['связаться', 'контакты', 'contact', 'телефон'] },
   ];
 
   const searchResults = searchQuery.trim()
@@ -370,7 +375,6 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
 
           <form onSubmit={handleSearch} className="relative hidden min-w-0 flex-1 md:flex">
             <label className="header-search flex h-10 w-full items-center gap-2 rounded-lg border border-white/15 bg-white/10 px-3 text-white focus-within:border-orange-400">
-              <Search className="header-control h-4 w-4 shrink-0 text-white/60" aria-hidden="true" />
               <input
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
@@ -548,7 +552,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
               <div className="hidden h-full items-center gap-3 md:flex">
                 <Link
                   href={`/${currentLocale}/login`}
-                  className="inline-flex min-h-10 items-center justify-center rounded-lg border border-white/20 px-4 text-sm font-semibold text-white transition-colors hover:border-orange-400 hover:bg-orange-500 hover:text-white"
+                  className="header-auth-login inline-flex min-h-10 items-center justify-center rounded-lg border border-white/20 px-4 text-sm font-semibold text-white transition-colors hover:border-orange-400 hover:bg-orange-500 hover:text-white"
                 >
                   {ui.header.login}
                 </Link>
@@ -564,12 +568,15 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
           </div>
         </div>
 
-        <nav className="header-secondary-nav hidden min-h-12 items-center justify-center gap-2 border-t border-white/10 md:flex" aria-label="Основная навигация">
+        <nav className="header-secondary-nav hidden min-h-12 items-center justify-center gap-2 border-t border-white/10 md:flex" aria-label={currentLocale === 'en' ? 'Main navigation' : currentLocale === 'kg' ? 'Негизги навигация' : 'Основная навигация'}>
           <Link href={`/${currentLocale}`} className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors ${pathname === `/${currentLocale}` ? 'bg-orange-500 text-white' : 'text-white/75 hover:bg-orange-500/15 hover:text-orange-300'}`}><Home className="h-4 w-4" />{ui.header.home}</Link>
           {navLinks.map((link) => {
             const Icon = getNavIcon(link.href);
             return <Link key={link.href} href={link.href} className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors ${pathname === link.href ? 'bg-orange-500 text-white' : 'text-white/75 hover:bg-orange-500/15 hover:text-orange-300'}`}><Icon className="h-4 w-4" />{link.label}</Link>;
           })}
+          <Link href={`/${currentLocale}#about`} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium text-white/75 transition-colors hover:bg-orange-500/15 hover:text-orange-300"><Info className="h-4 w-4" />{currentLocale === 'en' ? 'About us' : currentLocale === 'kg' ? 'Биз жөнүндө' : 'О нас'}</Link>
+          <Link href={`/${currentLocale}#address`} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium text-white/75 transition-colors hover:bg-orange-500/15 hover:text-orange-300"><MapPin className="h-4 w-4" />{currentLocale === 'en' ? 'Address' : currentLocale === 'kg' ? 'Дарек' : 'Адрес'}</Link>
+          <Link href={`/${currentLocale}#contact`} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium text-white/75 transition-colors hover:bg-orange-500/15 hover:text-orange-300"><Phone className="h-4 w-4" />{currentLocale === 'en' ? 'Contact us' : currentLocale === 'kg' ? 'Байланышуу' : 'Связаться с нами'}</Link>
         </nav>
 
         {/* Mobile Menu */}

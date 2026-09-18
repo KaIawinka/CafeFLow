@@ -107,16 +107,10 @@ body {
   pointer-events: none;
   background: linear-gradient(to bottom, transparent, var(--background));
   filter: blur(18px);
-  animation: landing-transition-drift 8s ease-in-out infinite alternate;
 }
 
 .landing-section--light::after {
   background: linear-gradient(to bottom, transparent, #f7f5f0);
-}
-
-@keyframes landing-transition-drift {
-  from { transform: translateY(-0.4rem) scaleX(1); opacity: 0.82; }
-  to { transform: translateY(0.4rem) scaleX(1.03); opacity: 1; }
 }
 
 .footer-surface {
@@ -182,6 +176,15 @@ body {
   color: #151a1e;
 }
 
+.header-surface[data-theme="light"] .header-auth-login {
+  border-color: #d06b3c;
+  color: #9a3412;
+}
+
+.header-surface[data-theme="light"] .header-auth-login:hover {
+  color: #ffffff;
+}
+
 .header-surface[data-theme="light"] .header-secondary-nav {
   border-color: #ddd8cd;
 }
@@ -196,27 +199,6 @@ body {
   overflow: hidden;
 }
 
-.header-secondary-nav::before {
-  position: absolute;
-  inset: 0;
-  content: "";
-  pointer-events: none;
-  background: linear-gradient(90deg, transparent, rgba(249, 115, 22, 0.1), transparent);
-  filter: blur(14px);
-  transform: translateX(-45%);
-  animation: header-nav-glow 7s ease-in-out infinite;
-}
-
-@keyframes header-nav-glow {
-  0%, 100% { transform: translateX(-45%); opacity: 0.35; }
-  50% { transform: translateX(45%); opacity: 0.9; }
-}
-
-@media (min-width: 768px) {
-  .footer-surface {
-    background-attachment: fixed;
-  }
-}
 
 /* Keep legacy utility classes theme-aware on screens that predate the token system. */
 .dark [class~="bg-white"] {
