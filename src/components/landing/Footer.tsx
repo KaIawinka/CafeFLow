@@ -8,9 +8,9 @@ interface FooterProps {
 }
 
 const footerCopy = {
-  ru: { contacts: 'Контакты', address: 'Бишкек, ул. Примерная 123', open: 'Мы открыты каждый день' },
-  en: { contacts: 'Contact us', address: 'Bishkek, Example Street 123', open: 'We are open every day' },
-  kg: { contacts: 'Байланыштар', address: 'Бишкек, Мисал көчөсү 123', open: 'Биз күн сайын ачыкпыз' },
+  ru: { contacts: 'Контакты', hours: 'Часы работы', address: 'Бишкек, ул. Примерная 123', weekdays: 'Пн — Пт · 10:00–23:00', weekends: 'Сб — Вс · 09:00–23:00', open: 'Мы открыты каждый день' },
+  en: { contacts: 'Contact us', hours: 'Opening hours', address: 'Bishkek, Example Street 123', weekdays: 'Mon — Fri · 10:00–23:00', weekends: 'Sat — Sun · 09:00–23:00', open: 'We are open every day' },
+  kg: { contacts: 'Байланыштар', hours: 'Иш убактысы', address: 'Бишкек, Мисал көчөсү 123', weekdays: 'Дш — Жм · 10:00–23:00', weekends: 'Иш — Жек · 09:00–23:00', open: 'Биз күн сайын ачыкпыз' },
 } as const;
 
 function WhatsAppMark() {
@@ -41,6 +41,7 @@ export function Footer({ t, locale }: FooterProps) {
         <div className="flex flex-wrap items-center justify-center gap-x-7 gap-y-4 py-7 text-sm font-medium text-white/60 sm:justify-between">
           <div className="footer-table flex min-w-0 flex-1 flex-wrap items-start justify-between gap-7">
             <div id="address" className="min-w-[9rem]"><h4 className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-orange-300">{t.contact.address}</h4><div className="space-y-1.5 text-white/55"><p>{copy.address}</p><p>{t.contact.phone}: +996 XXX XXX XXX</p></div></div>
+            <div className="min-w-[11rem]"><h4 className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-orange-300">{copy.hours}</h4><div className="space-y-1.5 text-white/55"><p>{copy.weekdays}</p><p>{copy.weekends}</p></div></div>
             <div className="min-w-[11rem]"><h4 className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-orange-300">{copy.contacts}</h4><div className="space-y-1.5 text-white/55"><p>+996 555 000 000</p><p>hello@cafeflow.kg</p><p>WhatsApp · Telegram</p></div></div>
           </div>
         </div>
