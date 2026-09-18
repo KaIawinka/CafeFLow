@@ -91,7 +91,7 @@ body {
 }
 
 .admin-page {
-  background: var(--gradient-bg);
+  background: var(--card);
 }
 
 .landing-section {

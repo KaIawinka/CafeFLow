@@ -9,14 +9,10 @@ import {
   Bell,
   ChevronRight,
   CircleDollarSign,
-  Clock3,
   Database,
-  Download,
   Filter,
-  LayoutDashboard,
   MoreHorizontal,
   Package,
-  RefreshCw,
   Search,
   Settings,
   ShieldCheck,
@@ -150,11 +146,8 @@ export default function AdminDashboardClient({ locale, embedded = false }: { loc
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
-  const [refreshing, setRefreshing] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
 
   const load = useEffectEvent(async () => {
-    setRefreshing(true);
     try {
       const response = await fetch('/api/admin/dashboard?usersPage=1&ordersPage=1', { cache: 'no-store' });
       const payload = await response.json() as DashboardData & { error?: string };
@@ -165,14 +158,13 @@ export default function AdminDashboardClient({ locale, embedded = false }: { loc
       setError(ui.admin.errorLoad);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   });
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => void load(), 0);
     return () => window.clearTimeout(timeoutId);
-  }, [refreshKey]);
+  }, []);
 
   const filteredUsers = useMemo(() => {
     if (!data) return [];
@@ -207,14 +199,7 @@ export default function AdminDashboardClient({ locale, embedded = false }: { loc
       <main className={`${embedded ? '' : 'mx-auto max-w-[1600px] '}px-0 py-0 text-[var(--foreground)] sm:px-0 sm:py-0 lg:px-0 lg:py-0`}>
         <div className="mb-7 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <div className="mb-3 flex items-center gap-2 text-xs font-medium text-[var(--muted-foreground)]"><LayoutDashboard className="h-3.5 w-3.5" /> {text.overview} <ChevronRight className="h-3 w-3" /> {data?.tenant?.name || 'CaféFlow'}</div>
             <h1 className="text-3xl font-black tracking-tight sm:text-4xl">{text.title}</h1>
-            <p className="mt-2 text-sm text-[var(--muted-foreground)]">{text.live}</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 text-sm font-semibold text-[var(--muted-foreground)]"><Clock3 className="h-4 w-4" /> {text.period}</span>
-            <button type="button" onClick={() => setRefreshKey((current) => current + 1)} disabled={refreshing} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-[var(--primary)] px-4 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-orange-600 disabled:opacity-60"><RefreshCw className={refreshing ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} /> {text.refresh}</button>
-            <button type="button" className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 text-sm font-bold text-[var(--foreground)] transition hover:bg-[var(--muted)]"><Download className="h-4 w-4" /> {text.export}</button>
           </div>
         </div>
 

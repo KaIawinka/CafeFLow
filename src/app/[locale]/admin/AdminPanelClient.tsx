@@ -326,7 +326,7 @@ export default function AdminPage() {
 
   return (
     <div className="admin-page min-h-screen w-full">
-      <div className="w-full px-3 py-4 sm:px-5 sm:py-5 lg:px-8 lg:py-6">
+      <div className="w-full">
         {error && (
           <div className="mb-6 flex items-center justify-between gap-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
             <span>{error}</span>
@@ -335,8 +335,8 @@ export default function AdminPage() {
         )}
 
         {/* Tabs */}
-        <div className="grid min-h-[calc(100vh-7rem)] w-full overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-[0_12px_30px_rgba(21,26,30,0.08)] lg:grid-cols-[240px_minmax(0,1fr)]">
-          <div className="border-b border-gray-200 dark:border-gray-700 overflow-x-auto lg:border-b-0 lg:border-r">
+        <div className="grid min-h-[calc(100vh-7rem)] w-full overflow-hidden bg-[var(--card)] lg:grid-cols-[260px_minmax(0,1fr)]">
+          <div className="border-b border-[var(--border)] overflow-x-auto lg:border-b-0 lg:border-r">
             <nav className="flex min-w-max sm:min-w-0 lg:flex-col lg:gap-1 lg:p-3">
               <button
                 onClick={() => setActiveTab('dashboard')}
@@ -418,7 +418,7 @@ export default function AdminPage() {
             </nav>
           </div>
 
-          <div className="p-4 sm:p-6">
+          <div className="p-6 sm:p-8 xl:p-10">
             {activeTab === 'dashboard' && <AdminDashboardClient locale={locale} embedded />}
 
             {/* Users Tab */}
