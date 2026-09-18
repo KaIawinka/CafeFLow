@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 
 export interface TenantContext {
   tenant: {
@@ -67,10 +68,15 @@ export async function resolveAdminContext(userId: string): Promise<AdminContext 
   });
   if (!user) return null;
 
-  const memberships = await prisma.branch_memberships.findMany({
-    where: { user_id: userId, status: 'active' },
-    select: { branch_id: true },
-  });
+  let memberships: Array<{ branch_id: string }> = [];
+  try {
+    memberships = await prisma.branch_memberships.findMany({
+      where: { user_id: userId, status: 'active' },
+      select: { branch_id: true },
+    });
+  } catch (error) {
+    if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== 'P2021') throw error;
+  }
   const branchIds = memberships.length ? memberships.map((membership) => membership.branch_id) : null;
   return {
     userId,
