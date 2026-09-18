@@ -7,12 +7,9 @@ import Image from 'next/image';
 import {
   Users,
   Settings as SettingsIcon,
-  BarChart3,
   Loader2,
   Search,
   Filter,
-  Crown,
-  CheckCircle,
   Save,
   ShoppingCart,
   Package,
@@ -52,16 +49,6 @@ interface SiteSettings {
   contactPhone: string;
   contactEmail: string;
   addressText: string;
-}
-
-interface Metrics {
-  users: number;
-  activeUsers: number;
-  admins: number;
-  orders: number;
-  revenue: string | number;
-  products: number;
-  activeProducts: number;
 }
 
 interface RecentOrder {
@@ -116,12 +103,11 @@ export default function AdminPage() {
   const ui = getUiTranslations(locale);
   const errorLoad = ui.admin.errorLoad;
   const requestedTab = searchParams.get('tab');
-  const initialTab = ['dashboard', 'users', 'orders', 'reservations', 'products', 'settings', 'stats'].includes(requestedTab || '') ? requestedTab as 'dashboard' | 'users' | 'orders' | 'reservations' | 'products' | 'settings' | 'stats' : 'dashboard';
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'orders' | 'reservations' | 'products' | 'settings' | 'stats'>(initialTab);
+  const initialTab = ['dashboard', 'users', 'orders', 'reservations', 'products', 'settings'].includes(requestedTab || '') ? requestedTab as 'dashboard' | 'users' | 'orders' | 'reservations' | 'products' | 'settings' : 'dashboard';
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'orders' | 'reservations' | 'products' | 'settings'>(initialTab);
   const [isLoading, setIsLoading] = useState(true);
   const [hasLoadedDashboard, setHasLoadedDashboard] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
-  const [metrics, setMetrics] = useState<Metrics>({ users: 0, activeUsers: 0, admins: 0, orders: 0, revenue: 0, products: 0, activeProducts: 0 });
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [reservations, setReservations] = useState<AdminReservation[]>([]);
   const [reservationTables, setReservationTables] = useState<Array<{ id: string; name: string; zone: string | null; capacity: number }>>([]);
@@ -168,7 +154,6 @@ export default function AdminPage() {
       if (!response.ok) throw new Error(data.error || errorLoad);
       setUsers(data.users || []);
       setHasLoadedDashboard(true);
-      setMetrics(data.metrics || { users: 0, activeUsers: 0, admins: 0, orders: 0, revenue: 0, products: 0, activeProducts: 0 });
       setRecentOrders(data.recentOrders || []);
       setUsersTotal(data.pagination?.usersTotal || 0);
       setOrdersTotal(data.pagination?.ordersTotal || 0);
@@ -403,17 +388,6 @@ export default function AdminPage() {
               >
                 <CalendarDays className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>Брони</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('stats')}
-                className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
-                  activeTab === 'stats'
-                    ? 'border-b-2 border-amber-600 text-amber-600 bg-amber-50 dark:bg-amber-900/20'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
-                }`}
-              >
-                <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span>{ui.admin.stats}</span>
               </button>
             </nav>
           </div>
@@ -855,57 +829,6 @@ export default function AdminPage() {
               </div>
             )}
 
-            {/* Stats Tab */}
-            {activeTab === 'stats' && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white">
-                    <Users className="w-8 h-8 mb-3 opacity-80" />
-                    <h3 className="text-3xl font-bold mb-1">{metrics.users}</h3>
-                    <p className="text-blue-100">{ui.admin.totalUsers}</p>
-                  </div>
-
-                  <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white">
-                    <CheckCircle className="w-8 h-8 mb-3 opacity-80" />
-                    <h3 className="text-3xl font-bold mb-1">
-                      {metrics.activeUsers}
-                    </h3>
-                    <p className="text-green-100">{ui.admin.activeUsers}</p>
-                  </div>
-
-                  <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white">
-                    <Crown className="w-8 h-8 mb-3 opacity-80" />
-                    <h3 className="text-3xl font-bold mb-1">
-                      {metrics.admins}
-                    </h3>
-                    <p className="text-purple-100">{ui.admin.adminCount}</p>
-                  </div>
-                </div>
-
-                <div className="rounded-xl bg-gray-50 p-5 dark:bg-gray-900/50">
-                  <div className="mb-4 flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{ui.admin.ordersToday}</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{metrics.orders} · {metrics.revenue} {ui.admin.currency}</p>
-                    </div>
-                    <BarChart3 className="h-8 w-8 text-amber-500" />
-                  </div>
-                  <div className="space-y-2">
-                    {recentOrders.length === 0 ? (
-                      <p className="py-6 text-center text-sm text-gray-500 dark:text-gray-400">{ui.admin.detailedStats}</p>
-                    ) : recentOrders.map((order) => (
-                      <div key={order.id} className="flex items-center justify-between gap-4 rounded-lg bg-white px-4 py-3 text-sm dark:bg-gray-800">
-                        <div className="min-w-0">
-                          <p className="font-semibold text-gray-900 dark:text-white">#{order.order_number} · {order.customer_name}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(order.created_at).toLocaleString(locale)}</p>
-                        </div>
-                        <span className="shrink-0 font-semibold text-amber-600 dark:text-amber-400">{order.total} {order.currency}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
