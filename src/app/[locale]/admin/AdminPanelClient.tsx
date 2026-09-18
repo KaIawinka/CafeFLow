@@ -320,8 +320,8 @@ export default function AdminPage() {
         )}
 
         {/* Tabs */}
-        <div className="grid min-h-[calc(100vh-7rem)] w-full overflow-hidden bg-[var(--card)] lg:grid-cols-[260px_minmax(0,1fr)]">
-          <div className="border-b border-[var(--border)] overflow-x-auto lg:border-b-0 lg:border-r">
+        <div className="grid min-h-[calc(100vh-7rem)] w-full overflow-hidden bg-[var(--background)] lg:grid-cols-[260px_minmax(0,1fr)]">
+          <div className="border-b border-[var(--border)] bg-[var(--card)] overflow-x-auto lg:border-b-0 lg:border-r">
             <nav className="flex min-w-max sm:min-w-0 lg:flex-col lg:gap-1 lg:p-3">
               <button
                 onClick={() => setActiveTab('dashboard')}
@@ -392,7 +392,7 @@ export default function AdminPage() {
             </nav>
           </div>
 
-          <div className="p-6 sm:p-8 xl:p-10">
+          <div className="bg-[var(--background)] p-6 sm:p-8 xl:p-10">
             {activeTab === 'dashboard' && <AdminDashboardClient locale={locale} embedded />}
 
             {/* Users Tab */}

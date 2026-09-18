@@ -195,7 +195,7 @@ export default function AdminDashboardClient({ locale, embedded = false }: { loc
   ];
 
   return (
-    <div className={`${embedded ? '' : 'min-h-screen '}bg-[var(--background)] text-[var(--foreground)]`}>
+    <div className={`${embedded ? '' : 'min-h-screen bg-[var(--background)] '}text-[var(--foreground)]`}>
       <main className={`${embedded ? '' : 'mx-auto max-w-[1600px] '}px-0 py-0 text-[var(--foreground)] sm:px-0 sm:py-0 lg:px-0 lg:py-0`}>
         <div className="mb-7 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
