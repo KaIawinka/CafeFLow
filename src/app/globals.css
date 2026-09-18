@@ -86,6 +86,10 @@ body {
   min-width: 320px;
 }
 
+.landing-page {
+  background: var(--background);
+}
+
 .landing-section {
   isolation: isolate;
 }

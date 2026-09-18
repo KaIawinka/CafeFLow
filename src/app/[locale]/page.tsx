@@ -15,7 +15,7 @@ export default async function Home({
   const t = await getTranslations(locale, "landing");
 
   return (
-    <div className="flex flex-col">
+    <div className="landing-page flex min-h-full flex-col">
       <HeroSection t={t} />
       <PromoCarousel locale={locale} />
       <FeaturesSection t={t} locale={locale} />
