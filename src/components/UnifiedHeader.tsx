@@ -286,6 +286,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
 
   const currentRole = user ? roleConfig[user.role] || roleConfig.customer : null;
   const isStaff = Boolean(user && ['employee', 'kitchen', 'manager', 'admin'].includes(user.role));
+  const isAdmin = user?.role === 'admin';
 
   const getNavLinks = () => {
     const labels = {
@@ -297,7 +298,9 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
       const staffLinks = [] as Array<{ href: string; label: string }>;
       if (user?.role === 'admin' || user?.role === 'manager') {
         staffLinks.push({ href: `/${currentLocale}/admin`, label: ui.header.admin });
-        staffLinks.push({ href: `/${currentLocale}/admin/deliveries`, label: currentLocale === 'en' ? 'Deliveries' : currentLocale === 'kg' ? 'Жеткирүү' : 'Доставка' });
+        if (user.role !== 'admin') {
+          staffLinks.push({ href: `/${currentLocale}/admin/deliveries`, label: currentLocale === 'en' ? 'Deliveries' : currentLocale === 'kg' ? 'Жеткирүү' : 'Доставка' });
+        }
       }
       if (user?.role === 'kitchen') staffLinks.push({ href: '/kitchen', label: ui.header.kitchen });
       return staffLinks;
@@ -574,9 +577,11 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
             const Icon = getNavIcon(link.href);
             return <Link key={link.href} href={link.href} className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors ${pathname === link.href ? 'bg-orange-500 text-white' : 'text-white/75 hover:bg-orange-500/15 hover:text-orange-300'}`}><Icon className="h-4 w-4" />{link.label}</Link>;
           })}
-          <Link href={`/${currentLocale}#about`} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium text-white/75 transition-colors hover:bg-orange-500/15 hover:text-orange-300"><Info className="h-4 w-4" />{currentLocale === 'en' ? 'About us' : currentLocale === 'kg' ? 'Биз жөнүндө' : 'О нас'}</Link>
-          <Link href={`/${currentLocale}#address`} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium text-white/75 transition-colors hover:bg-orange-500/15 hover:text-orange-300"><MapPin className="h-4 w-4" />{currentLocale === 'en' ? 'Address' : currentLocale === 'kg' ? 'Дарек' : 'Адрес'}</Link>
-          <Link href={`/${currentLocale}#contact`} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium text-white/75 transition-colors hover:bg-orange-500/15 hover:text-orange-300"><Phone className="h-4 w-4" />{currentLocale === 'en' ? 'Contact us' : currentLocale === 'kg' ? 'Байланышуу' : 'Связаться с нами'}</Link>
+          {!isAdmin && <>
+            <Link href={`/${currentLocale}#about`} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium text-white/75 transition-colors hover:bg-orange-500/15 hover:text-orange-300"><Info className="h-4 w-4" />{currentLocale === 'en' ? 'About us' : currentLocale === 'kg' ? 'Биз жөнүндө' : 'О нас'}</Link>
+            <Link href={`/${currentLocale}#address`} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium text-white/75 transition-colors hover:bg-orange-500/15 hover:text-orange-300"><MapPin className="h-4 w-4" />{currentLocale === 'en' ? 'Address' : currentLocale === 'kg' ? 'Дарек' : 'Адрес'}</Link>
+            <Link href={`/${currentLocale}#contact`} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium text-white/75 transition-colors hover:bg-orange-500/15 hover:text-orange-300"><Phone className="h-4 w-4" />{currentLocale === 'en' ? 'Contact us' : currentLocale === 'kg' ? 'Байланышуу' : 'Связаться с нами'}</Link>
+          </>}
         </nav>
 
         {/* Mobile Menu */}
