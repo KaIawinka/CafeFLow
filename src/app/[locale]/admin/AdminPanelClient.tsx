@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useEffectEvent, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
@@ -110,11 +110,14 @@ function PaginationControls({ page, pageCount, onPageChange }: { page: number; p
 
 export default function AdminPage() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const locale = (locales.find((item) => pathname.split('/')[1] === item) || 'ru') as Locale;
   const ui = getUiTranslations(locale);
   const errorLoad = ui.admin.errorLoad;
-  const [activeTab, setActiveTab] = useState<'users' | 'orders' | 'reservations' | 'products' | 'settings' | 'stats'>('users');
+  const requestedTab = searchParams.get('tab');
+  const initialTab = ['users', 'orders', 'reservations', 'products', 'settings', 'stats'].includes(requestedTab || '') ? requestedTab as 'users' | 'orders' | 'reservations' | 'products' | 'settings' | 'stats' : 'users';
+  const [activeTab, setActiveTab] = useState<'users' | 'orders' | 'reservations' | 'products' | 'settings' | 'stats'>(initialTab);
   const [isLoading, setIsLoading] = useState(true);
   const [hasLoadedDashboard, setHasLoadedDashboard] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
