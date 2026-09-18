@@ -48,6 +48,8 @@ interface UnifiedHeaderProps {
   siteLogo?: string;
 }
 
+type SearchItem = { label: string; description: string; href: string; keywords: string[] };
+
 function savePreferredLanguage(locale: Locale) {
   document.cookie = `preferredLanguage=${locale}; path=/; max-age=31536000`;
 }
@@ -84,6 +86,23 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
 
   const currentLocale = getPreferredLocale(pathname);
   const ui = getUiTranslations(currentLocale);
+
+  const searchItems: SearchItem[] = [
+    { label: currentLocale === 'en' ? 'Home' : currentLocale === 'kg' ? 'Башкы бет' : 'Главная', description: currentLocale === 'en' ? 'CafeFlow home page' : 'Главная страница CaféFlow', href: `/${currentLocale}`, keywords: ['главная', 'home', 'башкы'] },
+    { label: currentLocale === 'en' ? 'Menu' : 'Меню', description: currentLocale === 'en' ? 'Browse dishes and drinks' : 'Блюда и напитки кафе', href: `/${currentLocale}/menu`, keywords: ['меню', 'блюда', 'menu', 'еда', 'напитки'] },
+    { label: currentLocale === 'en' ? 'Booking' : currentLocale === 'kg' ? 'Брондоо' : 'Бронирование', description: currentLocale === 'en' ? 'Reserve a table' : 'Забронировать столик', href: `/${currentLocale}/booking`, keywords: ['бронь', 'бронирование', 'столик', 'booking', 'брондо'] },
+    { label: currentLocale === 'en' ? 'My orders' : currentLocale === 'kg' ? 'Буйрутмаларым' : 'Мои заказы', description: currentLocale === 'en' ? 'View your orders' : 'История и статусы заказов', href: `/${currentLocale}/orders`, keywords: ['заказы', 'заказ', 'orders', 'буйрутма'] },
+    { label: currentLocale === 'en' ? 'Cart' : currentLocale === 'kg' ? 'Себет' : 'Корзина', description: currentLocale === 'en' ? 'Open your cart' : 'Товары для оформления', href: `/${currentLocale}/cart`, keywords: ['корзина', 'cart', 'себет'] },
+    { label: currentLocale === 'en' ? 'Promotions' : currentLocale === 'kg' ? 'Акциялар' : 'Акции', description: currentLocale === 'en' ? 'Current CafeFlow offers' : 'Скидки и специальные предложения', href: `/${currentLocale}#promotions`, keywords: ['акции', 'скидки', 'промо', 'promo', 'sale', 'акция'] },
+    { label: currentLocale === 'en' ? 'Contacts' : currentLocale === 'kg' ? 'Байланыштар' : 'Контакты', description: currentLocale === 'en' ? 'Address, phone and opening hours' : 'Адрес, телефон и часы работы', href: `/${currentLocale}#contact`, keywords: ['контакты', 'адрес', 'телефон', 'contact'] },
+  ];
+
+  const searchResults = searchQuery.trim()
+    ? searchItems.filter((item) => `${item.label} ${item.description} ${item.keywords.join(' ')}`.toLowerCase().includes(searchQuery.trim().toLowerCase()))
+    : [];
+  const similarResults = searchQuery.trim() && searchResults.length === 0
+    ? searchItems.filter((item) => item.keywords.some((keyword) => keyword[0] === searchQuery.trim().toLowerCase()[0])).slice(0, 3).concat(searchItems).slice(0, 3)
+    : [];
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -178,10 +197,24 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
     }
   };
 
+  const navigateToSearchResult = (destination: string) => {
+    if (destination.startsWith(`${pathname}#`)) {
+      document.querySelector(destination.slice(destination.indexOf('#')))?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      router.push(destination);
+    }
+    setSearchQuery('');
+  };
+
   const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const query = searchQuery.trim().toLowerCase();
     if (!query) return;
+
+    if (searchResults[0]) {
+      navigateToSearchResult(searchResults[0].href);
+      return;
+    }
 
     const destination = query.match(/акци|скид|промо|promo|sale/)
       ? `/${currentLocale}#promotions`
@@ -203,15 +236,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
                       ? `/${currentLocale}#contact`
                       : null;
 
-    if (destination) {
-      if (destination.startsWith(`${pathname}#`)) {
-        document.querySelector(destination.slice(destination.indexOf('#')))?.scrollIntoView({ behavior: 'smooth' });
-      } else {
-        router.push(destination);
-      }
-      setSearchQuery('');
-      return;
-    }
+    if (destination) return navigateToSearchResult(destination);
 
     const searchable = Array.from(document.querySelectorAll<HTMLElement>('h1, h2, h3, p, a, button'));
     const match = searchable.find((element) => element.textContent?.toLowerCase().includes(query));
@@ -316,7 +341,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#151a1e]/95 shadow-sm backdrop-blur-md">
+      <header data-theme={theme} className="header-surface sticky top-0 z-50 w-full border-b border-white/10 bg-[#151a1e]/95 shadow-sm backdrop-blur-md">
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex min-h-16 items-center gap-3 sm:gap-5">
           <button
@@ -343,9 +368,9 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
             </span>
           </Link>
 
-          <form onSubmit={handleSearch} className="hidden min-w-0 flex-1 md:flex">
-            <label className="flex h-10 w-full items-center gap-2 rounded-lg border border-white/15 bg-white/10 px-3 text-white focus-within:border-orange-400">
-              <Search className="h-4 w-4 shrink-0 text-white/60" aria-hidden="true" />
+          <form onSubmit={handleSearch} className="relative hidden min-w-0 flex-1 md:flex">
+            <label className="header-search flex h-10 w-full items-center gap-2 rounded-lg border border-white/15 bg-white/10 px-3 text-white focus-within:border-orange-400">
+              <Search className="header-control h-4 w-4 shrink-0 text-white/60" aria-hidden="true" />
               <input
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
@@ -357,6 +382,22 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
                 <Search className="h-4 w-4" />
               </button>
             </label>
+            {searchQuery.trim() && (
+              <div className="header-search-results absolute left-0 right-0 top-[calc(100%+0.6rem)] z-[60] overflow-hidden rounded-xl border border-white/10 bg-[#20272c] p-2 shadow-2xl">
+                {searchResults.length > 0 ? (
+                  <>
+                    <p className="px-3 pb-2 pt-1 text-[11px] font-bold uppercase tracking-[0.16em] text-orange-300">{currentLocale === 'en' ? 'Found on the site' : 'Найдено на сайте'}</p>
+                    {searchResults.slice(0, 5).map((item) => <button type="button" key={item.href} onClick={() => navigateToSearchResult(item.href)} className="flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left text-white transition hover:bg-orange-500/15"><Search className="mt-0.5 h-4 w-4 shrink-0 text-orange-300" /><span><strong className="block text-sm">{item.label}</strong><span className="block text-xs text-white/55">{item.description}</span></span></button>)}
+                  </>
+                ) : (
+                  <>
+                    <p className="px-3 pb-2 pt-1 text-sm font-semibold text-white">{currentLocale === 'en' ? 'Nothing found' : currentLocale === 'kg' ? 'Эч нерсе табылган жок' : 'Ничего не найдено'}</p>
+                    <p className="px-3 pb-2 text-xs text-white/55">{currentLocale === 'en' ? 'Similar sections' : 'Похожие разделы'}</p>
+                    {similarResults.length > 0 ? similarResults.map((item) => <button type="button" key={item.href} onClick={() => navigateToSearchResult(item.href)} className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-white/75 transition hover:bg-orange-500/15 hover:text-white"><Search className="h-4 w-4 text-orange-300" />{item.label}</button>) : <p className="px-3 pb-2 text-xs text-white/45">{currentLocale === 'en' ? 'Try: menu, booking, orders or promotions.' : 'Попробуйте: меню, бронь, заказы или акции.'}</p>}
+                  </>
+                )}
+              </div>
+            )}
           </form>
 
           {/* Right Section */}
@@ -430,7 +471,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
                 <div className="hidden md:block relative" ref={dropdownRef}>
                   <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-white transition-colors hover:bg-white/10"
+                    className="header-profile flex items-center gap-3 rounded-lg px-3 py-2 text-white transition-colors hover:bg-white/10"
                   >
                     {user.avatarUrl ? (
                       <Image src={user.avatarUrl} alt="Аватар" width={32} height={32} className="h-8 w-8 rounded-full object-cover" />
@@ -523,7 +564,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
           </div>
         </div>
 
-        <nav className="hidden min-h-12 items-center justify-center gap-2 border-t border-white/10 md:flex" aria-label="Основная навигация">
+        <nav className="header-secondary-nav hidden min-h-12 items-center justify-center gap-2 border-t border-white/10 md:flex" aria-label="Основная навигация">
           <Link href={`/${currentLocale}`} className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors ${pathname === `/${currentLocale}` ? 'bg-orange-500 text-white' : 'text-white/75 hover:bg-orange-500/15 hover:text-orange-300'}`}><Home className="h-4 w-4" />{ui.header.home}</Link>
           {navLinks.map((link) => {
             const Icon = getNavIcon(link.href);
@@ -533,7 +574,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="absolute left-0 right-0 top-full border-t border-white/10 bg-[#151a1e] py-4 shadow-xl md:max-w-md md:rounded-b-lg">
+          <div className="header-mobile-menu absolute left-0 right-0 top-full border-t border-white/10 bg-[#151a1e] py-4 shadow-xl md:max-w-md md:rounded-b-lg">
             {user && <div className="flex items-center gap-3 px-4 py-3 mb-4">
               {user.avatarUrl ? (
                 <Image src={user.avatarUrl} alt="Аватар" width={40} height={40} className="h-10 w-10 rounded-full object-cover" />

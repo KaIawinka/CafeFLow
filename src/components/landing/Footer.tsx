@@ -40,14 +40,12 @@ export function Footer({ t, locale }: FooterProps) {
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-x-7 gap-y-4 py-7 text-sm font-medium text-white/60 sm:justify-between">
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-            <span className="text-white/35">{copy.navigation}</span>
-            <Link href="#menu" className="transition hover:text-orange-300">{t.footer.menu}</Link>
-            <Link href="#reservation" className="transition hover:text-orange-300">{t.footer.reservation}</Link>
-            <Link href="#about" className="transition hover:text-orange-300">{t.footer.about}</Link>
-            <Link href="#contact" className="transition hover:text-orange-300">{copy.contacts}</Link>
+          <div className="footer-table flex min-w-0 flex-1 flex-wrap items-start justify-between gap-7">
+            <div className="min-w-[9rem]"><h4 className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-orange-300">{t.contact.title}</h4><div className="space-y-1.5 text-white/55"><p>{t.contact.address}: Бишкек</p><p>{t.contact.phone}: +996 XXX XXX XXX</p></div></div>
+            <div className="min-w-[8rem]"><h4 className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-orange-300">{copy.navigation}</h4><div className="flex flex-col gap-1.5"><Link href="#menu" className="transition hover:text-orange-300">{t.footer.menu}</Link><Link href="#reservation" className="transition hover:text-orange-300">{t.footer.reservation}</Link><Link href="#about" className="transition hover:text-orange-300">{t.footer.about}</Link></div></div>
+            <div className="min-w-[11rem]"><h4 className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-orange-300">{copy.hours}</h4><div className="space-y-1.5 text-white/55"><p>{copy.weekdays}</p><p>{copy.weekends}</p></div></div>
+            <div className="min-w-[11rem]"><h4 className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-orange-300">{copy.contacts}</h4><div className="space-y-1.5 text-white/55"><p>+996 555 000 000</p><p>hello@cafeflow.kg</p><p>Бишкек, ул. Примерная 123</p></div></div>
           </div>
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-white/50"><span>+996 555 000 000</span><span>hello@cafeflow.kg</span><span>Бишкек, ул. Примерная 123</span></div>
         </div>
 
         <div className="flex flex-col gap-5 border-t border-white/10 pt-6 text-sm text-white/40 sm:flex-row sm:items-center sm:justify-between">
