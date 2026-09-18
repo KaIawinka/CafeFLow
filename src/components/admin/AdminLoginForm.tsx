@@ -6,12 +6,22 @@
  */
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { locales, type Locale } from '@/app/i18n/config';
 
 type Step = 'credentials' | '2fa';
 
+const loginCopy: Record<Locale, { signIn: string; verify: string; password: string; loginSubtitle: string; verifySubtitle: string; codeSent: string; codeLabel: string; codeHint: string; back: string; loading: string; checking: string; invalidCode: string; loginError: string; connectionError: string }> = {
+  ru: { signIn: 'Войти', verify: 'Подтвердить', password: 'Пароль', loginSubtitle: 'Вход в панель управления', verifySubtitle: 'Подтверждение входа', codeSent: 'Код отправлен в Telegram', codeLabel: 'Код подтверждения', codeHint: 'Введите 6-значный код из Telegram', back: 'Назад к вводу пароля', loading: 'Вход...', checking: 'Проверка...', invalidCode: 'Неверный код', loginError: 'Ошибка входа', connectionError: 'Ошибка соединения с сервером' },
+  en: { signIn: 'Sign in', verify: 'Verify', password: 'Password', loginSubtitle: 'Sign in to the admin panel', verifySubtitle: 'Verify your sign-in', codeSent: 'Code sent to Telegram', codeLabel: 'Verification code', codeHint: 'Enter the 6-digit code from Telegram', back: 'Back to password', loading: 'Signing in...', checking: 'Verifying...', invalidCode: 'Invalid code', loginError: 'Sign-in failed', connectionError: 'Could not connect to the server' },
+  kg: { signIn: 'Кирүү', verify: 'Ырастоо', password: 'Сырсөз', loginSubtitle: 'Башкаруу панелине кирүү', verifySubtitle: 'Кирүүнү ырастоо', codeSent: 'Код Telegramʼга жөнөтүлдү', codeLabel: 'Ырастоо коду', codeHint: 'Telegramʼдан 6 орундуу кодду киргизиңиз', back: 'Сырсөзгө кайтуу', loading: 'Кирүүдө...', checking: 'Текшерилүүдө...', invalidCode: 'Туура эмес код', loginError: 'Кирүү катасы', connectionError: 'Серверге туташуу мүмкүн болгон жок' },
+};
+
 export default function AdminLoginForm() {
   const router = useRouter();
+  const pathname = usePathname();
+  const locale = (locales.find((item) => pathname.split('/')[1] === item) || 'ru') as Locale;
+  const copy = loginCopy[locale];
   const [step, setStep] = useState<Step>('credentials');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -35,7 +45,7 @@ export default function AdminLoginForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Ошибка входа');
+        setError(data.error || copy.loginError);
         setLoading(false);
         return;
       }
@@ -49,7 +59,7 @@ export default function AdminLoginForm() {
         router.refresh();
       }
     } catch {
-      setError('Ошибка соединения с сервером');
+      setError(copy.connectionError);
     } finally {
       setLoading(false);
     }
@@ -71,7 +81,7 @@ export default function AdminLoginForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Неверный код');
+        setError(data.error || copy.invalidCode);
         setLoading(false);
         return;
       }
@@ -80,7 +90,7 @@ export default function AdminLoginForm() {
       router.push('/admin/dashboard');
       router.refresh();
     } catch {
-      setError('Ошибка соединения с сервером');
+      setError(copy.connectionError);
     } finally {
       setLoading(false);
     }
@@ -92,7 +102,7 @@ export default function AdminLoginForm() {
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-white mb-2">CaféFlow Admin</h1>
         <p className="text-zinc-400">
-          {step === 'credentials' ? 'Вход в панель управления' : 'Подтверждение входа'}
+          {step === 'credentials' ? copy.loginSubtitle : copy.verifySubtitle}
         </p>
       </div>
 
@@ -124,7 +134,7 @@ export default function AdminLoginForm() {
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-zinc-300 mb-2">
-              Пароль
+              {copy.password}
             </label>
             <input
               id="password"
@@ -158,13 +168,13 @@ export default function AdminLoginForm() {
               </svg>
             </div>
             <p className="text-zinc-400 text-sm">
-              Код отправлен в Telegram
+              {copy.codeSent}
             </p>
           </div>
 
           <div>
             <label htmlFor="code" className="block text-sm font-medium text-zinc-300 mb-2">
-              Код подтверждения
+              {copy.codeLabel}
             </label>
             <input
               id="code"
@@ -178,7 +188,7 @@ export default function AdminLoginForm() {
               disabled={loading}
               autoComplete="off"
             />
-            <p className="text-zinc-500 text-xs mt-2">Введите 6-значный код из Telegram</p>
+            <p className="text-zinc-500 text-xs mt-2">{copy.codeHint}</p>
           </div>
 
           <button
@@ -186,7 +196,7 @@ export default function AdminLoginForm() {
             disabled={loading || code.length !== 6}
             className="w-full py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Проверка...' : 'Подтвердить'}
+            {loading ? copy.checking : copy.verify}
           </button>
 
           <button
@@ -198,7 +208,7 @@ export default function AdminLoginForm() {
             }}
             className="w-full py-2 text-zinc-400 hover:text-white text-sm transition-colors"
           >
-            ← Назад к вводу пароля
+            ← {copy.back}
           </button>
         </form>
       )}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { locales, type Locale } from "../i18n/config";
 import { getTranslations } from "../i18n/utils";
 import { UnifiedHeaderWrapper } from "@/components/UnifiedHeaderWrapper";
+import { SessionKeepAlive } from "@/components/SessionKeepAlive";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { prisma } from "@/lib/prisma";
 
@@ -40,6 +41,7 @@ export default async function LocaleLayout({
 }) {
   return (
     <ThemeProvider>
+      <SessionKeepAlive />
       <UnifiedHeaderWrapper />
       <main className="flex-1">{children}</main>
     </ThemeProvider>

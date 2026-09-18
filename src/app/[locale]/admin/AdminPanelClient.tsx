@@ -84,13 +84,36 @@ interface Product {
   category?: { name: string } | null;
 }
 
-function PaginationControls({ page, pageCount, onPageChange }: { page: number; pageCount: number; onPageChange: (page: number) => void }) {
+const pageCopy: Record<Locale, {
+  back: string; page: string; of: string; next: string; reservations: string; kitchen: string; waiters: string;
+  confirm: string; takeOrder: string; ready: string; pickup: string; confirmDelivery: string; dbOrder: string; tableDetails: string;
+  reservationsDescription: string; confirmed: string; allStatuses: string; reset: string; capacity: string; request: string; free: string;
+  guests: string; cancel: string; noReservations: string;
+}> = {
+  ru: { back: 'Назад', page: 'Страница', of: 'из', next: 'Вперёд', reservations: 'Брони', kitchen: 'Кухня', waiters: 'Официанты', confirm: 'Подтвердить', takeOrder: 'Взять в работу', ready: 'Готово', pickup: 'Забрать заказ', confirmDelivery: 'Подтвердить доставку', dbOrder: 'Заказ из базы', tableDetails: 'Столик / детали', reservationsDescription: 'Проверяйте свободные места и подтверждайте заявки гостей.', confirmed: 'подтверждено', allStatuses: 'Все статусы', reset: 'Сбросить', capacity: 'до', request: 'заявка', free: 'Свободен', guests: 'гостей', cancel: 'Отменить', noReservations: 'Бронирований пока нет' },
+  en: { back: 'Back', page: 'Page', of: 'of', next: 'Next', reservations: 'Reservations', kitchen: 'Kitchen', waiters: 'Waiters', confirm: 'Confirm', takeOrder: 'Start preparing', ready: 'Ready', pickup: 'Pick up order', confirmDelivery: 'Confirm delivery', dbOrder: 'Database order', tableDetails: 'Table / details', reservationsDescription: 'Check availability and confirm guest requests.', confirmed: 'confirmed', allStatuses: 'All statuses', reset: 'Reset', capacity: 'up to', request: 'request', free: 'Available', guests: 'guests', cancel: 'Cancel', noReservations: 'No reservations yet' },
+  kg: { back: 'Артка', page: 'Барак', of: 'ичинен', next: 'Алдыга', reservations: 'Брондоолор', kitchen: 'Ашкана', waiters: 'Официанттар', confirm: 'Ырастоо', takeOrder: 'Иштөөгө алуу', ready: 'Даяр', pickup: 'Буйрутманы алуу', confirmDelivery: 'Жеткирүүнү ырастоо', dbOrder: 'Маалымат базасындагы буйрутма', tableDetails: 'Стол / маалымат', reservationsDescription: 'Бош орундарды текшерип, коноктордун өтүнүчтөрүн ырастаңыз.', confirmed: 'ырасталды', allStatuses: 'Бардык статустар', reset: 'Тазалоо', capacity: 'чейин', request: 'өтүнүч', free: 'Бош', guests: 'конок', cancel: 'Жокко чыгаруу', noReservations: 'Брондоолор азырынча жок' },
+};
+
+const orderStatusLabels: Record<Locale, Record<string, string>> = {
+  ru: { new: 'Новый', confirmed: 'Подтверждён', cooking: 'Готовится', ready: 'Готов', delivering: 'Доставка', completed: 'Завершён', cancelled: 'Отменён' },
+  en: { new: 'New', confirmed: 'Confirmed', cooking: 'Cooking', ready: 'Ready', delivering: 'Delivery', completed: 'Completed', cancelled: 'Cancelled' },
+  kg: { new: 'Жаңы', confirmed: 'Ырасталды', cooking: 'Даярдалууда', ready: 'Даяр', delivering: 'Жеткирүү', completed: 'Аяктады', cancelled: 'Жокко чыгарылды' },
+};
+
+const reservationStatusLabels: Record<Locale, Record<string, string>> = {
+  ru: { pending: 'Ожидает', confirmed: 'Подтверждено', seated: 'Гости за столом', completed: 'Завершено', cancelled: 'Отменено', no_show: 'Не пришли' },
+  en: { pending: 'Pending', confirmed: 'Confirmed', seated: 'Seated', completed: 'Completed', cancelled: 'Cancelled', no_show: 'No-show' },
+  kg: { pending: 'Күтүүдө', confirmed: 'Ырасталды', seated: 'Отурду', completed: 'Аякталды', cancelled: 'Жокко чыгарылды', no_show: 'Келген жок' },
+};
+
+function PaginationControls({ page, pageCount, onPageChange, copy }: { page: number; pageCount: number; onPageChange: (page: number) => void; copy: typeof pageCopy[Locale] }) {
   if (pageCount <= 1) return null;
   return (
     <div className="flex items-center justify-center gap-3 pt-2">
-      <button type="button" onClick={() => onPageChange(Math.max(1, page - 1))} disabled={page === 1} className="min-h-10 rounded-lg border border-gray-200 px-3 text-sm font-semibold text-gray-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-200">Назад</button>
-      <span className="text-sm text-gray-500 dark:text-gray-400">Страница {page} из {pageCount}</span>
-      <button type="button" onClick={() => onPageChange(Math.min(pageCount, page + 1))} disabled={page === pageCount} className="min-h-10 rounded-lg border border-gray-200 px-3 text-sm font-semibold text-gray-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-200">Вперёд</button>
+      <button type="button" onClick={() => onPageChange(Math.max(1, page - 1))} disabled={page === 1} className="min-h-10 rounded-lg border border-gray-200 px-3 text-sm font-semibold text-gray-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-200">{copy.back}</button>
+      <span className="text-sm text-gray-500 dark:text-gray-400">{copy.page} {page} {copy.of} {pageCount}</span>
+      <button type="button" onClick={() => onPageChange(Math.min(pageCount, page + 1))} disabled={page === pageCount} className="min-h-10 rounded-lg border border-gray-200 px-3 text-sm font-semibold text-gray-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-200">{copy.next}</button>
     </div>
   );
 }
@@ -101,6 +124,8 @@ export default function AdminPage() {
   const router = useRouter();
   const locale = (locales.find((item) => pathname.split('/')[1] === item) || 'ru') as Locale;
   const ui = getUiTranslations(locale);
+  const copy = pageCopy[locale];
+  const dashboardLabel = ui.admin.stats;
   const errorLoad = ui.admin.errorLoad;
   const requestedTab = searchParams.get('tab');
   const initialTab = ['dashboard', 'users', 'orders', 'reservations', 'products', 'settings'].includes(requestedTab || '') ? requestedTab as 'dashboard' | 'users' | 'orders' | 'reservations' | 'products' | 'settings' : 'dashboard';
@@ -322,7 +347,7 @@ export default function AdminPage() {
         {/* Tabs */}
         <div className="grid min-h-[calc(100vh-7rem)] w-full overflow-hidden bg-[var(--background)] lg:grid-cols-[260px_minmax(0,1fr)]">
           <div className="border-b border-[var(--border)] bg-[var(--card)] overflow-x-auto lg:border-b-0 lg:border-r">
-            <nav className="flex min-w-max sm:min-w-0 lg:flex-col lg:gap-1 lg:p-3">
+            <nav className="grid grid-cols-2 sm:flex sm:min-w-0 lg:flex-col lg:gap-1 lg:p-3">
               <button
                 onClick={() => setActiveTab('dashboard')}
                 className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
@@ -332,7 +357,7 @@ export default function AdminPage() {
                 }`}
               >
                 <LayoutDashboard className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span>{ui.admin.dashboardTitle}</span>
+                <span>{dashboardLabel}</span>
               </button>
               <button
                 onClick={() => setActiveTab('users')}
@@ -387,12 +412,12 @@ export default function AdminPage() {
                 }`}
               >
                 <CalendarDays className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span>Брони</span>
+                <span>{copy.reservations}</span>
               </button>
             </nav>
           </div>
 
-          <div className="bg-[var(--background)] p-6 sm:p-8 xl:p-10">
+          <div className="min-w-0 bg-[var(--background)] p-4 sm:p-6 xl:p-10">
             {activeTab === 'dashboard' && <AdminDashboardClient locale={locale} embedded />}
 
             {/* Users Tab */}
@@ -574,7 +599,7 @@ export default function AdminPage() {
                   </div>
                 )}
                 {usersTotal > 0 && (
-                  <PaginationControls page={usersPage} pageCount={usersPageCount} onPageChange={setUsersPage} />
+                  <PaginationControls page={usersPage} pageCount={usersPageCount} onPageChange={setUsersPage} copy={copy} />
                 )}
               </div>
             )}
@@ -589,32 +614,32 @@ export default function AdminPage() {
                   <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">{recentOrders.length}</span>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-900/60">
-                  <button type="button" onClick={() => setOrderQueue('kitchen')} className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-4 text-sm font-bold ${orderQueue === 'kitchen' ? 'bg-white text-orange-700 shadow-sm dark:bg-gray-800 dark:text-orange-300' : 'text-gray-500'}`}><ChefHat className="h-4 w-4" /> Кухня <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs">{recentOrders.filter((order) => ['new', 'confirmed', 'cooking'].includes(order.status)).length}</span></button>
-                  <button type="button" onClick={() => setOrderQueue('waiters')} className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-4 text-sm font-bold ${orderQueue === 'waiters' ? 'bg-white text-blue-700 shadow-sm dark:bg-gray-800 dark:text-blue-300' : 'text-gray-500'}`}><Truck className="h-4 w-4" /> Официанты <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs">{recentOrders.filter((order) => ['ready', 'delivering'].includes(order.status)).length}</span></button>
+                  <button type="button" onClick={() => setOrderQueue('kitchen')} className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-4 text-sm font-bold ${orderQueue === 'kitchen' ? 'bg-white text-orange-700 shadow-sm dark:bg-gray-800 dark:text-orange-300' : 'text-gray-500'}`}><ChefHat className="h-4 w-4" /> {copy.kitchen} <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs">{recentOrders.filter((order) => ['new', 'confirmed', 'cooking'].includes(order.status)).length}</span></button>
+                  <button type="button" onClick={() => setOrderQueue('waiters')} className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-4 text-sm font-bold ${orderQueue === 'waiters' ? 'bg-white text-blue-700 shadow-sm dark:bg-gray-800 dark:text-blue-300' : 'text-gray-500'}`}><Truck className="h-4 w-4" /> {copy.waiters} <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs">{recentOrders.filter((order) => ['ready', 'delivering'].includes(order.status)).length}</span></button>
                 </div>
                 {recentOrders.filter((order) => orderQueue === 'kitchen' ? ['new', 'confirmed', 'cooking'].includes(order.status) : ['ready', 'delivering'].includes(order.status)).map((order) => (
                   <div key={`queue-${order.id}`} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                      <div><div className="flex items-center gap-2"><span className="font-black text-gray-900 dark:text-white">{order.order_number}</span><span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-bold text-gray-600 dark:bg-gray-700 dark:text-gray-300">DB-заказ</span></div><p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{order.customer_name}</p></div>
-                      <button type="button" onClick={() => advanceOrder(order)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#d06b3c] px-4 text-sm font-bold text-white hover:bg-[#b8532c]">{orderQueue === 'kitchen' ? (order.status === 'new' ? 'Подтвердить' : order.status === 'confirmed' ? 'Взять в работу' : 'Готово') : (order.status === 'ready' ? 'Забрать заказ' : 'Подтвердить доставку')} <ArrowRight className="h-4 w-4" /></button>
+                      <div><div className="flex items-center gap-2"><span className="font-black text-gray-900 dark:text-white">{order.order_number}</span><span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-bold text-gray-600 dark:bg-gray-700 dark:text-gray-300">{copy.dbOrder}</span></div><p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{order.customer_name}</p></div>
+                      <button type="button" onClick={() => advanceOrder(order)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#d06b3c] px-4 text-sm font-bold text-white hover:bg-[#b8532c]">{orderQueue === 'kitchen' ? (order.status === 'new' ? copy.confirm : order.status === 'confirmed' ? copy.takeOrder : copy.ready) : (order.status === 'ready' ? copy.pickup : copy.confirmDelivery)} <ArrowRight className="h-4 w-4" /></button>
                     </div>
                   </div>
                 ))}
                 <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
                   <table className="w-full min-w-[720px] text-left text-sm">
                     <thead className="bg-gray-50 text-xs uppercase text-gray-500 dark:bg-gray-900 dark:text-gray-400">
-                      <tr><th className="px-4 py-3">№</th><th className="px-4 py-3">{ui.admin.clients}</th><th className="px-4 py-3">Столик / детали</th><th className="px-4 py-3">{ui.admin.revenue}</th><th className="px-4 py-3">{ui.admin.status}</th></tr>
+                      <tr><th className="px-4 py-3">№</th><th className="px-4 py-3">{ui.admin.clients}</th><th className="px-4 py-3">{copy.tableDetails}</th><th className="px-4 py-3">{ui.admin.revenue}</th><th className="px-4 py-3">{ui.admin.status}</th></tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                       {recentOrders.map((order) => (
                         <tr key={order.id} className="bg-white dark:bg-gray-800">
                           <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">#{order.order_number}</td>
                           <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{order.customer_name}</td>
-                          <td className="px-4 py-3 text-gray-500 dark:text-gray-400">DB-заказ</td>
+                          <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{copy.dbOrder}</td>
                           <td className="px-4 py-3 font-semibold text-amber-600 dark:text-amber-400">{order.total} {order.currency}</td>
                           <td className="px-4 py-3">
                             <select value={order.status} disabled={savingId === order.id} onChange={(event) => void updateOrder(order.id, event.target.value)} className="min-h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
-                              {['new', 'confirmed', 'cooking', 'ready', 'delivering', 'completed', 'cancelled'].map((status) => <option key={status} value={status}>{status}</option>)}
+                              {['new', 'confirmed', 'cooking', 'ready', 'delivering', 'completed', 'cancelled'].map((status) => <option key={status} value={status}>{orderStatusLabels[locale][status]}</option>)}
                             </select>
                           </td>
                         </tr>
@@ -624,7 +649,7 @@ export default function AdminPage() {
                   {recentOrders.length === 0 && <p className="p-8 text-center text-sm text-gray-500 dark:text-gray-400">{ui.admin.noOrders}</p>}
                 </div>
                 {ordersTotal > 0 && (
-                  <PaginationControls page={ordersPage} pageCount={ordersPageCount} onPageChange={setOrdersPage} />
+                  <PaginationControls page={ordersPage} pageCount={ordersPageCount} onPageChange={setOrdersPage} copy={copy} />
                 )}
               </div>
             )}
@@ -657,20 +682,20 @@ export default function AdminPage() {
             {activeTab === 'reservations' && (
               <div className="space-y-5">
                 <div className="flex items-center justify-between">
-                  <div><h2 className="text-xl font-semibold text-gray-900 dark:text-white">Бронирования столиков</h2><p className="text-sm text-gray-500 dark:text-gray-400">Проверяйте свободные места и подтверждайте заявки гостей.</p></div>
-                  <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">{reservations.filter((reservation) => reservation.status === 'confirmed').length} подтверждено</span>
+                  <div><h2 className="text-xl font-semibold text-gray-900 dark:text-white">{copy.reservations}</h2><p className="text-sm text-gray-500 dark:text-gray-400">{copy.reservationsDescription}</p></div>
+                  <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">{reservations.filter((reservation) => reservation.status === 'confirmed').length} {copy.confirmed}</span>
                 </div>
                 <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-900/60 sm:flex-row">
                   <input type="date" value={reservationDate} onChange={(event) => { setReservationDate(event.target.value); setReservationPage(1); }} className="min-h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
                   <select value={reservationStatus} onChange={(event) => { setReservationStatus(event.target.value); setReservationPage(1); }} className="min-h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-                    <option value="all">Все статусы</option>
-                    {['pending', 'confirmed', 'seated', 'completed', 'cancelled', 'no_show'].map((status) => <option key={status} value={status}>{status}</option>)}
+                    <option value="all">{copy.allStatuses}</option>
+                    {['pending', 'confirmed', 'seated', 'completed', 'cancelled', 'no_show'].map((status) => <option key={status} value={status}>{reservationStatusLabels[locale][status]}</option>)}
                   </select>
-                  {(reservationDate || reservationStatus !== 'all') && <button type="button" onClick={() => { setReservationDate(''); setReservationStatus('all'); setReservationPage(1); }} className="min-h-11 rounded-lg border border-gray-200 px-3 text-sm font-semibold text-gray-700 dark:border-gray-700 dark:text-gray-200">Сбросить</button>}
+                  {(reservationDate || reservationStatus !== 'all') && <button type="button" onClick={() => { setReservationDate(''); setReservationStatus('all'); setReservationPage(1); }} className="min-h-11 rounded-lg border border-gray-200 px-3 text-sm font-semibold text-gray-700 dark:border-gray-700 dark:text-gray-200">{copy.reset}</button>}
                 </div>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{reservationTables.map((table) => { const activeReservations = reservations.filter((reservation) => Array.isArray(reservation.table_ids) && reservation.table_ids.includes(table.id) && reservation.status !== 'cancelled'); return <div key={table.id} className="rounded-2xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/60"><div className="flex items-center justify-between"><div className="flex items-center gap-2 font-bold text-gray-900 dark:text-white"><Table2 className="h-4 w-4 text-amber-600" />{table.name}</div><span className="text-xs text-gray-500">до {table.capacity}</span></div><p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{table.zone} · {activeReservations.length ? `${activeReservations.length} заявка` : 'Свободен'}</p></div>; })}</div>
-                <div className="space-y-3">{reservations.map((reservation) => <div key={reservation.id} className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800 sm:flex-row sm:items-center sm:justify-between"><div><div className="flex flex-wrap items-center gap-2"><span className="font-black text-gray-900 dark:text-white">{reservation.id}</span><span className="text-sm text-gray-500">{new Date(reservation.start_at).toLocaleString(locale)}</span></div><p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{reservation.guest_name} · {reservation.guest_phone} · гостей: {reservation.guests_count}</p></div><div className="flex gap-2"><button type="button" onClick={() => void updateReservation(reservation.id, 'confirmed')} disabled={reservation.status === 'confirmed'} className="min-h-10 rounded-lg bg-emerald-600 px-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40">Подтвердить</button><button type="button" onClick={() => void updateReservation(reservation.id, 'cancelled')} disabled={reservation.status === 'cancelled'} className="min-h-10 rounded-lg border border-red-200 px-3 text-sm font-bold text-red-700 disabled:cursor-not-allowed disabled:opacity-40">Отменить</button></div></div>)}{reservations.length === 0 && <p className="rounded-xl bg-gray-50 p-8 text-center text-sm text-gray-500 dark:bg-gray-900/50">Бронирований пока нет</p>}</div>
-                {reservationTotal > 0 && <PaginationControls page={reservationPage} pageCount={reservationPageCount} onPageChange={setReservationPage} />}
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{reservationTables.map((table) => { const activeReservations = reservations.filter((reservation) => Array.isArray(reservation.table_ids) && reservation.table_ids.includes(table.id) && reservation.status !== 'cancelled'); return <div key={table.id} className="rounded-2xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/60"><div className="flex items-center justify-between"><div className="flex items-center gap-2 font-bold text-gray-900 dark:text-white"><Table2 className="h-4 w-4 text-amber-600" />{table.name}</div><span className="text-xs text-gray-500">{copy.capacity} {table.capacity}</span></div><p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{table.zone} · {activeReservations.length ? `${activeReservations.length} ${copy.request}` : copy.free}</p></div>; })}</div>
+                <div className="space-y-3">{reservations.map((reservation) => <div key={reservation.id} className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800 sm:flex-row sm:items-center sm:justify-between"><div><div className="flex flex-wrap items-center gap-2"><span className="font-black text-gray-900 dark:text-white">{reservation.id}</span><span className="text-sm text-gray-500">{new Date(reservation.start_at).toLocaleString(locale)}</span></div><p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{reservation.guest_name} · {reservation.guest_phone} · {copy.guests}: {reservation.guests_count}</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={() => void updateReservation(reservation.id, 'confirmed')} disabled={reservation.status === 'confirmed'} className="min-h-10 rounded-lg bg-emerald-600 px-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40">{copy.confirm}</button><button type="button" onClick={() => void updateReservation(reservation.id, 'cancelled')} disabled={reservation.status === 'cancelled'} className="min-h-10 rounded-lg border border-red-200 px-3 text-sm font-bold text-red-700 disabled:cursor-not-allowed disabled:opacity-40">{copy.cancel}</button></div></div>)}{reservations.length === 0 && <p className="rounded-xl bg-gray-50 p-8 text-center text-sm text-gray-500 dark:bg-gray-900/50">{copy.noReservations}</p>}</div>
+                {reservationTotal > 0 && <PaginationControls page={reservationPage} pageCount={reservationPageCount} onPageChange={setReservationPage} copy={copy} />}
               </div>
             )}
 

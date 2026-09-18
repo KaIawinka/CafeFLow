@@ -12,7 +12,7 @@ import { getJwtSecret } from '@/lib/config';
 // Token expiration times
 const ACCESS_TOKEN_EXPIRY = '15m'; // 15 minutes
 const REFRESH_TOKEN_EXPIRY = '7d'; // 7 days
-const SESSION_IDLE_TIMEOUT_MS = 2 * 60 * 60 * 1000;
+const SESSION_IDLE_TIMEOUT_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
  * JWT Payload Interface

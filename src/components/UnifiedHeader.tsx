@@ -363,7 +363,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
           </button>
 
           {/* Logo */}
-          <Link href={`/${currentLocale}`} className="flex shrink-0 items-center gap-2 sm:gap-3">
+          <Link href={`/${currentLocale}`} className="absolute left-1/2 flex max-w-[160px] -translate-x-1/2 items-center gap-2 truncate sm:static sm:max-w-none sm:translate-x-0 sm:gap-3">
             <Image 
               src={siteLogo}
               alt="CafeFlow" 
@@ -408,7 +408,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
           </form>
 
           {/* Right Section */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="ml-auto flex items-center gap-2 sm:gap-3">
             {user && (
               <button
                 type="button"
