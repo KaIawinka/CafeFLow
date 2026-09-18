@@ -23,9 +23,11 @@ import {
   Truck,
   ArrowRight,
   Bell,
+  LayoutDashboard,
 } from 'lucide-react';
 import { locales, type Locale } from '@/app/i18n/config';
 import { getUiTranslations } from '@/lib/ui-translations';
+import AdminDashboardClient from './dashboard/AdminDashboardClient';
 
 interface User {
   id: string;
@@ -116,8 +118,8 @@ export default function AdminPage() {
   const ui = getUiTranslations(locale);
   const errorLoad = ui.admin.errorLoad;
   const requestedTab = searchParams.get('tab');
-  const initialTab = ['users', 'orders', 'reservations', 'products', 'settings', 'stats'].includes(requestedTab || '') ? requestedTab as 'users' | 'orders' | 'reservations' | 'products' | 'settings' | 'stats' : 'users';
-  const [activeTab, setActiveTab] = useState<'users' | 'orders' | 'reservations' | 'products' | 'settings' | 'stats'>(initialTab);
+  const initialTab = ['dashboard', 'users', 'orders', 'reservations', 'products', 'settings', 'stats'].includes(requestedTab || '') ? requestedTab as 'dashboard' | 'users' | 'orders' | 'reservations' | 'products' | 'settings' | 'stats' : 'dashboard';
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'orders' | 'reservations' | 'products' | 'settings' | 'stats'>(initialTab);
   const [isLoading, setIsLoading] = useState(true);
   const [hasLoadedDashboard, setHasLoadedDashboard] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
@@ -404,6 +406,17 @@ export default function AdminPage() {
           <div className="border-b border-gray-200 dark:border-gray-700 overflow-x-auto lg:border-b-0 lg:border-r">
             <nav className="flex min-w-max sm:min-w-0 lg:flex-col lg:gap-1 lg:p-3">
               <button
+                onClick={() => setActiveTab('dashboard')}
+                className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
+                  activeTab === 'dashboard'
+                    ? 'border-b-2 border-amber-600 text-amber-600 bg-amber-50 dark:bg-amber-900/20'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                }`}
+              >
+                <LayoutDashboard className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden xs:inline">{ui.admin.dashboardTitle}</span>
+              </button>
+              <button
                 onClick={() => setActiveTab('users')}
                 className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
                   activeTab === 'users'
@@ -473,6 +486,8 @@ export default function AdminPage() {
           </div>
 
           <div className="p-4 sm:p-6">
+            {activeTab === 'dashboard' && <AdminDashboardClient locale={locale} embedded />}
+
             {/* Users Tab */}
             {activeTab === 'users' && (
               <div className="space-y-4 sm:space-y-6">

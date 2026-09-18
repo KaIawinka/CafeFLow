@@ -7,7 +7,6 @@ import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { verifyAccessToken } from '@/lib/auth/jwt';
 import type { Locale } from '@/app/i18n/config';
-import AdminDashboardClient from './AdminDashboardClient';
 
 export default async function AdminDashboard({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = await params;
@@ -25,5 +24,5 @@ export default async function AdminDashboard({ params }: { params: Promise<{ loc
     redirect(`/${locale}/access-denied`);
   }
 
-  return <AdminDashboardClient locale={locale} />;
+  redirect(`/${locale}/admin?tab=dashboard`);
   }

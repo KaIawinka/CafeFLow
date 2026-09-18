@@ -142,7 +142,7 @@ function SectionHeading({ icon: Icon, title, subtitle, action }: { icon: typeof 
   return <div className="mb-5 flex items-start justify-between gap-3"><div className="flex items-start gap-3"><div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--secondary)] text-[var(--primary)]"><Icon className="h-4 w-4" /></div><div><h2 className="text-sm font-bold text-[var(--foreground)] sm:text-base">{title}</h2>{subtitle && <p className="mt-1 text-xs text-[var(--muted-foreground)]">{subtitle}</p>}</div></div>{action}</div>;
 }
 
-export default function AdminDashboardClient({ locale }: { locale: Locale }) {
+export default function AdminDashboardClient({ locale, embedded = false }: { locale: Locale; embedded?: boolean }) {
   const ui = getUiTranslations(locale);
   const text = copy[locale];
   const [data, setData] = useState<DashboardData | null>(null);
@@ -203,8 +203,8 @@ export default function AdminDashboardClient({ locale }: { locale: Locale }) {
   ];
 
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-      <main className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+    <div className={`${embedded ? '' : 'min-h-screen '}bg-[var(--background)] text-[var(--foreground)]`}>
+      <main className={`${embedded ? '' : 'mx-auto max-w-[1600px] '}px-0 py-0 text-[var(--foreground)] sm:px-0 sm:py-0 lg:px-0 lg:py-0`}>
         <div className="mb-7 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <div className="mb-3 flex items-center gap-2 text-xs font-medium text-[var(--muted-foreground)]"><LayoutDashboard className="h-3.5 w-3.5" /> {text.overview} <ChevronRight className="h-3 w-3" /> {data?.tenant?.name || 'CaféFlow'}</div>
