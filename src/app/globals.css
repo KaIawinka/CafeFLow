@@ -304,7 +304,7 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-.carousel-slide { background-position: center; background-size: cover; animation: carousel-slide 800ms ease-out both; }
+.carousel-slide { background-position: center; background-repeat: no-repeat; background-size: cover; animation: carousel-slide 800ms ease-out both; transform-origin: center; }
 .carousel-copy { animation: carousel-copy 500ms 120ms ease-out both; }
 
 /* Custom animations */

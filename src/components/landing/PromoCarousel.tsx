@@ -42,7 +42,7 @@ export function PromoCarousel({ locale }: { locale: Locale }) {
   return (
     <section id="promotions" className="relative z-10 mx-auto -mt-12 w-[calc(100%-2rem)] max-w-6xl scroll-mt-28 sm:-mt-20 sm:w-[calc(100%-3rem)]">
       <div className="relative min-h-[360px] overflow-hidden rounded-[1.5rem] border border-white/15 bg-[#151a1e] text-white shadow-[0_24px_70px_rgba(21,26,30,0.32)] sm:min-h-[390px]">
-        <div key={active} className="absolute inset-0 carousel-slide" style={{ backgroundImage: `url(${item.image})` }} />
+        <div key={active} className="absolute inset-0 z-0 h-full w-full carousel-slide" style={{ backgroundImage: `url(${item.image})` }} />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,13,15,0.94)_0%,rgba(10,13,15,0.68)_48%,rgba(10,13,15,0.18)_100%)]" />
         <div className="relative flex min-h-[360px] flex-col justify-between p-7 sm:min-h-[390px] sm:p-10 lg:p-14">
           <div className="flex items-start justify-between gap-5"><div className="flex items-center gap-3"><div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#f97316] text-white shadow-lg"><Icon className="h-5 w-5" /></div><p className="text-xs font-bold uppercase tracking-[0.22em] text-[#fdba74]">{item.eyebrow}</p></div><span className="rounded-full border border-white/25 bg-black/20 px-3 py-1.5 text-[10px] font-black tracking-[0.18em] text-white/80 backdrop-blur-sm">{item.tag}</span></div>
