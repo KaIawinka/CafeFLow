@@ -91,12 +91,12 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
   const ui = getUiTranslations(currentLocale);
 
   const searchItems: SearchItem[] = [
-    { label: currentLocale === 'en' ? 'Home' : currentLocale === 'kg' ? 'Башкы бет' : 'Главная', description: currentLocale === 'en' ? 'CafeFlow home page' : 'Главная страница CaféFlow', href: `/${currentLocale}`, keywords: ['главная', 'home', 'башкы'] },
-    { label: currentLocale === 'en' ? 'Menu' : 'Меню', description: currentLocale === 'en' ? 'Browse dishes and drinks' : 'Блюда и напитки кафе', href: `/${currentLocale}/menu`, keywords: ['меню', 'блюда', 'menu', 'еда', 'напитки'] },
-    { label: currentLocale === 'en' ? 'Booking' : currentLocale === 'kg' ? 'Брондоо' : 'Бронирование', description: currentLocale === 'en' ? 'Reserve a table' : 'Забронировать столик', href: `/${currentLocale}/booking`, keywords: ['бронь', 'бронирование', 'столик', 'booking', 'брондо'] },
-    { label: currentLocale === 'en' ? 'My orders' : currentLocale === 'kg' ? 'Буйрутмаларым' : 'Мои заказы', description: currentLocale === 'en' ? 'View your orders' : 'История и статусы заказов', href: `/${currentLocale}/orders`, keywords: ['заказы', 'заказ', 'orders', 'буйрутма'] },
+    { label: currentLocale === 'en' ? 'Home' : currentLocale === 'kg' ? 'Башкы бет' : 'Главная', description: currentLocale === 'en' ? 'CafeFlow home page, food, atmosphere and welcome' : 'Главная страница CaféFlow, вкусная еда и уютная атмосфера', href: `/${currentLocale}`, keywords: ['главная', 'home', 'башкы', 'добро пожаловать', 'атмосфера', 'еда'] },
+    { label: currentLocale === 'en' ? 'Menu' : 'Меню', description: currentLocale === 'en' ? 'Browse dishes, drinks, coffee, breakfast and chef specials' : 'Блюда, напитки, кофе, завтраки и выбор шефа', href: `/${currentLocale}/menu`, keywords: ['меню', 'блюда', 'menu', 'еда', 'напитки', 'кофе', 'завтрак', 'шеф', 'десерт'] },
+    { label: currentLocale === 'en' ? 'Booking' : currentLocale === 'kg' ? 'Брондоо' : 'Бронирование', description: currentLocale === 'en' ? 'Reserve a table for breakfast, dinner or a special evening' : 'Забронировать столик для завтрака, ужина или встречи', href: `/${currentLocale}/booking`, keywords: ['бронь', 'бронирование', 'столик', 'booking', 'брондо', 'ужин', 'встреча'] },
+    { label: currentLocale === 'en' ? 'My orders' : currentLocale === 'kg' ? 'Буйрутмаларым' : 'Мои заказы', description: currentLocale === 'en' ? 'View order history and delivery status' : 'История заказов и статус доставки', href: `/${currentLocale}/orders`, keywords: ['заказы', 'заказ', 'orders', 'буйрутма', 'доставка', 'статус'] },
     { label: currentLocale === 'en' ? 'Cart' : currentLocale === 'kg' ? 'Себет' : 'Корзина', description: currentLocale === 'en' ? 'Open your cart' : 'Товары для оформления', href: `/${currentLocale}/cart`, keywords: ['корзина', 'cart', 'себет'] },
-    { label: currentLocale === 'en' ? 'Promotions' : currentLocale === 'kg' ? 'Акциялар' : 'Акции', description: currentLocale === 'en' ? 'Current CafeFlow offers' : 'Скидки и специальные предложения', href: `/${currentLocale}#promotions`, keywords: ['акции', 'скидки', 'промо', 'promo', 'sale', 'акция'] },
+    { label: currentLocale === 'en' ? 'Promotions' : currentLocale === 'kg' ? 'Акциялар' : 'Акции', description: currentLocale === 'en' ? 'Current CafeFlow offers, breakfast for two and seasonal specials' : 'Скидки, специальные предложения, новинки и завтрак для двоих', href: `/${currentLocale}#promotions`, keywords: ['акции', 'скидки', 'промо', 'promo', 'sale', 'акция', 'новинка', 'сезон'] },
     { label: currentLocale === 'en' ? 'About us' : currentLocale === 'kg' ? 'Биз жөнүндө' : 'О нас', description: currentLocale === 'en' ? 'Learn more about CafeFlow' : 'История и атмосфера CaféFlow', href: `/${currentLocale}#about`, keywords: ['о нас', 'about', 'биз жөнүндө'] },
     { label: currentLocale === 'en' ? 'Address' : currentLocale === 'kg' ? 'Дарек' : 'Адрес', description: currentLocale === 'en' ? 'Find our cafe' : 'Где находится CaféFlow', href: `/${currentLocale}#address`, keywords: ['адрес', 'address', 'дарек'] },
     { label: currentLocale === 'en' ? 'Contact us' : currentLocale === 'kg' ? 'Байланышуу' : 'Связаться с нами', description: currentLocale === 'en' ? 'Phone and email' : 'Телефон и электронная почта', href: `/${currentLocale}#contact`, keywords: ['связаться', 'контакты', 'contact', 'телефон'] },
@@ -374,7 +374,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
           </Link>
 
           <form onSubmit={handleSearch} className="relative hidden min-w-0 flex-1 md:flex">
-            <label className="header-search flex h-10 w-full items-center gap-2 rounded-lg border border-white/15 bg-white/10 px-3 text-white focus-within:border-orange-400">
+            <label className="header-search flex h-10 w-full items-center gap-2 rounded-lg border border-white/15 bg-white/10 px-3 text-white">
               <input
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
@@ -382,7 +382,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
                 className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/50"
                 aria-label={currentLocale === 'en' ? 'Search the site' : 'Поиск по сайту'}
               />
-              <button type="submit" className="flex h-7 w-7 items-center justify-center rounded-md text-white/70 transition-colors hover:bg-orange-500 hover:text-white" aria-label="Поиск">
+              <button type="submit" className="header-search-submit flex h-7 w-7 items-center justify-center rounded-md text-white/70 transition-colors hover:bg-orange-500 hover:text-white" aria-label="Поиск">
                 <Search className="h-4 w-4" />
               </button>
             </label>
@@ -552,7 +552,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
               <div className="hidden h-full items-center gap-3 md:flex">
                 <Link
                   href={`/${currentLocale}/login`}
-                  className="header-auth-login inline-flex min-h-10 items-center justify-center rounded-lg border border-white/20 px-4 text-sm font-semibold text-white transition-colors hover:border-orange-400 hover:bg-orange-500 hover:text-white"
+                  className="header-auth-login inline-flex min-h-10 items-center justify-center rounded-lg border border-orange-400/70 px-4 text-sm font-semibold text-orange-200 transition-colors hover:border-orange-400 hover:bg-orange-500 hover:text-white"
                 >
                   {ui.header.login}
                 </Link>

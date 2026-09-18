@@ -95,24 +95,6 @@ body {
   position: relative;
 }
 
-.landing-section--warm::after,
-.landing-section--light::after {
-  position: absolute;
-  z-index: -1;
-  right: 0;
-  bottom: -5rem;
-  left: 0;
-  height: 10rem;
-  content: "";
-  pointer-events: none;
-  background: linear-gradient(to bottom, transparent, var(--background));
-  filter: blur(18px);
-}
-
-.landing-section--light::after {
-  background: linear-gradient(to bottom, transparent, #f7f5f0);
-}
-
 .footer-surface {
   background-image: linear-gradient(180deg, rgba(21, 26, 30, 0.9), #151a1e 10rem), url("https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1800&q=75");
   background-attachment: scroll;
@@ -153,8 +135,17 @@ body {
   color: #151a1e;
 }
 
+.header-search:hover {
+  border-color: rgba(249, 115, 22, 0.75);
+}
+
 .header-surface[data-theme="light"] .header-search input::placeholder {
   color: #8a9195;
+}
+
+.header-search-submit {
+  min-width: 0;
+  min-height: 0;
 }
 
 .header-surface[data-theme="light"] .header-search-results {
@@ -177,8 +168,8 @@ body {
 }
 
 .header-surface[data-theme="light"] .header-auth-login {
-  border-color: #d06b3c;
-  color: #9a3412;
+  border-color: #f97316;
+  color: #ea580c;
 }
 
 .header-surface[data-theme="light"] .header-auth-login:hover {

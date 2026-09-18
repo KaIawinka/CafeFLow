@@ -8,9 +8,9 @@ interface FooterProps {
 }
 
 const footerCopy = {
-  ru: { detail: 'Завтраки, ужины и встречи в уютном пространстве с вниманием к каждой детали.', hours: 'Часы работы', contacts: 'Контакты', address: 'Бишкек, ул. Примерная 123', weekdays: 'Пн — Пт · 10:00–23:00', weekends: 'Сб — Вс · 09:00–23:00', open: 'Мы открыты каждый день' },
-  en: { detail: 'Breakfasts, dinners, and good conversations in a warm space where every detail matters.', hours: 'Opening hours', contacts: 'Contact us', address: 'Bishkek, Example Street 123', weekdays: 'Mon — Fri · 10:00–23:00', weekends: 'Sat — Sun · 09:00–23:00', open: 'We are open every day' },
-  kg: { detail: 'Жылуу мейкиндикте эртең мененки тамак, кечки тамак жана маанилүү жолугушуулар.', hours: 'Иш убактысы', contacts: 'Байланыштар', address: 'Бишкек, Мисал көчөсү 123', weekdays: 'Дш — Жм · 10:00–23:00', weekends: 'Иш — Жек · 09:00–23:00', open: 'Биз күн сайын ачыкпыз' },
+  ru: { contacts: 'Контакты', address: 'Бишкек, ул. Примерная 123', open: 'Мы открыты каждый день' },
+  en: { contacts: 'Contact us', address: 'Bishkek, Example Street 123', open: 'We are open every day' },
+  kg: { contacts: 'Байланыштар', address: 'Бишкек, Мисал көчөсү 123', open: 'Биз күн сайын ачыкпыз' },
 } as const;
 
 function WhatsAppMark() {
@@ -33,15 +33,14 @@ export function Footer({ t, locale }: FooterProps) {
         <div className="flex flex-col gap-6 border-b border-white/10 pb-8 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-center gap-3">
             <Image src="/cafeflow-logo.svg" alt="CaféFlow" width={44} height={44} className="h-11 w-11 rounded-md" />
-            <div><h3 className="text-xl font-bold text-orange-300">CaféFlow</h3><p className="mt-1 max-w-sm text-sm text-white/50">{copy.detail}</p></div>
+            <div><h3 className="text-xl font-bold text-orange-300">CaféFlow</h3></div>
           </div>
-          <div className="text-left sm:text-right"><p className="font-serif text-lg italic text-orange-300">{copy.open}</p><p className="mt-1 text-sm text-white/55">{copy.weekdays} · {copy.weekends}</p></div>
+          <div className="text-left sm:text-right"><p className="font-serif text-lg italic text-orange-300">{copy.open}</p></div>
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-x-7 gap-y-4 py-7 text-sm font-medium text-white/60 sm:justify-between">
           <div className="footer-table flex min-w-0 flex-1 flex-wrap items-start justify-between gap-7">
             <div id="address" className="min-w-[9rem]"><h4 className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-orange-300">{t.contact.address}</h4><div className="space-y-1.5 text-white/55"><p>{copy.address}</p><p>{t.contact.phone}: +996 XXX XXX XXX</p></div></div>
-            <div className="min-w-[11rem]"><h4 className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-orange-300">{copy.hours}</h4><div className="space-y-1.5 text-white/55"><p>{copy.weekdays}</p><p>{copy.weekends}</p></div></div>
             <div className="min-w-[11rem]"><h4 className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-orange-300">{copy.contacts}</h4><div className="space-y-1.5 text-white/55"><p>+996 555 000 000</p><p>hello@cafeflow.kg</p><p>WhatsApp · Telegram</p></div></div>
           </div>
         </div>
