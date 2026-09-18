@@ -322,7 +322,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-white/80 transition-colors hover:bg-orange-500 hover:text-white"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-white/80 transition-colors hover:bg-orange-500 hover:text-white md:hidden"
             aria-label={isMobileMenuOpen ? ui.header.closeMenu : ui.header.openMenu}
             aria-expanded={isMobileMenuOpen}
           >
@@ -506,20 +506,14 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
             ) : (
               <div className="hidden h-full items-center gap-3 md:flex">
                 <Link
-                  href={`/${currentLocale}`}
-                  className="inline-flex min-h-10 items-center text-sm font-medium text-white/80 transition-colors hover:text-orange-400"
-                >
-                  {ui.header.home}
-                </Link>
-                <Link
                   href={`/${currentLocale}/login`}
-                  className="inline-flex min-h-10 items-center text-sm font-medium text-white/80 transition-colors hover:text-orange-400"
+                  className="inline-flex min-h-10 items-center justify-center rounded-lg border border-white/20 px-4 text-sm font-semibold text-white transition-colors hover:border-orange-400 hover:bg-orange-500 hover:text-white"
                 >
                   {ui.header.login}
                 </Link>
                 <Link
                   href={`/${currentLocale}/register`}
-                  className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-amber-700"
+                  className="inline-flex min-h-10 items-center justify-center rounded-lg bg-orange-500 px-4 text-sm font-semibold text-white shadow-lg shadow-orange-950/20 transition hover:-translate-y-0.5 hover:bg-orange-600"
                 >
                   {ui.header.register}
                 </Link>
@@ -529,7 +523,8 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
           </div>
         </div>
 
-        <nav className="hidden min-h-12 items-center gap-2 border-t border-white/10 md:flex" aria-label="Основная навигация">
+        <nav className="hidden min-h-12 items-center justify-center gap-2 border-t border-white/10 md:flex" aria-label="Основная навигация">
+          <Link href={`/${currentLocale}`} className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors ${pathname === `/${currentLocale}` ? 'bg-orange-500 text-white' : 'text-white/75 hover:bg-orange-500/15 hover:text-orange-300'}`}><Home className="h-4 w-4" />{ui.header.home}</Link>
           {navLinks.map((link) => {
             const Icon = getNavIcon(link.href);
             return <Link key={link.href} href={link.href} className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors ${pathname === link.href ? 'bg-orange-500 text-white' : 'text-white/75 hover:bg-orange-500/15 hover:text-orange-300'}`}><Icon className="h-4 w-4" />{link.label}</Link>;

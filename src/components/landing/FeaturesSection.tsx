@@ -28,7 +28,7 @@ export function FeaturesSection({ t, locale }: FeaturesSectionProps) {
   const localizedDishes = dishes[locale].map((dish, index) => ({ ...dish, ...dishMeta[index] }));
   return (
     <>
-      <section id="about" className="relative overflow-hidden bg-[#f7f5f0] py-20 text-[#151a1e] sm:py-28">
+      <section id="about" className="landing-section landing-section--warm relative overflow-hidden bg-[#f7f5f0] py-20 text-[#151a1e] sm:py-28">
         <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 sm:px-8 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20 lg:px-12">
           <div className="landing-reveal">
             <p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-orange-600">{copy.eyebrow}</p>
@@ -48,7 +48,7 @@ export function FeaturesSection({ t, locale }: FeaturesSectionProps) {
         </div>
       </section>
 
-      <section id="menu" className="bg-[#fffdf8] py-20 text-[#151a1e] sm:py-28">
+      <section id="menu" className="landing-section landing-section--light bg-[#fffdf8] py-20 text-[#151a1e] sm:py-28">
         <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
           <div className="mb-10 flex flex-col justify-between gap-5 sm:mb-14 sm:flex-row sm:items-end"><div><p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-orange-600">From our kitchen</p><h2 className="text-4xl font-black sm:text-6xl">{t.menu.title}</h2><p className="mt-3 max-w-lg text-[#687078]">{t.menu.subtitle}</p></div><Link href={`/${locale}/menu`} className="group inline-flex min-h-10 items-center gap-2 text-sm font-bold text-orange-600">{t.menu.viewAll}<ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" /></Link></div>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">

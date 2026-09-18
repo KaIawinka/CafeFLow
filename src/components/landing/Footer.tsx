@@ -29,45 +29,30 @@ function TelegramMark() {
 export function Footer({ t, locale }: FooterProps) {
   const copy = footerCopy[locale];
   return (
-    <footer id="contact" className="bg-[#151a1e] py-12 text-white sm:py-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-12 grid gap-10 sm:gap-12 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
-          <div>
-            <div className="mb-5 flex items-center gap-3"><Image src="/cafeflow-logo.svg" alt="CaféFlow" width={48} height={48} className="h-12 w-12 rounded-md" /><h3 className="text-2xl font-bold text-orange-300">CaféFlow</h3></div>
-            <p className="text-white/60">{t.about.description}</p>
-            <p className="mt-5 max-w-xs text-sm leading-6 text-white/45">{copy.detail}</p>
+    <footer id="contact" className="footer-surface relative bg-[#151a1e] py-10 text-white sm:py-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-6 border-b border-white/10 pb-8 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-center gap-3">
+            <Image src="/cafeflow-logo.svg" alt="CaféFlow" width={44} height={44} className="h-11 w-11 rounded-md" />
+            <div><h3 className="text-xl font-bold text-orange-300">CaféFlow</h3><p className="mt-1 max-w-sm text-sm text-white/50">{copy.detail}</p></div>
           </div>
-
-          <div>
-            <h4 className="mb-4 text-lg font-semibold text-white">{t.contact.title}</h4>
-            <div className="space-y-2 text-white/60">
-              <p>{t.contact.address}: г. Бишкек, ул. Примерная 123</p>
-              <p>{t.contact.phone}: +996 XXX XXX XXX</p>
-              <p>{t.contact.hours}: 09:00 - 22:00</p>
-            </div>
-          </div>
-
-          <div>
-            <h4 className="mb-4 text-lg font-semibold text-white">{copy.navigation}</h4>
-            <ul className="space-y-2">
-              <li><Link href="#menu" className="text-white/60 hover:text-orange-300">{t.footer.menu}</Link></li>
-              <li><Link href="#reservation" className="text-white/60 hover:text-orange-300">{t.footer.reservation}</Link></li>
-              <li><Link href="#about" className="text-white/60 hover:text-orange-300">{t.footer.about}</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="mb-4 text-lg font-semibold text-white">{copy.hours}</h4>
-            <div className="space-y-2 text-sm text-white/60"><p>{copy.weekdays}</p><p>{copy.weekends}</p><p className="pt-3 font-serif italic text-orange-300">{copy.open}</p></div>
-          </div>
-          <div>
-            <h4 className="mb-4 text-lg font-semibold text-white">{copy.contacts}</h4>
-            <div className="space-y-2 text-sm text-white/60"><p>+996 555 000 000</p><p>hello@cafeflow.kg</p><p>Бишкек, ул. Примерная 123</p></div>
-          </div>
+          <div className="text-left sm:text-right"><p className="font-serif text-lg italic text-orange-300">{copy.open}</p><p className="mt-1 text-sm text-white/55">{copy.weekdays} · {copy.weekends}</p></div>
         </div>
 
-        <div className="flex flex-col gap-6 border-t border-white/10 pt-8 text-sm text-white/45 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3"><span>© {new Date().getFullYear()} CaféFlow.</span><span>{t.footer.rights}</span></div>
-          <div className="flex items-center gap-2"><a aria-label="WhatsApp" href="https://wa.me/996555000000" className="flex h-10 w-10 items-center justify-center rounded-md border border-[#25d366]/40 text-[#25d366] transition hover:border-[#25d366] hover:bg-[#25d366] hover:text-white"><WhatsAppMark /></a><a aria-label="Instagram" href="https://instagram.com" className="flex h-10 w-10 items-center justify-center rounded-md border border-[#e4405f]/40 text-[#e4405f] transition hover:border-[#e4405f] hover:bg-[#e4405f] hover:text-white"><InstagramMark /></a><a aria-label="Telegram" href="https://t.me" className="flex h-10 w-10 items-center justify-center rounded-md border border-[#229ed9]/40 text-[#229ed9] transition hover:border-[#229ed9] hover:bg-[#229ed9] hover:text-white"><TelegramMark /></a></div>
+        <div className="flex flex-wrap items-center justify-center gap-x-7 gap-y-4 py-7 text-sm font-medium text-white/60 sm:justify-between">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            <span className="text-white/35">{copy.navigation}</span>
+            <Link href="#menu" className="transition hover:text-orange-300">{t.footer.menu}</Link>
+            <Link href="#reservation" className="transition hover:text-orange-300">{t.footer.reservation}</Link>
+            <Link href="#about" className="transition hover:text-orange-300">{t.footer.about}</Link>
+            <Link href="#contact" className="transition hover:text-orange-300">{copy.contacts}</Link>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-white/50"><span>+996 555 000 000</span><span>hello@cafeflow.kg</span><span>Бишкек, ул. Примерная 123</span></div>
+        </div>
+
+        <div className="flex flex-col gap-5 border-t border-white/10 pt-6 text-sm text-white/40 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-3"><span>© {new Date().getFullYear()} CaféFlow.</span><span>{t.footer.rights}</span></div>
+          <div className="flex items-center gap-2"><a aria-label="WhatsApp" href="https://wa.me/996555000000" className="flex h-9 w-9 items-center justify-center rounded-md border border-[#25d366]/40 text-[#25d366] transition hover:border-[#25d366] hover:bg-[#25d366] hover:text-white"><WhatsAppMark /></a><a aria-label="Instagram" href="https://instagram.com" className="flex h-9 w-9 items-center justify-center rounded-md border border-[#e4405f]/40 text-[#e4405f] transition hover:border-[#e4405f] hover:bg-[#e4405f] hover:text-white"><InstagramMark /></a><a aria-label="Telegram" href="https://t.me" className="flex h-9 w-9 items-center justify-center rounded-md border border-[#229ed9]/40 text-[#229ed9] transition hover:border-[#229ed9] hover:bg-[#229ed9] hover:text-white"><TelegramMark /></a></div>
         </div>
       </div>
     </footer>

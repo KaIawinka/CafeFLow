@@ -10,7 +10,7 @@ interface CTASectionProps {
 
 export function CTASection({ t, locale }: CTASectionProps) {
   return (
-    <section id="reservation" className="bg-[#f7f5f0] px-5 pb-20 sm:px-8 sm:pb-28 lg:px-12">
+    <section id="reservation" className="landing-section landing-section--warm bg-[#f7f5f0] px-5 pb-20 sm:px-8 sm:pb-28 lg:px-12">
       <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[1.5rem] bg-[#151a1e] text-white shadow-2xl">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1519671282429-b44660ead0a7?auto=format&fit=crop&w=1800&q=85')] bg-cover bg-center opacity-45" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#151a1e] via-[#151a1e]/80 to-transparent" />
