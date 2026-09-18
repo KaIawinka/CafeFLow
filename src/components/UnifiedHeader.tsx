@@ -26,6 +26,8 @@ import {
   Home,
   ShoppingCart,
   Utensils,
+  Search,
+  Heart,
 } from 'lucide-react';
 
 interface UserData {
@@ -72,6 +74,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
   const [logoutConfirm, setLogoutConfirm] = useState(false);
   const [logoutCountdown, setLogoutCountdown] = useState(0);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
   const { theme, toggleTheme } = useTheme();
   
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -175,6 +178,49 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
     }
   };
 
+  const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return;
+
+    const destination = query.match(/акци|скид|промо|promo|sale/)
+      ? `/${currentLocale}#promotions`
+      : query.match(/меню|блюд|menu/)
+        ? `/${currentLocale}/menu`
+        : query.match(/брон|столик|booking/)
+          ? `/${currentLocale}/booking`
+          : query.match(/заказ|order/)
+            ? `/${currentLocale}/orders`
+            : query.match(/корз|cart/)
+              ? `/${currentLocale}/cart`
+              : query.match(/избран|favorite/)
+                ? `/${currentLocale}/menu?view=favorites`
+                : query.match(/профил|profile/)
+                  ? `/${currentLocale}/profile`
+                  : query.match(/админ|admin/)
+                    ? `/${currentLocale}/admin`
+                    : query.match(/контакт|contact/)
+                      ? `/${currentLocale}#contact`
+                      : null;
+
+    if (destination) {
+      if (destination.startsWith(`${pathname}#`)) {
+        document.querySelector(destination.slice(destination.indexOf('#')))?.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        router.push(destination);
+      }
+      setSearchQuery('');
+      return;
+    }
+
+    const searchable = Array.from(document.querySelectorAll<HTMLElement>('h1, h2, h3, p, a, button'));
+    const match = searchable.find((element) => element.textContent?.toLowerCase().includes(query));
+    if (match) {
+      match.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setSearchQuery('');
+    }
+  };
+
   const roleConfig: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
     admin: { 
       label: ui.profile.roleLabels.admin, 
@@ -250,6 +296,14 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
     { href: `/${currentLocale}/cart`, label: currentLocale === 'en' ? 'Cart' : 'Корзина', icon: ShoppingCart },
   ];
 
+  const getNavIcon = (href: string) => {
+    if (href.includes('/booking')) return CalendarDays;
+    if (href.includes('/orders')) return ClipboardList;
+    if (href.includes('/admin')) return ShieldCheck;
+    if (href.includes('/deliveries')) return ShoppingCart;
+    return Utensils;
+  };
+
   // Get localized language names
   const getLocalizedLanguageName = (locale: Locale, inLocale: Locale): string => {
     const names: Record<Locale, Record<Locale, string>> = {
@@ -263,10 +317,20 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#151a1e]/95 shadow-sm backdrop-blur-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14 sm:h-16">
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex min-h-16 items-center gap-3 sm:gap-5">
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-white/80 transition-colors hover:bg-orange-500 hover:text-white"
+            aria-label={isMobileMenuOpen ? ui.header.closeMenu : ui.header.openMenu}
+            aria-expanded={isMobileMenuOpen}
+          >
+            {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+
           {/* Logo */}
-          <Link href={`/${currentLocale}`} className="flex items-center gap-2 sm:gap-3">
+          <Link href={`/${currentLocale}`} className="flex shrink-0 items-center gap-2 sm:gap-3">
             <Image 
               src={siteLogo}
               alt="CafeFlow" 
@@ -279,22 +343,21 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`inline-flex min-h-10 items-center text-sm font-medium transition-colors ${
-                  pathname === link.href
-                    ? 'text-orange-500'
-                    : 'text-white/70 hover:text-orange-400'
-                  }`}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+          <form onSubmit={handleSearch} className="hidden min-w-0 flex-1 md:flex">
+            <label className="flex h-10 w-full items-center gap-2 rounded-lg border border-white/15 bg-white/10 px-3 text-white focus-within:border-orange-400">
+              <Search className="h-4 w-4 shrink-0 text-white/60" aria-hidden="true" />
+              <input
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder={currentLocale === 'en' ? 'Search the site' : currentLocale === 'kg' ? 'Сайттан издөө' : 'Поиск по сайту'}
+                className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/50"
+                aria-label={currentLocale === 'en' ? 'Search the site' : 'Поиск по сайту'}
+              />
+              <button type="submit" className="flex h-7 w-7 items-center justify-center rounded-md text-white/70 transition-colors hover:bg-orange-500 hover:text-white" aria-label="Поиск">
+                <Search className="h-4 w-4" />
+              </button>
+            </label>
+          </form>
 
           {/* Right Section */}
           <div className="flex items-center gap-2 sm:gap-3">
@@ -322,6 +385,14 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
                 {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
               </button>
             </div>
+
+            <Link href={`/${currentLocale}/cart`} className="hidden h-10 w-10 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-orange-500 hover:text-white md:flex" aria-label="Корзина" title="Корзина">
+              <ShoppingCart className="h-4 w-4" />
+            </Link>
+
+            <Link href={`/${currentLocale}/menu?view=favorites`} className="hidden h-10 w-10 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-orange-500 hover:text-white md:flex" aria-label="Избранное" title="Избранное">
+              <Heart className="h-4 w-4" />
+            </Link>
 
             {/* Language Switcher */}
             <div className="hidden md:block relative" ref={langDropdownRef}>
@@ -359,7 +430,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
                 <div className="hidden md:block relative" ref={dropdownRef}>
                   <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-white transition-colors hover:bg-white/10"
                   >
                     {user.avatarUrl ? (
                       <Image src={user.avatarUrl} alt="Аватар" width={32} height={32} className="h-8 w-8 rounded-full object-cover" />
@@ -381,7 +452,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
                       )}
                     </div>
                     
-                    <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-4 h-4 text-white/60 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
                   </button>
 
                   {isDropdownOpen && (
@@ -436,43 +507,38 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
               <div className="hidden h-full items-center gap-3 md:flex">
                 <Link
                   href={`/${currentLocale}`}
-                  className="inline-flex min-h-10 items-center text-sm font-medium text-gray-700 transition-colors hover:text-amber-600 dark:text-gray-300 dark:hover:text-amber-500"
+                  className="inline-flex min-h-10 items-center text-sm font-medium text-white/80 transition-colors hover:text-orange-400"
                 >
                   {ui.header.home}
                 </Link>
                 <Link
                   href={`/${currentLocale}/login`}
-                  className="inline-flex min-h-10 items-center text-sm font-medium text-gray-700 transition-colors hover:text-amber-600 dark:text-gray-300 dark:hover:text-amber-500"
+                  className="inline-flex min-h-10 items-center text-sm font-medium text-white/80 transition-colors hover:text-orange-400"
                 >
                   {ui.header.login}
                 </Link>
                 <Link
                   href={`/${currentLocale}/register`}
-                  className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors"
+                  className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-amber-700"
                 >
                   {ui.header.register}
                 </Link>
               </div>
             )}
 
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-800 md:hidden"
-              aria-label={isMobileMenuOpen ? ui.header.closeMenu : ui.header.openMenu}
-              aria-expanded={isMobileMenuOpen}
-            >
-              {isMobileMenuOpen ? (
-                <X className="h-6 w-6 text-gray-700 dark:text-gray-300" />
-              ) : (
-                <Menu className="h-6 w-6 text-gray-700 dark:text-gray-300" />
-              )}
-            </button>
           </div>
         </div>
 
+        <nav className="hidden min-h-12 items-center gap-2 border-t border-white/10 md:flex" aria-label="Основная навигация">
+          {navLinks.map((link) => {
+            const Icon = getNavIcon(link.href);
+            return <Link key={link.href} href={link.href} className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors ${pathname === link.href ? 'bg-orange-500 text-white' : 'text-white/75 hover:bg-orange-500/15 hover:text-orange-300'}`}><Icon className="h-4 w-4" />{link.label}</Link>;
+          })}
+        </nav>
+
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 dark:border-gray-800 py-4">
+          <div className="absolute left-0 right-0 top-full border-t border-white/10 bg-[#151a1e] py-4 shadow-xl md:max-w-md md:rounded-b-lg">
             {user && <div className="flex items-center gap-3 px-4 py-3 mb-4">
               {user.avatarUrl ? (
                 <Image src={user.avatarUrl} alt="Аватар" width={40} height={40} className="h-10 w-10 rounded-full object-cover" />

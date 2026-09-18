@@ -40,7 +40,7 @@ export function PromoCarousel({ locale }: { locale: Locale }) {
   }, [items.length]);
 
   return (
-    <section className="relative z-10 mx-auto -mt-12 w-[calc(100%-2rem)] max-w-6xl sm:-mt-20 sm:w-[calc(100%-3rem)]">
+    <section id="promotions" className="relative z-10 mx-auto -mt-12 w-[calc(100%-2rem)] max-w-6xl scroll-mt-28 sm:-mt-20 sm:w-[calc(100%-3rem)]">
       <div className="relative min-h-[360px] overflow-hidden rounded-[1.5rem] border border-white/15 bg-[#151a1e] text-white shadow-[0_24px_70px_rgba(21,26,30,0.32)] sm:min-h-[390px]">
         <div key={active} className="absolute inset-0 carousel-slide" style={{ backgroundImage: `url(${item.image})` }} />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,13,15,0.94)_0%,rgba(10,13,15,0.68)_48%,rgba(10,13,15,0.18)_100%)]" />
