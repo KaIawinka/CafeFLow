@@ -36,6 +36,77 @@ function tenantScope(tenantId: string | null | undefined): { tenant_id?: string 
   return tenantId ? { tenant_id: tenantId } : {};
 }
 
+function dayStart(value: Date) {
+  const date = new Date(value);
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+async function getAnalytics(tenantId: string | null, branchIds: string[] | null) {
+  if (!tenantId) return null;
+  const now = new Date();
+  const today = dayStart(now);
+  const week = new Date(today);
+  week.setDate(week.getDate() - 6);
+  const month = new Date(today);
+  month.setDate(month.getDate() - 29);
+  const scope = { tenant_id: tenantId, ...(branchIds ? { branch_id: { in: branchIds } } : {}) };
+  const [orders, items, payments, reservations, tables, users, loyalty, reviews] = await Promise.all([
+    prisma.orders.findMany({ where: { ...scope, created_at: { gte: month } }, select: { id: true, total: true, status: true, user_id: true, created_at: true, completed_at: true } }),
+    prisma.order_items.findMany({ where: { order: { ...scope, created_at: { gte: month }, status: { not: 'cancelled' } } }, select: { product_name: true, quantity: true, line_total: true, product: { select: { category: { select: { name: true } } } } } }),
+    prisma.payments.findMany({ where: { tenant_id: tenantId, created_at: { gte: month }, order: branchIds ? { branch_id: { in: branchIds } } : undefined }, select: { method: true, amount: true, captured_amount: true, refunded_amount: true } }),
+    prisma.reservations.findMany({ where: { tenant_id: tenantId, ...(branchIds ? { branch_id: { in: branchIds } } : {}), start_at: { gte: month } }, select: { guests_count: true, status: true, start_at: true, end_at: true, table_ids: true } }),
+    prisma.restaurant_tables.count({ where: { tenant_id: tenantId, ...(branchIds ? { branch_id: { in: branchIds } } : {}), status: 'active' } }),
+    prisma.users.findMany({ where: { tenant_id: tenantId }, select: { id: true, created_at: true, role: true } }),
+    prisma.loyalty.findMany({ where: { tenant_id: tenantId }, select: { operation: true, amount: true } }),
+    prisma.reviews.findMany({ where: { tenant_id: tenantId, status: 'published' }, select: { rating: true } }),
+  ]);
+  const sum = (rows: Array<{ total: unknown }>) => rows.reduce((total, row) => total + Number(row.total || 0), 0);
+  const from = (date: Date) => orders.filter((order) => order.created_at >= date);
+  const monthOrders = from(month);
+  const weekOrders = from(week);
+  const todayOrders = from(today);
+  const productMap = items.reduce<Record<string, { name: string; quantity: number; revenue: number; category: string }>>((map, item) => {
+    const current = map[item.product_name] || { name: item.product_name, quantity: 0, revenue: 0, category: item.product?.category?.name || 'Без категории' };
+    current.quantity += item.quantity;
+    current.revenue += Number(item.line_total || 0);
+    map[item.product_name] = current;
+    return map;
+  }, {});
+  const categoryMap = items.reduce<Record<string, number>>((map, item) => {
+    const category = item.product?.category?.name || 'Без категории';
+    map[category] = (map[category] || 0) + Number(item.line_total || 0);
+    return map;
+  }, {});
+  const occupied = new Set(reservations.filter((reservation) => ['confirmed', 'seated'].includes(reservation.status)).flatMap((reservation) => Array.isArray(reservation.table_ids) ? reservation.table_ids.filter((id): id is string => typeof id === 'string') : []));
+  const serviceTimes = monthOrders.filter((order) => order.completed_at).map((order) => (new Date(order.completed_at!).getTime() - order.created_at.getTime()) / 60000).filter((value) => value >= 0 && value < 240);
+  return {
+    periods: {
+      today: { revenue: sum(todayOrders), orders: todayOrders.length },
+      week: { revenue: sum(weekOrders), orders: weekOrders.length },
+      month: { revenue: sum(monthOrders), orders: monthOrders.length },
+    },
+    averageOrderValue: monthOrders.length ? sum(monthOrders) / monthOrders.length : 0,
+    guests: reservations.reduce((total, reservation) => total + reservation.guests_count, 0),
+    occupancy: tables ? Math.round((occupied.size / tables) * 100) : 0,
+    dailyRevenue: Array.from({ length: 7 }, (_, index) => { const date = new Date(today); date.setDate(date.getDate() - (6 - index)); const next = new Date(date); next.setDate(next.getDate() + 1); return { date: date.toISOString().slice(0, 10), revenue: sum(orders.filter((order) => order.created_at >= date && order.created_at < next)) }; }),
+    paymentMix: Object.entries(payments.reduce<Record<string, { amount: number; count: number }>>((map, payment) => { const current = map[payment.method] || { amount: 0, count: 0 }; current.amount += Number(payment.captured_amount || payment.amount || 0); current.count += 1; map[payment.method] = current; return map; }, {})).map(([method, value]) => ({ method, ...value })),
+    refunds: { amount: payments.reduce((total, payment) => total + Number(payment.refunded_amount || 0), 0), count: payments.filter((payment) => Number(payment.refunded_amount || 0) > 0).length },
+    cancelled: monthOrders.filter((order) => order.status === 'cancelled').length,
+    foodCost: Math.round(sum(monthOrders) * 0.32),
+    topProducts: Object.values(productMap).sort((a, b) => b.revenue - a.revenue).slice(0, 10),
+    categorySales: Object.entries(categoryMap).map(([name, revenue]) => ({ name, revenue })).sort((a, b) => b.revenue - a.revenue),
+    outsiders: Object.values(productMap).filter((product) => product.quantity === 1).slice(0, 5),
+    trafficHeatmap: reservations.map((reservation) => ({ day: new Date(reservation.start_at).getDay(), hour: new Date(reservation.start_at).getHours(), guests: reservation.guests_count })),
+    averageServiceMinutes: serviceTimes.length ? Math.round(serviceTimes.reduce((total, value) => total + value, 0) / serviceTimes.length) : 0,
+    averageTableMinutes: reservations.length ? Math.round(reservations.reduce((total, reservation) => total + (new Date(reservation.end_at).getTime() - new Date(reservation.start_at).getTime()) / 60000, 0) / reservations.length) : 0,
+    staff: users.filter((user) => ['admin', 'manager', 'kitchen', 'employee'].includes(user.role)).map((user) => ({ id: user.id, role: user.role })),
+    customerMix: { newCustomers: users.filter((user) => user.created_at >= month).length, returningCustomers: new Set(monthOrders.map((order) => order.user_id).filter(Boolean)).size },
+    loyalty: { issued: loyalty.filter((entry) => entry.operation === 'earn').reduce((total, entry) => total + Number(entry.amount || 0), 0), spent: loyalty.filter((entry) => entry.operation === 'spend').reduce((total, entry) => total + Number(entry.amount || 0), 0), members: loyalty.length },
+    reviews: { average: reviews.length ? reviews.reduce((total, review) => total + review.rating, 0) / reviews.length : 0, count: reviews.length },
+  };
+}
+
 export async function GET(request: NextRequest) {
   const auth = await verifyAdminOrManager(request, 'view_orders');
   if (!auth.success || !auth.userId) return auth.error;
@@ -68,7 +139,7 @@ export async function GET(request: NextRequest) {
 
     const orderWhere = { ...tenantScope(tenantId), ...(branchIds ? { branch_id: { in: branchIds } } : {}) };
     const productWhere = { deleted_at: null, ...tenantScope(tenantId) };
-      const [users, filteredUsersCount, usersCount, activeUsersCount, adminCount, ordersCount, revenue, productsCount, activeProductsCount, recentOrders, recentOrdersCount, products, tenant] = await Promise.all([
+      const [users, filteredUsersCount, usersCount, activeUsersCount, adminCount, ordersCount, revenue, productsCount, activeProductsCount, recentOrders, recentOrdersCount, products, tenant, analytics] = await Promise.all([
       prisma.users.findMany({
         where: userWhere,
         select: {
@@ -103,6 +174,7 @@ export async function GET(request: NextRequest) {
         take: 100,
       }),
       tenantId ? prisma.tenants.findUnique({ where: { id: tenantId }, select: { id: true, name: true, slug: true, status: true, currency: true, timezone: true, primary_color: true, contact_phone: true, contact_email: true, address_text: true, settings: true } }) : null,
+      getAnalytics(tenantId, branchIds),
     ]);
 
     return NextResponse.json(serialize({
@@ -114,6 +186,7 @@ export async function GET(request: NextRequest) {
       recentOrders,
       products,
       tenant,
+      analytics,
     }));
   } catch (error) {
     logger.error('Admin dashboard read error', error);

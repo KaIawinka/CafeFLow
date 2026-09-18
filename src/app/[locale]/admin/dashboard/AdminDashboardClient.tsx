@@ -9,16 +9,22 @@ import {
   Bell,
   ChevronRight,
   CircleDollarSign,
+  CreditCard,
   Database,
   Filter,
   MoreHorizontal,
   Package,
+  Receipt,
   Search,
   Settings,
   ShieldCheck,
   ShoppingBag,
   SlidersHorizontal,
   Sparkles,
+  Star,
+  Timer,
+  Utensils,
+  WalletCards,
   Users,
   UserRoundCog,
   Zap,
@@ -60,6 +66,29 @@ type DashboardData = {
     activeProducts: number;
   };
   tenant?: { name?: string; timezone?: string; currency?: string } | null;
+  analytics?: AnalyticsData | null;
+};
+
+type AnalyticsData = {
+  periods: { today: { revenue: number; orders: number }; week: { revenue: number; orders: number }; month: { revenue: number; orders: number } };
+  averageOrderValue: number;
+  guests: number;
+  occupancy: number;
+  dailyRevenue: Array<{ date: string; revenue: number }>;
+  paymentMix: Array<{ method: string; amount: number; count: number }>;
+  refunds: { amount: number; count: number };
+  cancelled: number;
+  foodCost: number;
+  topProducts: Array<{ name: string; quantity: number; revenue: number; category: string }>;
+  categorySales: Array<{ name: string; revenue: number }>;
+  outsiders: Array<{ name: string; quantity: number; revenue: number; category: string }>;
+  trafficHeatmap: Array<{ day: number; hour: number; guests: number }>;
+  averageServiceMinutes: number;
+  averageTableMinutes: number;
+  staff: Array<{ id: string; role: string }>;
+  customerMix: { newCustomers: number; returningCustomers: number };
+  loyalty: { issued: number; spent: number; members: number };
+  reviews: { average: number; count: number };
 };
 
 type Copy = {
@@ -183,15 +212,15 @@ export default function AdminDashboardClient({ locale, embedded = false }: { loc
   const currency = data?.tenant?.currency || (locale === 'en' ? 'KGS' : 'сом');
   const metrics = data?.metrics || { users: 0, activeUsers: 0, admins: 0, orders: 0, revenue: 0, products: 0, activeProducts: 0 };
   const utilization = metrics.products ? Math.round((metrics.activeProducts / metrics.products) * 100) : 0;
-  const activeRate = metrics.users ? Math.round((metrics.activeUsers / metrics.users) * 100) : 0;
   const orderStatuses = Object.entries(text.orderStatuses).map(([status, label]) => ({ status, label, count: data?.recentOrders.filter((order) => order.status === status).length || 0 }));
   const maxOrderCount = Math.max(1, ...orderStatuses.map((item) => item.count));
+  const analytics = data?.analytics;
 
   const kpis = [
-    { label: text.totalUsers, value: formatNumber(metrics.users, locale), delta: '+12.8%', icon: Users, tone: 'orange' },
-    { label: text.activeUsers, value: formatNumber(metrics.activeUsers, locale), delta: `${activeRate}%`, icon: Activity, tone: 'emerald' },
-    { label: text.orders, value: formatNumber(metrics.orders, locale), delta: '+8.4%', icon: ShoppingBag, tone: 'blue' },
-    { label: text.revenue, value: formatCurrency(metrics.revenue, locale, currency), delta: '+15.2%', icon: CircleDollarSign, tone: 'violet' },
+    { label: locale === 'en' ? 'Revenue today' : locale === 'kg' ? 'Бүгүнкү киреше' : 'Выручка сегодня', value: formatCurrency(data?.analytics?.periods.today.revenue || 0, locale, currency), delta: `${data?.analytics?.periods.today.orders || 0} ${locale === 'en' ? 'checks' : 'чеков'}`, icon: CircleDollarSign, tone: 'orange' },
+    { label: locale === 'en' ? 'Revenue this week' : locale === 'kg' ? 'Бул жумадагы киреше' : 'Выручка за неделю', value: formatCurrency(data?.analytics?.periods.week.revenue || 0, locale, currency), delta: `${data?.analytics?.periods.week.orders || 0} ${locale === 'en' ? 'orders' : 'заказов'}`, icon: BarChart3, tone: 'emerald' },
+    { label: locale === 'en' ? 'Average order value' : locale === 'kg' ? 'Орточо чек' : 'Средний чек', value: formatCurrency(data?.analytics?.averageOrderValue || 0, locale, currency), delta: `${data?.analytics?.periods.month.orders || 0} ${locale === 'en' ? 'orders / month' : 'заказов за месяц'}`, icon: Receipt, tone: 'blue' },
+    { label: locale === 'en' ? 'Guests / occupancy' : locale === 'kg' ? 'Конок / толушу' : 'Гости / загрузка', value: `${data?.analytics?.guests || 0} · ${data?.analytics?.occupancy || 0}%`, delta: `${metrics.users} ${locale === 'en' ? 'registered' : 'зарегистрировано'}`, icon: Users, tone: 'violet' },
   ];
 
   return (
@@ -207,6 +236,34 @@ export default function AdminDashboardClient({ locale, embedded = false }: { loc
 
         <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {kpis.map(({ label, value, delta, icon: Icon, tone }) => <Card key={label} className="p-5"><div className="flex items-start justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted-foreground)]">{label}</p><p className="mt-3 text-2xl font-black tracking-tight sm:text-3xl">{loading ? '—' : value}</p></div><div className={`flex h-10 w-10 items-center justify-center rounded-xl ${tone === 'orange' ? 'bg-orange-100 text-orange-600 dark:bg-orange-950/40 dark:text-orange-300' : tone === 'emerald' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300' : tone === 'blue' ? 'bg-blue-100 text-blue-600 dark:bg-blue-950/40 dark:text-blue-300' : 'bg-violet-100 text-violet-600 dark:bg-violet-950/40 dark:text-violet-300'}`}><Icon className="h-5 w-5" /></div></div><div className="mt-4 flex items-center gap-2 text-xs"><span className="inline-flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400"><ArrowUpRight className="h-3.5 w-3.5" /> {delta}</span><span className="text-[var(--muted-foreground)]">{text.vsLastPeriod}</span></div></Card>)}
+        </div>
+
+        <div className="mb-6 grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(320px,0.8fr)]">
+          <Card className="p-5 sm:p-6">
+            <SectionHeading icon={WalletCards} title={locale === 'en' ? 'Finance' : locale === 'kg' ? 'Каржы аналитикасы' : 'Финансовая аналитика'} subtitle={locale === 'en' ? 'Revenue and margin overview' : 'Выручка, себестоимость и возвраты'} />
+            <div className="grid gap-4 sm:grid-cols-3">
+              {(['today', 'week', 'month'] as const).map((period) => <div key={period} className="rounded-xl bg-[var(--muted)]/60 p-4"><p className="text-xs font-semibold uppercase text-[var(--muted-foreground)]">{period === 'today' ? (locale === 'en' ? 'Today' : 'Сегодня') : period === 'week' ? (locale === 'en' ? 'This week' : 'Неделя') : (locale === 'en' ? 'This month' : 'Месяц')}</p><p className="mt-2 text-xl font-black">{formatCurrency(analytics?.periods[period].revenue || 0, locale, currency)}</p><p className="mt-1 text-xs text-[var(--muted-foreground)]">{analytics?.periods[period].orders || 0} {locale === 'en' ? 'orders' : 'заказов'}</p></div>)}
+            </div>
+            <div className="mt-5 flex h-32 items-end gap-2 border-b border-[var(--border)] pb-2">{(analytics?.dailyRevenue || []).map((item) => <div key={item.date} className="group flex h-full flex-1 flex-col items-center justify-end gap-2"><div className="w-full rounded-t-md bg-orange-500/80" style={{ height: `${Math.max(8, Math.min(100, (item.revenue / Math.max(1, ...((analytics?.dailyRevenue || []).map((entry) => entry.revenue)))) * 100))}%` }} /><span className="text-[10px] text-[var(--muted-foreground)]">{item.date.slice(8)}</span></div>)}</div>
+            <div className="mt-5 grid gap-3 sm:grid-cols-3"><div><p className="text-xs text-[var(--muted-foreground)]">{locale === 'en' ? 'Food cost' : 'Себестоимость'}</p><p className="mt-1 font-bold">{formatCurrency(analytics?.foodCost || 0, locale, currency)} <span className="text-xs text-amber-500">32% оценка</span></p></div><div><p className="text-xs text-[var(--muted-foreground)]">{locale === 'en' ? 'Margin' : 'Чистая маржа'}</p><p className="mt-1 font-bold text-emerald-500">{formatCurrency((analytics?.periods.month.revenue || 0) - (analytics?.foodCost || 0), locale, currency)}</p></div><div><p className="text-xs text-[var(--muted-foreground)]">{locale === 'en' ? 'Refunds / cancellations' : 'Возвраты / отмены'}</p><p className="mt-1 font-bold">{formatCurrency(analytics?.refunds.amount || 0, locale, currency)} · {analytics?.cancelled || 0}</p></div></div>
+          </Card>
+          <Card className="p-5 sm:p-6"><SectionHeading icon={CreditCard} title={locale === 'en' ? 'Payment methods' : 'Методы оплаты'} /><div className="space-y-3">{(analytics?.paymentMix || []).map((payment) => <div key={payment.method} className="flex items-center justify-between gap-3 rounded-xl bg-[var(--muted)]/60 px-3 py-3"><span className="flex items-center gap-2 text-sm font-semibold"><CreditCard className="h-4 w-4 text-[var(--primary)]" />{payment.method}</span><span className="text-right text-xs font-bold">{formatCurrency(payment.amount, locale, currency)}<br /><span className="font-normal text-[var(--muted-foreground)]">{payment.count} операций</span></span></div>)}{!analytics?.paymentMix.length && <p className="py-5 text-sm text-[var(--muted-foreground)]">Нет данных по оплатам</p>}</div></Card>
+        </div>
+
+        <div className="mb-6 grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
+          <Card className="p-5 sm:p-6"><SectionHeading icon={Utensils} title={locale === 'en' ? 'Product analytics' : 'Аналитика меню'} subtitle={locale === 'en' ? 'Top sellers and menu outsiders' : 'Топ продаж и позиции-кандидаты на удаление'} /><div className="space-y-3">{(analytics?.topProducts || []).map((product, index) => <div key={product.name} className="flex items-center gap-3"><span className="w-5 text-xs font-black text-[var(--muted-foreground)]">{index + 1}</span><div className="min-w-0 flex-1"><div className="flex justify-between gap-3 text-sm"><span className="truncate font-semibold">{product.name}</span><strong>{formatCurrency(product.revenue, locale, currency)}</strong></div><div className="mt-1 h-2 overflow-hidden rounded-full bg-[var(--muted)]"><div className="h-full rounded-full bg-orange-500" style={{ width: `${Math.max(8, (product.revenue / Math.max(1, analytics?.topProducts[0]?.revenue || 1)) * 100)}%` }} /></div></div><span className="text-xs text-[var(--muted-foreground)]">{product.quantity} шт.</span></div>)}{!analytics?.topProducts.length && <p className="py-5 text-sm text-[var(--muted-foreground)]">Нет продаж за месяц</p>}</div></Card>
+          <Card className="p-5 sm:p-6"><SectionHeading icon={Package} title={locale === 'en' ? 'Sales by category' : 'Продажи по категориям'} /><div className="space-y-3">{(analytics?.categorySales || []).map((category) => <div key={category.name} className="flex items-center justify-between gap-3 text-sm"><span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-orange-500" />{category.name}</span><strong>{formatCurrency(category.revenue, locale, currency)}</strong></div>)}<div className="mt-5 border-t border-[var(--border)] pt-4"><p className="text-xs font-semibold text-[var(--muted-foreground)]">{locale === 'en' ? 'Menu outsiders' : 'Аутсайдеры меню'}</p>{(analytics?.outsiders || []).slice(0, 3).map((product) => <p key={product.name} className="mt-2 flex justify-between text-xs"><span>{product.name}</span><span>{product.quantity} шт.</span></p>)}</div></div></Card>
+        </div>
+
+        <div className="mb-6 grid gap-6 lg:grid-cols-3">
+          <Card className="p-5 sm:p-6 lg:col-span-2"><SectionHeading icon={Activity} title={locale === 'en' ? 'Traffic & peak hours' : 'Посещаемость и пиковые часы'} subtitle={locale === 'en' ? 'Reservation heatmap by day and hour' : 'Тепловая карта бронирований по дням и часам'} /><div className="grid grid-cols-7 gap-1">{Array.from({ length: 7 }, (_, day) => <div key={day} className="space-y-1">{Array.from({ length: 12 }, (_, offset) => { const hour = offset + 10; const value = analytics?.trafficHeatmap.filter((point) => point.day === day && point.hour === hour).reduce((sum, point) => sum + point.guests, 0) || 0; return <div key={hour} title={`${hour}:00 · ${value} гостей`} className={`h-5 rounded-sm ${value > 4 ? 'bg-orange-500' : value > 0 ? 'bg-orange-500/50' : 'bg-[var(--muted)]'}`} />; })}</div>)}</div><div className="mt-4 grid gap-3 sm:grid-cols-2"><div className="rounded-xl bg-[var(--muted)]/60 p-3"><Timer className="h-4 w-4 text-[var(--primary)]" /><p className="mt-2 text-xs text-[var(--muted-foreground)]">Среднее обслуживание</p><strong>{analytics?.averageServiceMinutes || 0} мин.</strong></div><div className="rounded-xl bg-[var(--muted)]/60 p-3"><Timer className="h-4 w-4 text-[var(--primary)]" /><p className="mt-2 text-xs text-[var(--muted-foreground)]">Оборот стола</p><strong>{analytics?.averageTableMinutes || 0} мин.</strong></div></div></Card>
+          <Card className="p-5 sm:p-6"><SectionHeading icon={Users} title={locale === 'en' ? 'Staff performance' : 'Персонал и эффективность'} /><p className="mb-4 text-xs text-[var(--muted-foreground)]">Продажи по сотрудникам появятся после привязки официанта к чеку.</p><div className="space-y-2">{(analytics?.staff || []).map((member) => <div key={member.id} className="flex items-center justify-between rounded-xl bg-[var(--muted)]/60 px-3 py-3 text-sm"><span className="flex items-center gap-2"><Users className="h-4 w-4 text-[var(--primary)]" />{text.roleNames[member.role] || member.role}</span><span className="text-xs text-[var(--muted-foreground)]">в команде</span></div>)}{!analytics?.staff.length && <p className="text-sm text-[var(--muted-foreground)]">Нет сотрудников</p>}</div></Card>
+        </div>
+
+        <div className="mb-6 grid gap-6 lg:grid-cols-3">
+          <Card className="p-5 sm:p-6"><SectionHeading icon={Users} title={locale === 'en' ? 'Customer analytics' : 'Клиентская аналитика'} /><div className="grid grid-cols-2 gap-3"><div className="rounded-xl bg-[var(--secondary)] p-4"><p className="text-xs text-[var(--muted-foreground)]">Новые</p><p className="mt-2 text-2xl font-black">{analytics?.customerMix.newCustomers || 0}</p></div><div className="rounded-xl bg-[var(--muted)] p-4"><p className="text-xs text-[var(--muted-foreground)]">Постоянные</p><p className="mt-2 text-2xl font-black">{analytics?.customerMix.returningCustomers || 0}</p></div></div></Card>
+          <Card className="p-5 sm:p-6"><SectionHeading icon={Sparkles} title={locale === 'en' ? 'Loyalty program' : 'Программа лояльности'} /><div className="space-y-3 text-sm"><div className="flex justify-between"><span>Участники</span><strong>{analytics?.loyalty.members || 0}</strong></div><div className="flex justify-between"><span>Начислено</span><strong>{formatNumber(analytics?.loyalty.issued || 0, locale)}</strong></div><div className="flex justify-between"><span>Списано</span><strong>{formatNumber(analytics?.loyalty.spent || 0, locale)}</strong></div></div></Card>
+          <Card className="p-5 sm:p-6"><SectionHeading icon={Star} title={locale === 'en' ? 'Reviews & UGC' : 'Отзывы и UGC'} /><div className="flex items-center gap-3"><Star className="h-9 w-9 fill-amber-400 text-amber-400" /><div><p className="text-3xl font-black">{(analytics?.reviews.average || 0).toFixed(1)}</p><p className="text-xs text-[var(--muted-foreground)]">{analytics?.reviews.count || 0} опубликованных отзывов</p></div></div></Card>
         </div>
 
         <div className="mb-6 grid gap-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.8fr)]">
