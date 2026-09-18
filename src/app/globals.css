@@ -90,6 +90,10 @@ body {
   background: var(--background);
 }
 
+.admin-page {
+  background: var(--gradient-bg);
+}
+
 .landing-section {
   isolation: isolate;
 }

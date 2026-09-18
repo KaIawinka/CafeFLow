@@ -14,7 +14,6 @@ import {
   Crown,
   CheckCircle,
   Save,
-  RefreshCw,
   ShoppingCart,
   Package,
   CalendarDays,
@@ -22,7 +21,6 @@ import {
   ChefHat,
   Truck,
   ArrowRight,
-  Bell,
   LayoutDashboard,
 } from 'lucide-react';
 import { locales, type Locale } from '@/app/i18n/config';
@@ -135,10 +133,8 @@ export default function AdminPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [error, setError] = useState('');
   const [savingId, setSavingId] = useState<string | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterRole, setFilterRole] = useState<string>('all');
-  const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [usersPage, setUsersPage] = useState(1);
   const [ordersPage, setOrdersPage] = useState(1);
   const [usersTotal, setUsersTotal] = useState(0);
@@ -207,7 +203,7 @@ export default function AdminPage() {
       window.clearTimeout(timeoutId);
       controller.abort();
     };
-  }, [filterRole, refreshKey, searchQuery, usersPage, ordersPage]);
+  }, [filterRole, searchQuery, usersPage, ordersPage]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -221,36 +217,7 @@ export default function AdminPage() {
       }).catch(() => setReservations([]));
     }, 0);
     return () => window.clearTimeout(timeoutId);
-  }, [refreshKey, reservationPage, reservationStatus, reservationDate]);
-
-  useEffect(() => {
-    let active = true;
-    const loadNotifications = async () => {
-      try {
-        const response = await fetch('/api/user/notifications', { cache: 'no-store' });
-        if (!response.ok) return;
-        const data = await response.json() as { unreadCount?: number };
-        if (active) setUnreadNotifications(data.unreadCount || 0);
-      } catch {
-        // Notification polling must not interrupt order operations.
-      }
-    };
-    void loadNotifications();
-    const intervalId = window.setInterval(() => void loadNotifications(), 15000);
-    return () => {
-      active = false;
-      window.clearInterval(intervalId);
-    };
-  }, []);
-
-  const markNotificationsRead = async () => {
-    const response = await fetch('/api/user/notifications', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ all: true }),
-    });
-    if (response.ok) setUnreadNotifications(0);
-  };
+  }, [reservationPage, reservationStatus, reservationDate]);
 
   const updateUser = async (userId: string, changes: { role?: string; status?: string; requiresApproval?: boolean }) => {
     setSavingId(userId);
@@ -351,49 +318,15 @@ export default function AdminPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+      <div className="admin-page flex min-h-screen items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-amber-600" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-6 sm:mb-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                {ui.admin.title}
-              </h1>
-              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-                {ui.admin.description}
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => void markNotificationsRead()}
-                className="relative inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-                aria-label="Отметить уведомления прочитанными"
-              >
-                <Bell className="h-4 w-4" />
-                {unreadNotifications > 0 && <span className="rounded-full bg-red-600 px-2 py-0.5 text-xs font-bold text-white">{unreadNotifications}</span>}
-              </button>
-              <button
-                type="button"
-                onClick={() => setRefreshKey((current) => current + 1)}
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-                disabled={isLoading}
-              >
-                <RefreshCw className={isLoading ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} />
-                {ui.admin.refresh}
-              </button>
-            </div>
-          </div>
-        </div>
-
+    <div className="admin-page min-h-screen w-full">
+      <div className="w-full px-3 py-4 sm:px-5 sm:py-5 lg:px-8 lg:py-6">
         {error && (
           <div className="mb-6 flex items-center justify-between gap-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
             <span>{error}</span>
@@ -402,7 +335,7 @@ export default function AdminPage() {
         )}
 
         {/* Tabs */}
-        <div className="mb-6 grid overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-[0_12px_30px_rgba(21,26,30,0.08)] lg:grid-cols-[220px_minmax(0,1fr)]">
+        <div className="grid min-h-[calc(100vh-7rem)] w-full overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-[0_12px_30px_rgba(21,26,30,0.08)] lg:grid-cols-[240px_minmax(0,1fr)]">
           <div className="border-b border-gray-200 dark:border-gray-700 overflow-x-auto lg:border-b-0 lg:border-r">
             <nav className="flex min-w-max sm:min-w-0 lg:flex-col lg:gap-1 lg:p-3">
               <button
@@ -414,7 +347,7 @@ export default function AdminPage() {
                 }`}
               >
                 <LayoutDashboard className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden xs:inline">{ui.admin.dashboardTitle}</span>
+                <span>{ui.admin.dashboardTitle}</span>
               </button>
               <button
                 onClick={() => setActiveTab('users')}
@@ -425,7 +358,7 @@ export default function AdminPage() {
                 }`}
               >
                 <Users className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden xs:inline">{ui.admin.users}</span>
+                <span>{ui.admin.users}</span>
               </button>
               <button
                 onClick={() => setActiveTab('settings')}
@@ -436,7 +369,7 @@ export default function AdminPage() {
                 }`}
               >
                 <SettingsIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden xs:inline">{ui.admin.settings}</span>
+                <span>{ui.admin.settings}</span>
               </button>
               <button
                 onClick={() => setActiveTab('orders')}
@@ -447,7 +380,7 @@ export default function AdminPage() {
                 }`}
               >
                 <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden xs:inline">{ui.admin.ordersTab}</span>
+                <span>{ui.admin.ordersTab}</span>
               </button>
               <button
                 onClick={() => setActiveTab('products')}
@@ -458,7 +391,7 @@ export default function AdminPage() {
                 }`}
               >
                 <Package className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden xs:inline">{ui.admin.productsTab}</span>
+                <span>{ui.admin.productsTab}</span>
               </button>
               <button
                 onClick={() => setActiveTab('reservations')}
@@ -469,7 +402,7 @@ export default function AdminPage() {
                 }`}
               >
                 <CalendarDays className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden xs:inline">Брони</span>
+                <span>Брони</span>
               </button>
               <button
                 onClick={() => setActiveTab('stats')}
@@ -480,7 +413,7 @@ export default function AdminPage() {
                 }`}
               >
                 <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden xs:inline">{ui.admin.stats}</span>
+                <span>{ui.admin.stats}</span>
               </button>
             </nav>
           </div>
