@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { verifyAdminOrManager } from '@/lib/api-middleware';
 import { logger } from '@/lib/logger';
@@ -126,21 +127,28 @@ export async function GET(request: NextRequest) {
     const usersPage = Math.max(1, Number(searchParams.get('usersPage') || 1));
     const ordersPage = Math.max(1, Number(searchParams.get('ordersPage') || 1));
     const pageSize = 25;
-    const userWhere = {
-      ...(search ? {
-        OR: [
-          { email: { contains: search, mode: 'insensitive' as const } },
-          { first_name: { contains: search, mode: 'insensitive' as const } },
-          { last_name: { contains: search, mode: 'insensitive' as const } },
-          { display_name: { contains: search, mode: 'insensitive' as const } },
-          { phone: { contains: search, mode: 'insensitive' as const } },
-          { telegram_username: { contains: search, mode: 'insensitive' as const } },
-        ],
-      } : {}),
+    const searchCondition = search ? {
+      OR: [
+        { email: { contains: search, mode: 'insensitive' as const } },
+        { first_name: { contains: search, mode: 'insensitive' as const } },
+        { last_name: { contains: search, mode: 'insensitive' as const } },
+        { display_name: { contains: search, mode: 'insensitive' as const } },
+        { phone: { contains: search, mode: 'insensitive' as const } },
+        { telegram_username: { contains: search, mode: 'insensitive' as const } },
+      ],
+    } : null;
+    const presenceCondition = online === 'offline'
+      ? { OR: [{ last_seen_at: null }, { last_seen_at: { lt: new Date(Date.now() - 5 * 60 * 1000) } }] }
+      : online === 'online'
+        ? { last_seen_at: { gte: new Date(Date.now() - 5 * 60 * 1000) } }
+        : null;
+    const userConditions: Prisma.usersWhereInput[] = [];
+    if (searchCondition) userConditions.push(searchCondition);
+    if (presenceCondition) userConditions.push(presenceCondition);
+    const userWhere: Prisma.usersWhereInput = {
+      ...(userConditions.length ? { AND: userConditions } : {}),
       ...(roles.includes(role as Role) ? { role: role as Role } : {}),
       ...(statuses.includes(status as Status) ? { status: status as Status } : {}),
-      ...(online === 'online' ? { last_seen_at: { gte: new Date(Date.now() - 5 * 60 * 1000) } } : {}),
-      ...(online === 'offline' ? { OR: [{ last_seen_at: null }, { last_seen_at: { lt: new Date(Date.now() - 5 * 60 * 1000) } }] } : {}),
       ...tenantScope(tenantId),
     };
     const userOrderBy = sort === 'oldest'
