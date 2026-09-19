@@ -405,7 +405,7 @@ export default function AdminPage() {
 
         {/* Tabs */}
         <div className="grid min-h-[calc(100vh-7rem)] w-full bg-[var(--background)] lg:grid-cols-[260px_minmax(0,1fr)]">
-          <div className="min-h-0 overflow-x-auto border-b border-[var(--border)] bg-[var(--card)] lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:self-start lg:overflow-y-auto lg:border-b-0 lg:border-r">
+          <div className="min-h-0 overflow-x-auto border-b border-[var(--border)] bg-[var(--card)] lg:sticky lg:top-[113px] lg:h-[calc(100vh-113px)] lg:self-start lg:overflow-y-auto lg:border-b-0 lg:border-r">
             <nav className="grid grid-cols-2 sm:flex sm:min-w-0 lg:flex-col lg:gap-1 lg:p-3">
               <button
                 onClick={() => setActiveTab('dashboard')}

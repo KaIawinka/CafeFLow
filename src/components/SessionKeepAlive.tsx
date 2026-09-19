@@ -3,21 +3,26 @@
 import { useEffect } from 'react';
 
 const REFRESH_INTERVAL_MS = 10 * 60 * 1000;
+let refreshPromise: Promise<void> | null = null;
+
+function refreshSessionOnce() {
+  if (refreshPromise) return refreshPromise;
+  refreshPromise = fetch('/api/auth/refresh', { method: 'POST', credentials: 'include', cache: 'no-store' })
+    .then(() => undefined)
+    .finally(() => {
+      refreshPromise = null;
+    });
+  return refreshPromise;
+}
 
 export function SessionKeepAlive() {
   useEffect(() => {
-    let refreshing = false;
-
     const refreshSession = async () => {
-      if (refreshing || document.visibilityState === 'hidden') return;
-      refreshing = true;
-      try {
-        await fetch('/api/auth/refresh', { method: 'POST', credentials: 'include', cache: 'no-store' });
-      } finally {
-        refreshing = false;
-      }
+      if (document.visibilityState === 'hidden') return;
+      await refreshSessionOnce();
     };
 
+    void refreshSession();
     const intervalId = window.setInterval(() => void refreshSession(), REFRESH_INTERVAL_MS);
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') void refreshSession();

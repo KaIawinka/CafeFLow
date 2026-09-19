@@ -115,7 +115,8 @@ function ProfileContent() {
       const response = await fetch('/api/user/profile');
       const data = await response.json();
 
-      if (response.ok && data.user) {
+      if (!response.ok) throw new Error(data.error || ui.profile.loadError);
+      if (data.user) {
         setProfile(data.user);
         setFormData({
           firstName: data.user.first_name || '',
@@ -501,7 +502,7 @@ function ProfileContent() {
                     )}
                   </button>
 
-                  <CustomerAddresses locale={locale} />
+                  {profile.role === 'customer' && <CustomerAddresses locale={locale} />}
                 </div>
               ) : (
                 <div className="space-y-6">
