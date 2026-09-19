@@ -244,6 +244,7 @@ export async function PATCH(request: NextRequest) {
       logoUrl?: string | null;
       logoData?: string | null;
       maintenanceMode?: boolean;
+      siteOptions?: Record<string, boolean>;
       isAvailable?: boolean;
       price?: string;
       orderStatus?: OrderStatus;
@@ -303,6 +304,7 @@ export async function PATCH(request: NextRequest) {
             ...(body.logoUrl !== undefined ? { logoUrl: body.logoUrl } : {}),
             ...(body.logoData !== undefined ? { logoData: body.logoData } : {}),
             ...(typeof body.maintenanceMode === 'boolean' ? { maintenanceMode: body.maintenanceMode } : {}),
+            ...(body.siteOptions ? { siteOptions: body.siteOptions } : {}),
           },
         },
         select: { id: true, name: true, slug: true, status: true, currency: true, timezone: true, primary_color: true, contact_phone: true, contact_email: true, address_text: true, settings: true },

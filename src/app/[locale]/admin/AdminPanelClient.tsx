@@ -60,6 +60,20 @@ interface SiteSettings {
   contactPhone: string;
   contactEmail: string;
   addressText: string;
+  siteOptions: {
+    publicSiteEnabled: boolean;
+    acceptOnlineOrders: boolean;
+    showReservations: boolean;
+    allowGuestCheckout: boolean;
+    requirePhone: boolean;
+    autoConfirmOrders: boolean;
+    deliveryEnabled: boolean;
+    pickupEnabled: boolean;
+    emailOrderAlerts: boolean;
+    reservationAlerts: boolean;
+    showMenuPrices: boolean;
+    showOutOfStock: boolean;
+  };
 }
 
 interface RecentOrder {
@@ -193,6 +207,20 @@ export default function AdminPage() {
     contactPhone: '',
     contactEmail: '',
     addressText: '',
+    siteOptions: {
+      publicSiteEnabled: true,
+      acceptOnlineOrders: true,
+      showReservations: true,
+      allowGuestCheckout: true,
+      requirePhone: true,
+      autoConfirmOrders: false,
+      deliveryEnabled: true,
+      pickupEnabled: true,
+      emailOrderAlerts: true,
+      reservationAlerts: true,
+      showMenuPrices: true,
+      showOutOfStock: false,
+    },
   });
 
   const loadDashboard = useEffectEvent(async (signal: AbortSignal) => {
@@ -232,6 +260,7 @@ export default function AdminPage() {
           logoUrl: typeof data.tenant.settings?.logoUrl === 'string' ? data.tenant.settings.logoUrl : current.logoUrl,
           logoData: typeof data.tenant.settings?.logoData === 'string' ? data.tenant.settings.logoData : current.logoData,
           maintenanceMode: data.tenant.settings?.maintenanceMode === true,
+          siteOptions: { ...current.siteOptions, ...(data.tenant.settings?.siteOptions || {}) },
         }));
       }
     } catch (error) {
@@ -306,11 +335,11 @@ export default function AdminPage() {
       const response = await fetch('/api/admin/dashboard', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resource: 'tenant', name: siteSettings.siteName, timezone: siteSettings.timezone, primaryColor: siteSettings.primaryColor, contactPhone: siteSettings.contactPhone || null, contactEmail: siteSettings.contactEmail || null, addressText: siteSettings.addressText || null, siteDescription: siteSettings.siteDescription, logoUrl: siteSettings.logoUrl, logoData: siteSettings.logoData || null, maintenanceMode: siteSettings.maintenanceMode }),
+        body: JSON.stringify({ resource: 'tenant', name: siteSettings.siteName, timezone: siteSettings.timezone, primaryColor: siteSettings.primaryColor, contactPhone: siteSettings.contactPhone || null, contactEmail: siteSettings.contactEmail || null, addressText: siteSettings.addressText || null, siteDescription: siteSettings.siteDescription, logoUrl: siteSettings.logoUrl, logoData: siteSettings.logoData || null, maintenanceMode: siteSettings.maintenanceMode, siteOptions: siteSettings.siteOptions }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || ui.admin.errorSave);
-      setSiteSettings((current) => ({ ...current, siteName: data.tenant.name, timezone: data.tenant.timezone, primaryColor: data.tenant.primary_color || current.primaryColor, contactPhone: data.tenant.contact_phone || '', contactEmail: data.tenant.contact_email || '', addressText: data.tenant.address_text || '', siteDescription: data.tenant.settings?.siteDescription || current.siteDescription, logoUrl: data.tenant.settings?.logoUrl || current.logoUrl, logoData: data.tenant.settings?.logoData || current.logoData, maintenanceMode: data.tenant.settings?.maintenanceMode === true }));
+      setSiteSettings((current) => ({ ...current, siteName: data.tenant.name, timezone: data.tenant.timezone, primaryColor: data.tenant.primary_color || current.primaryColor, contactPhone: data.tenant.contact_phone || '', contactEmail: data.tenant.contact_email || '', addressText: data.tenant.address_text || '', siteDescription: data.tenant.settings?.siteDescription || current.siteDescription, logoUrl: data.tenant.settings?.logoUrl || current.logoUrl, logoData: data.tenant.settings?.logoData || current.logoData, maintenanceMode: data.tenant.settings?.maintenanceMode === true, siteOptions: { ...current.siteOptions, ...(data.tenant.settings?.siteOptions || {}) } }));
       router.refresh();
     } catch {
       setError(ui.admin.errorSave);
@@ -395,6 +424,17 @@ export default function AdminPage() {
     kitchen: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
     employee: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
     customer: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+  };
+
+  const siteOptionLabels = locale === 'en' ? {
+    operations: 'Operations', operationsHint: 'Control how guests can use the cafe website.', publicSite: 'Public website enabled', onlineOrders: 'Accept online orders', reservations: 'Show reservation form', guestCheckout: 'Allow checkout without an account', requirePhone: 'Require a phone number for orders', autoConfirm: 'Confirm new orders automatically',
+    fulfillment: 'Ordering and fulfillment', delivery: 'Offer delivery', pickup: 'Offer pickup', notifications: 'Staff notifications', emailOrders: 'Email alerts for new orders', emailReservations: 'Alerts for new reservations', menu: 'Menu visibility', prices: 'Show prices on the public menu', outOfStock: 'Show unavailable items',
+  } : locale === 'kg' ? {
+    operations: 'Иштөө жөндөөлөрү', operationsHint: 'Коноктор сайтты кандай колдонорун башкарыңыз.', publicSite: 'Ачык сайт иштетилди', onlineOrders: 'Онлайн буйрутмаларды кабыл алуу', reservations: 'Брондоо формасын көрсөтүү', guestCheckout: 'Каттоосуз буйрутма берүүгө уруксат', requirePhone: 'Буйрутмада телефонду талап кылуу', autoConfirm: 'Жаңы буйрутмаларды автоматтык ырастоо',
+    fulfillment: 'Буйрутма жана жеткирүү', delivery: 'Жеткирүүнү сунуштоо', pickup: 'Өзү алып кетүүнү сунуштоо', notifications: 'Кызматкерлердин билдирүүлөрү', emailOrders: 'Жаңы буйрутмалар тууралуу email', emailReservations: 'Жаңы брондоолор тууралуу билдирүү', menu: 'Менюну көрсөтүү', prices: 'Менюда бааларды көрсөтүү', outOfStock: 'Жок товарларды көрсөтүү',
+  } : {
+    operations: 'Работа сайта', operationsHint: 'Управляйте тем, как гости используют сайт кафе.', publicSite: 'Публичный сайт включён', onlineOrders: 'Принимать онлайн-заказы', reservations: 'Показывать форму бронирования', guestCheckout: 'Разрешить заказ без регистрации', requirePhone: 'Требовать телефон при заказе', autoConfirm: 'Автоматически подтверждать новые заказы',
+    fulfillment: 'Заказы и получение', delivery: 'Предлагать доставку', pickup: 'Предлагать самовывоз', notifications: 'Уведомления персонала', emailOrders: 'Email о новых заказах', emailReservations: 'Уведомления о новых бронированиях', menu: 'Видимость меню', prices: 'Показывать цены в меню', outOfStock: 'Показывать недоступные позиции',
   };
 
   if (isLoading) {
@@ -827,16 +867,7 @@ export default function AdminPage() {
 
             {/* Settings Tab */}
             {activeTab === 'settings' && (
-              <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
-                <aside className="h-fit rounded-2xl border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-700 dark:bg-gray-800 lg:sticky lg:top-8">
-                  <p className="px-3 pb-3 text-[11px] font-bold uppercase tracking-[0.16em] text-gray-400">{ui.admin.settings}</p>
-                  <nav className="space-y-1 text-sm font-semibold text-gray-600 dark:text-gray-300">
-                    <a href="#site-identity" className="block rounded-xl bg-amber-50 px-3 py-2.5 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200">{ui.admin.siteName}</a>
-                    <a href="#site-contact" className="block rounded-xl px-3 py-2.5 transition hover:bg-gray-50 dark:hover:bg-gray-700">{ui.admin.contactEmail}</a>
-                    <a href="#site-access" className="block rounded-xl px-3 py-2.5 transition hover:bg-gray-50 dark:hover:bg-gray-700">{ui.admin.maintenance}</a>
-                  </nav>
-                </aside>
-
+              <div className="space-y-5">
                 <div className="min-w-0 space-y-5">
                   <section id="site-identity" className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
                     <div className="mb-5"><h2 className="text-xl font-bold text-gray-900 dark:text-white">{ui.admin.siteName}</h2><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{ui.admin.logoUrl}</p></div>
@@ -871,6 +902,24 @@ export default function AdminPage() {
                       <input type="checkbox" checked={siteSettings.maintenanceMode} onChange={(e) => setSiteSettings({ ...siteSettings, maintenanceMode: e.target.checked })} className="h-5 w-5 rounded text-amber-600 focus:ring-amber-500" />
                       <span><span className="block text-sm font-semibold text-gray-900 dark:text-white">{ui.admin.maintenance}</span><span className="mt-1 block text-xs text-gray-500 dark:text-gray-400">{ui.admin.maintenanceDescription}</span></span>
                     </label>
+                  </section>
+
+                  <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div className="mb-5"><h2 className="text-xl font-bold text-gray-900 dark:text-white">{siteOptionLabels.operations}</h2><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{siteOptionLabels.operationsHint}</p></div>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      {([
+                        ['publicSiteEnabled', siteOptionLabels.publicSite], ['acceptOnlineOrders', siteOptionLabels.onlineOrders], ['showReservations', siteOptionLabels.reservations], ['allowGuestCheckout', siteOptionLabels.guestCheckout], ['requirePhone', siteOptionLabels.requirePhone], ['autoConfirmOrders', siteOptionLabels.autoConfirm],
+                      ] as const).map(([key, label]) => <label key={key} className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-900/60"><input type="checkbox" checked={siteSettings.siteOptions[key]} onChange={(event) => setSiteSettings((current) => ({ ...current, siteOptions: { ...current.siteOptions, [key]: event.target.checked } }))} className="h-5 w-5 rounded text-amber-600 focus:ring-amber-500" /><span className="text-sm font-semibold text-gray-800 dark:text-gray-200">{label}</span></label>)}
+                    </div>
+                  </section>
+
+                  <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div className="mb-5"><h2 className="text-xl font-bold text-gray-900 dark:text-white">{siteOptionLabels.fulfillment}</h2></div>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      {([
+                        ['deliveryEnabled', siteOptionLabels.delivery], ['pickupEnabled', siteOptionLabels.pickup], ['emailOrderAlerts', siteOptionLabels.emailOrders], ['reservationAlerts', siteOptionLabels.emailReservations], ['showMenuPrices', siteOptionLabels.prices], ['showOutOfStock', siteOptionLabels.outOfStock],
+                      ] as const).map(([key, label]) => <label key={key} className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-900/60"><input type="checkbox" checked={siteSettings.siteOptions[key]} onChange={(event) => setSiteSettings((current) => ({ ...current, siteOptions: { ...current.siteOptions, [key]: event.target.checked } }))} className="h-5 w-5 rounded text-amber-600 focus:ring-amber-500" /><span className="text-sm font-semibold text-gray-800 dark:text-gray-200">{label}</span></label>)}
+                    </div>
                   </section>
                 </div>
 
