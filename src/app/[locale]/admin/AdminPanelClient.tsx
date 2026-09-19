@@ -493,9 +493,9 @@ export default function AdminPage() {
 
             {/* Users Tab */}
             {activeTab === 'users' && (
-              <div className="grid gap-5 xl:grid-cols-[240px_minmax(0,1fr)]">
+              <div className="grid gap-5 xl:grid-cols-[300px_minmax(0,1fr)]">
                 <div className="xl:min-h-screen">
-                <aside className="h-fit rounded-[24px] border border-stone-200/80 bg-[#fffdf8] p-4 shadow-[0_18px_50px_-28px_rgba(34,42,38,0.55)] dark:border-gray-700 dark:bg-gray-900 xl:fixed xl:left-[300px] xl:top-[129px] xl:z-20 xl:w-[240px] xl:max-h-[calc(100vh-145px)] xl:overflow-y-auto">
+                <aside className="h-fit rounded-[24px] border border-stone-200/80 bg-[#fffdf8] p-4 shadow-[0_18px_50px_-28px_rgba(34,42,38,0.55)] dark:border-gray-700 dark:bg-gray-900 xl:fixed xl:left-[300px] xl:top-[129px] xl:z-20 xl:w-[300px] xl:max-h-[calc(100vh-145px)] xl:overflow-y-auto">
                   <div className="mb-5 border-b border-stone-200 pb-4 dark:border-gray-700">
                     <div className="flex items-center gap-2 text-base font-black text-gray-900 dark:text-white">
                       <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#17332f] text-amber-200"><SlidersHorizontal className="h-4 w-4" /></span>
@@ -542,7 +542,7 @@ export default function AdminPage() {
                 </aside>
                 </div>
 
-                <div className="min-w-0 space-y-4 sm:space-y-6">
+                <div className="min-w-0 space-y-4 sm:space-y-6 xl:-mt-6">
                   <div className="relative rounded-[24px] border border-stone-200/80 bg-[#fffdf8] p-3 shadow-[0_18px_50px_-28px_rgba(34,42,38,0.55)] dark:border-gray-700 dark:bg-gray-900 xl:sticky xl:top-[129px] xl:z-10">
                     <div className="mb-2 flex items-center justify-between px-1"><div className="flex items-center gap-2 text-sm font-black text-gray-900 dark:text-white"><ArrowDownAZ className="h-4 w-4 text-amber-600" />{ui.admin.users}</div><span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">{usersTotal}</span></div>
                     <Search className="absolute left-6 top-[4.4rem] -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
