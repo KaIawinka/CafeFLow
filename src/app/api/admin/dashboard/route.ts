@@ -124,6 +124,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const sort = searchParams.get('sort') || 'newest';
     const online = searchParams.get('online');
+    const view = searchParams.get('view');
     const usersPage = Math.max(1, Number(searchParams.get('usersPage') || 1));
     const ordersPage = Math.max(1, Number(searchParams.get('ordersPage') || 1));
     const pageSize = 25;
@@ -197,7 +198,7 @@ export async function GET(request: NextRequest) {
         take: 100,
       }),
       tenantId ? prisma.tenants.findUnique({ where: { id: tenantId }, select: { id: true, name: true, slug: true, status: true, currency: true, timezone: true, primary_color: true, contact_phone: true, contact_email: true, address_text: true, settings: true } }) : null,
-      getAnalytics(tenantId, branchIds),
+      view === 'dashboard' ? getAnalytics(tenantId, branchIds) : null,
     ]);
 
     return NextResponse.json(serialize({

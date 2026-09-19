@@ -192,7 +192,7 @@ export default function AdminDashboardClient({ locale, embedded = false }: { loc
 
   const load = useEffectEvent(async () => {
     try {
-      const response = await fetch('/api/admin/dashboard?usersPage=1&ordersPage=1', { cache: 'no-store' });
+      const response = await fetch('/api/admin/dashboard?view=dashboard&usersPage=1&ordersPage=1', { cache: 'no-store' });
       const payload = await response.json() as DashboardData & { error?: string };
       if (!response.ok) throw new Error(payload.error || ui.admin.errorLoad);
       setData(payload);

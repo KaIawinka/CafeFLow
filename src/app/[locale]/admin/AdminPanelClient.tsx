@@ -141,7 +141,7 @@ export default function AdminPage() {
   const requestedTab = searchParams.get('tab');
   const initialTab = ['dashboard', 'users', 'orders', 'reservations', 'products', 'settings'].includes(requestedTab || '') ? requestedTab as 'dashboard' | 'users' | 'orders' | 'reservations' | 'products' | 'settings' : 'dashboard';
   const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'orders' | 'reservations' | 'products' | 'settings'>(initialTab);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(initialTab !== 'dashboard');
   const [hasLoadedDashboard, setHasLoadedDashboard] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
@@ -192,6 +192,7 @@ export default function AdminPage() {
       if (filterRole !== 'all') query.set('role', filterRole);
       if (filterStatus !== 'all') query.set('status', filterStatus);
       if (filterOnline !== 'all') query.set('online', filterOnline);
+      query.set('view', activeTab);
       query.set('sort', userSort);
       query.set('usersPage', String(usersPage));
       query.set('ordersPage', String(ordersPage));
@@ -230,6 +231,7 @@ export default function AdminPage() {
   });
 
   useEffect(() => {
+    if (activeTab === 'dashboard') return;
     const requestId = ++usersRequestRef.current;
     const controller = new AbortController();
     const timeoutId = window.setTimeout(() => {
@@ -241,7 +243,7 @@ export default function AdminPage() {
       window.clearTimeout(timeoutId);
       controller.abort();
     };
-  }, [filterRole, filterOnline, filterStatus, searchQuery, userSort, usersPage, ordersPage]);
+  }, [activeTab, filterRole, filterOnline, filterStatus, searchQuery, userSort, usersPage, ordersPage]);
 
   useEffect(() => {
     if (activeTab !== 'users' || !hasMoreUsers || !usersEndRef.current) return;
