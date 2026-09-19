@@ -156,6 +156,7 @@ export default function AdminPage() {
   const [error, setError] = useState('');
   const [savingId, setSavingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showUserSuggestions, setShowUserSuggestions] = useState(false);
   const [filterRole, setFilterRole] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterOnline, setFilterOnline] = useState<string>('all');
@@ -353,7 +354,7 @@ export default function AdminPage() {
   };
 
   const filteredUsers = users;
-  const userSuggestions = searchQuery.trim() ? users.slice(0, 6) : [];
+  const userSuggestions = showUserSuggestions && searchQuery.trim() ? users.slice(0, 6) : [];
   const hasUserFilters = Boolean(searchQuery.trim() || filterRole !== 'all' || filterStatus !== 'all' || filterOnline !== 'all' || userSort !== 'newest');
   const resetUserFilters = () => {
     setUsers([]);
@@ -536,12 +537,20 @@ export default function AdminPage() {
                       type="text"
                       placeholder={ui.admin.searchHint}
                       value={searchQuery}
-                      onChange={(e) => { prepareUserQuery(); setSearchQuery(e.target.value); }}
+                      onChange={(e) => { prepareUserQuery(); setShowUserSuggestions(true); setSearchQuery(e.target.value); }}
+                      onFocus={() => setShowUserSuggestions(true)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') {
+                          event.preventDefault();
+                          prepareUserQuery();
+                          setShowUserSuggestions(false);
+                        }
+                      }}
                       className="w-full rounded-xl border border-stone-200 bg-stone-50 py-3 pl-10 pr-4 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white touch-manipulation"
                     />
                     {userSuggestions.length > 0 && (
                       <div className="absolute left-0 right-0 top-full z-20 mt-2 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800">
-                        {userSuggestions.map((user) => <button key={user.id} type="button" onClick={() => { setSearchQuery(user.email); setUsersPage(1); }} className="flex w-full items-center gap-3 border-b border-gray-100 px-4 py-3 text-left last:border-0 hover:bg-amber-50 dark:border-gray-700 dark:hover:bg-gray-700"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500 text-sm font-bold text-white">{user.first_name[0]?.toUpperCase()}</span><span className="min-w-0"><span className="block truncate text-sm font-semibold text-gray-900 dark:text-white">{user.display_name || `${user.first_name} ${user.last_name || ''}`.trim()}</span><span className="block truncate text-xs text-gray-500 dark:text-gray-400">{user.email} · {new Date(user.created_at).toLocaleDateString(locale)}</span></span></button>)}
+                        {userSuggestions.map((user) => <button key={user.id} type="button" onClick={() => { prepareUserQuery(); setSearchQuery(user.email); setShowUserSuggestions(false); }} className="flex w-full items-center gap-3 border-b border-gray-100 px-4 py-3 text-left last:border-0 hover:bg-amber-50 dark:border-gray-700 dark:hover:bg-gray-700"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500 text-sm font-bold text-white">{user.first_name[0]?.toUpperCase()}</span><span className="min-w-0"><span className="block truncate text-sm font-semibold text-gray-900 dark:text-white">{user.display_name || `${user.first_name} ${user.last_name || ''}`.trim()}</span><span className="block truncate text-xs text-gray-500 dark:text-gray-400">{user.email} · {new Date(user.created_at).toLocaleDateString(locale)}</span></span></button>)}
                       </div>
                     )}
                   </div>
@@ -650,7 +659,7 @@ export default function AdminPage() {
                   </div>
 
                   {/* Mobile Card View */}
-                  <div className="grid gap-3 p-3 md:grid-cols-2">
+                  <div className="grid gap-3 p-3">
                     {filteredUsers.map((user) => (
                       <div key={user.id} className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm transition hover:border-amber-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
                         <div className="flex items-start gap-2.5 border-b border-stone-100 bg-stone-50/80 p-3 dark:border-gray-700 dark:bg-gray-800/80">
@@ -660,7 +669,6 @@ export default function AdminPage() {
                           <div className="min-w-0 flex-1">
                             <h4 className="truncate font-semibold text-gray-900 dark:text-white">{user.display_name || `${user.first_name} ${user.last_name || ''}`.trim()}</h4>
                             <p className="mt-1 break-all text-sm text-gray-600 dark:text-gray-400">{user.email}</p>
-                            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{user.first_name} {user.last_name || ''}</p>
                             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                               <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${roleColors[user.role]}`}>{ui.profile.roleLabels[user.role] || user.role}</span>
                               <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${user.status === 'active' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-200' : user.status === 'pending' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-200' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200'}`}>{user.status === 'active' ? ui.admin.active : user.status === 'pending' ? ui.admin.pending : ui.admin.blocked}</span>
@@ -669,7 +677,7 @@ export default function AdminPage() {
                           </div>
                         </div>
                           <div className="grid gap-2.5 p-3 sm:grid-cols-[1fr_auto] sm:items-end">
-                          <div className="grid gap-1.5 text-sm text-gray-600 dark:text-gray-400 sm:grid-cols-2">
+                          <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-gray-600 dark:text-gray-400">
                             <span>{ui.admin.phone}: {user.phone || '—'}</span>
                             <span>{ui.admin.telegram}: {user.telegram_username ? `@${user.telegram_username}` : '—'}</span>
                             <span className="text-xs text-gray-500 dark:text-gray-400">{ui.admin.registered}: {new Date(user.created_at).toLocaleDateString(locale)}</span>
