@@ -163,8 +163,10 @@ export default function AdminPage() {
   const [usersPage, setUsersPage] = useState(1);
   const [ordersPage, setOrdersPage] = useState(1);
   const [usersTotal, setUsersTotal] = useState(0);
+  const [isUsersLoading, setIsUsersLoading] = useState(false);
   const [hasMoreUsers, setHasMoreUsers] = useState(false);
   const usersEndRef = useRef<HTMLDivElement>(null);
+  const usersRequestRef = useRef(0);
   const [ordersTotal, setOrdersTotal] = useState(0);
   
   // Site settings
@@ -228,8 +230,13 @@ export default function AdminPage() {
   });
 
   useEffect(() => {
+    const requestId = ++usersRequestRef.current;
     const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => void loadDashboard(controller.signal), 300);
+    const timeoutId = window.setTimeout(() => {
+      void loadDashboard(controller.signal).finally(() => {
+        if (requestId === usersRequestRef.current && usersPage === 1) setIsUsersLoading(false);
+      });
+    }, 300);
     return () => {
       window.clearTimeout(timeoutId);
       controller.abort();
@@ -347,11 +354,22 @@ export default function AdminPage() {
   const userSuggestions = searchQuery.trim() ? users.slice(0, 6) : [];
   const hasUserFilters = Boolean(searchQuery.trim() || filterRole !== 'all' || filterStatus !== 'all' || filterOnline !== 'all' || userSort !== 'newest');
   const resetUserFilters = () => {
+    setUsers([]);
+    setUsersTotal(0);
+    setHasMoreUsers(false);
+    setIsUsersLoading(true);
     setSearchQuery('');
     setFilterRole('all');
     setFilterStatus('all');
     setFilterOnline('all');
     setUserSort('newest');
+    setUsersPage(1);
+  };
+  const prepareUserQuery = () => {
+    setUsers([]);
+    setUsersTotal(0);
+    setHasMoreUsers(false);
+    setIsUsersLoading(true);
     setUsersPage(1);
   };
   const ordersPageCount = Math.max(1, Math.ceil(ordersTotal / 25));
@@ -384,8 +402,8 @@ export default function AdminPage() {
         )}
 
         {/* Tabs */}
-        <div className="grid min-h-[calc(100vh-7rem)] w-full overflow-hidden bg-[var(--background)] lg:grid-cols-[260px_minmax(0,1fr)]">
-          <div className="border-b border-[var(--border)] bg-[var(--card)] overflow-x-auto lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:self-start lg:overflow-y-auto lg:border-b-0 lg:border-r">
+        <div className="grid min-h-[calc(100vh-7rem)] w-full bg-[var(--background)] lg:grid-cols-[260px_minmax(0,1fr)]">
+          <div className="min-h-0 overflow-x-auto border-b border-[var(--border)] bg-[var(--card)] lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:self-start lg:overflow-y-auto lg:border-b-0 lg:border-r">
             <nav className="grid grid-cols-2 sm:flex sm:min-w-0 lg:flex-col lg:gap-1 lg:p-3">
               <button
                 onClick={() => setActiveTab('dashboard')}
@@ -472,7 +490,7 @@ export default function AdminPage() {
                   </div>
                   <div className="space-y-4">
                     <label className="block text-xs font-bold uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400"><span className="mb-1.5 flex items-center gap-2 normal-case tracking-normal text-sm text-gray-800 dark:text-gray-200"><CalendarClock className="h-4 w-4 text-amber-600" />{ui.admin.registered}</span>
-                      <select value={userSort} onChange={(event) => { setUserSort(event.target.value); setUsersPage(1); }} className="mt-1 min-h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-sm text-gray-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+                      <select value={userSort} onChange={(event) => { prepareUserQuery(); setUserSort(event.target.value); }} className="mt-1 min-h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-sm text-gray-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                         <option value="newest">{ui.admin.newest}</option>
                         <option value="oldest">{ui.admin.oldest}</option>
                         <option value="name">{ui.admin.alphabetical}</option>
@@ -480,7 +498,7 @@ export default function AdminPage() {
                       </select>
                     </label>
                     <label className="block text-xs font-bold uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400"><span className="mb-1.5 flex items-center gap-2 normal-case tracking-normal text-sm text-gray-800 dark:text-gray-200"><ShieldCheck className="h-4 w-4 text-amber-600" />{ui.admin.role}</span>
-                      <select value={filterRole} onChange={(event) => { setFilterRole(event.target.value); setUsersPage(1); }} className="mt-1 min-h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-sm text-gray-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+                      <select value={filterRole} onChange={(event) => { prepareUserQuery(); setFilterRole(event.target.value); }} className="mt-1 min-h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-sm text-gray-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                         <option value="all">{ui.admin.allRoles}</option>
                         <option value="admin">{ui.admin.administrators}</option>
                         <option value="manager">{ui.admin.managers}</option>
@@ -490,7 +508,7 @@ export default function AdminPage() {
                       </select>
                     </label>
                     <label className="block text-xs font-bold uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400"><span className="mb-1.5 flex items-center gap-2 normal-case tracking-normal text-sm text-gray-800 dark:text-gray-200"><CircleDot className="h-4 w-4 text-amber-600" />{ui.admin.statusFilter}</span>
-                      <select value={filterStatus} onChange={(event) => { setFilterStatus(event.target.value); setUsersPage(1); }} className="mt-1 min-h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-sm text-gray-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+                      <select value={filterStatus} onChange={(event) => { prepareUserQuery(); setFilterStatus(event.target.value); }} className="mt-1 min-h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-sm text-gray-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                         <option value="all">{ui.admin.allStatuses}</option>
                         <option value="active">{ui.admin.active}</option>
                         <option value="pending">{ui.admin.pending}</option>
@@ -498,7 +516,7 @@ export default function AdminPage() {
                       </select>
                     </label>
                     <label className="block text-xs font-bold uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400"><span className="mb-1.5 flex items-center gap-2 normal-case tracking-normal text-sm text-gray-800 dark:text-gray-200"><AtSign className="h-4 w-4 text-amber-600" />{ui.admin.presence}</span>
-                      <select value={filterOnline} onChange={(event) => { setFilterOnline(event.target.value); setUsersPage(1); }} className="mt-1 min-h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-sm text-gray-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+                      <select value={filterOnline} onChange={(event) => { prepareUserQuery(); setFilterOnline(event.target.value); }} className="mt-1 min-h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-sm text-gray-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                         <option value="all">{ui.admin.allPresence}</option>
                         <option value="online">{ui.admin.online}</option>
                         <option value="offline">{ui.admin.offline}</option>
@@ -516,7 +534,7 @@ export default function AdminPage() {
                       type="text"
                       placeholder={ui.admin.searchHint}
                       value={searchQuery}
-                      onChange={(e) => { setSearchQuery(e.target.value); setUsersPage(1); }}
+                      onChange={(e) => { prepareUserQuery(); setSearchQuery(e.target.value); }}
                       className="w-full rounded-xl border border-stone-200 bg-stone-50 py-3 pl-10 pr-4 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white touch-manipulation"
                     />
                     {userSuggestions.length > 0 && (
@@ -678,7 +696,7 @@ export default function AdminPage() {
                   </div>
                 </div>
 
-                {filteredUsers.length === 0 && (
+                {filteredUsers.length === 0 && !isUsersLoading && (
                   <div className="text-center py-12">
                     <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-600 dark:text-gray-400">
