@@ -279,7 +279,7 @@ export default function AdminPage() {
       void loadDashboard(controller.signal).finally(() => {
         if (requestId === usersRequestRef.current && usersPage === 1) setIsUsersLoading(false);
       });
-    }, 300);
+    }, 0);
     return () => {
       window.clearTimeout(timeoutId);
       controller.abort();
@@ -459,7 +459,7 @@ export default function AdminPage() {
         <div className="grid min-h-[calc(100vh-7rem)] w-full bg-[var(--background)] lg:grid-cols-[260px_minmax(0,1fr)]">
           <div className="min-h-0 overflow-x-auto border-b border-[var(--border)] bg-[var(--card)] lg:sticky lg:top-[113px] lg:h-[calc(100vh-113px)] lg:self-start lg:overflow-y-auto lg:border-b-0 lg:border-r">
             <nav className="grid grid-cols-2 sm:flex sm:min-w-0 lg:flex-col lg:gap-1 lg:p-3">
-              <button
+              <button type="button"
                 onClick={() => changeTab('dashboard')}
                 className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
                   activeTab === 'dashboard'
@@ -470,7 +470,7 @@ export default function AdminPage() {
                 <LayoutDashboard className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>{dashboardLabel}</span>
               </button>
-              <button
+              <button type="button"
                 onClick={() => changeTab('users')}
                 className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
                   activeTab === 'users'
@@ -481,7 +481,7 @@ export default function AdminPage() {
                 <Users className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>{ui.admin.users}</span>
               </button>
-              <button
+              <button type="button"
                 onClick={() => changeTab('settings')}
                 className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
                   activeTab === 'settings'
@@ -492,7 +492,7 @@ export default function AdminPage() {
                 <SettingsIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>{ui.admin.settings}</span>
               </button>
-              <button
+              <button type="button"
                 onClick={() => changeTab('orders')}
                 className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
                   activeTab === 'orders'
@@ -503,7 +503,7 @@ export default function AdminPage() {
                 <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>{ui.admin.ordersTab}</span>
               </button>
-              <button
+              <button type="button"
                 onClick={() => changeTab('products')}
                 className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
                   activeTab === 'products'
@@ -514,7 +514,7 @@ export default function AdminPage() {
                 <Package className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>{ui.admin.productsTab}</span>
               </button>
-              <button
+              <button type="button"
                 onClick={() => changeTab('reservations')}
                 className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
                   activeTab === 'reservations'
