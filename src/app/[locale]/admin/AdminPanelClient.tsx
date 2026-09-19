@@ -827,145 +827,51 @@ export default function AdminPage() {
 
             {/* Settings Tab */}
             {activeTab === 'settings' && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      {ui.admin.siteName}
-                    </label>
-                    <input
-                      type="text"
-                      value={siteSettings.siteName}
-                      onChange={(e) => setSiteSettings({ ...siteSettings, siteName: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                  </div>
+              <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
+                <aside className="h-fit rounded-2xl border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-700 dark:bg-gray-800 lg:sticky lg:top-8">
+                  <p className="px-3 pb-3 text-[11px] font-bold uppercase tracking-[0.16em] text-gray-400">{ui.admin.settings}</p>
+                  <nav className="space-y-1 text-sm font-semibold text-gray-600 dark:text-gray-300">
+                    <a href="#site-identity" className="block rounded-xl bg-amber-50 px-3 py-2.5 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200">{ui.admin.siteName}</a>
+                    <a href="#site-contact" className="block rounded-xl px-3 py-2.5 transition hover:bg-gray-50 dark:hover:bg-gray-700">{ui.admin.contactEmail}</a>
+                    <a href="#site-access" className="block rounded-xl px-3 py-2.5 transition hover:bg-gray-50 dark:hover:bg-gray-700">{ui.admin.maintenance}</a>
+                  </nav>
+                </aside>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      {ui.admin.logoUrl}
-                    </label>
-                    <input
-                      type="text"
-                      value={siteSettings.logoUrl}
-                      onChange={(e) => setSiteSettings({ ...siteSettings, logoUrl: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                    <div className="mt-3 flex items-center gap-3">
-                      <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
-                        <Image unoptimized width={56} height={56} src={siteSettings.logoData || siteSettings.logoUrl || '/cafeflow-logo.svg'} alt={siteSettings.siteName} className="h-full w-full object-cover" />
-                      </div>
-                      <label className="inline-flex min-h-10 cursor-pointer items-center rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700">
-                        {ui.admin.logoUpload}
-                        <input
-                          type="file"
-                          accept="image/png,image/jpeg,image/webp,image/svg+xml"
-                          className="sr-only"
-                          onChange={(event) => {
-                            const file = event.target.files?.[0];
-                            if (!file || file.size > 1024 * 1024) {
-                              setError(ui.admin.logoSizeError);
-                              return;
-                            }
-                            const reader = new FileReader();
-                            reader.onload = () => setSiteSettings((current) => ({ ...current, logoData: typeof reader.result === 'string' ? reader.result : '' }));
-                            reader.readAsDataURL(file);
-                          }}
-                        />
+                <div className="min-w-0 space-y-5">
+                  <section id="site-identity" className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div className="mb-5"><h2 className="text-xl font-bold text-gray-900 dark:text-white">{ui.admin.siteName}</h2><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{ui.admin.logoUrl}</p></div>
+                    <div className="grid gap-5 md:grid-cols-2">
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">{ui.admin.siteName}
+                        <input type="text" value={siteSettings.siteName} onChange={(e) => setSiteSettings({ ...siteSettings, siteName: e.target.value })} className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 font-normal text-gray-900 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
                       </label>
-                    </div>
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      {ui.admin.siteDescription}
-                    </label>
-                    <textarea
-                      value={siteSettings.siteDescription}
-                      onChange={(e) => setSiteSettings({ ...siteSettings, siteDescription: e.target.value })}
-                      rows={4}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      {ui.admin.primaryColor}
-                    </label>
-                    <div className="flex gap-3">
-                      <input
-                        type="color"
-                        value={siteSettings.primaryColor}
-                        onChange={(e) => setSiteSettings({ ...siteSettings, primaryColor: e.target.value })}
-                        className="w-20 h-12 rounded-xl cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value={siteSettings.primaryColor}
-                        onChange={(e) => setSiteSettings({ ...siteSettings, primaryColor: e.target.value })}
-                        className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{ui.admin.timezone}</label>
-                    <input
-                      type="text"
-                      value={siteSettings.timezone}
-                      onChange={(e) => setSiteSettings({ ...siteSettings, timezone: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{ui.admin.contactPhone}</label>
-                    <input
-                      type="tel"
-                      value={siteSettings.contactPhone}
-                      onChange={(e) => setSiteSettings({ ...siteSettings, contactPhone: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{ui.admin.contactEmail}</label>
-                    <input
-                      type="email"
-                      value={siteSettings.contactEmail}
-                      onChange={(e) => setSiteSettings({ ...siteSettings, contactEmail: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{ui.admin.address}</label>
-                    <input
-                      type="text"
-                      value={siteSettings.addressText}
-                      onChange={(e) => setSiteSettings({ ...siteSettings, addressText: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600">
-                      <input
-                        type="checkbox"
-                        checked={siteSettings.maintenanceMode}
-                        onChange={(e) => setSiteSettings({ ...siteSettings, maintenanceMode: e.target.checked })}
-                        className="w-5 h-5 text-amber-600 focus:ring-amber-500 rounded"
-                      />
                       <div>
-                        <span className="block text-sm font-medium text-gray-900 dark:text-white">
-                          {ui.admin.maintenance}
-                        </span>
-                        <span className="block text-xs text-gray-500 dark:text-gray-400">
-                          {ui.admin.maintenanceDescription}
-                        </span>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">{ui.admin.logoUrl}
+                          <input type="text" value={siteSettings.logoUrl} onChange={(e) => setSiteSettings({ ...siteSettings, logoUrl: e.target.value })} className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 font-normal text-gray-900 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+                        </label>
+                        <div className="mt-3 flex items-center gap-3">
+                          <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900"><Image unoptimized width={56} height={56} src={siteSettings.logoData || siteSettings.logoUrl || '/cafeflow-logo.svg'} alt={siteSettings.siteName} className="h-full w-full object-cover" /></div>
+                          <label className="inline-flex min-h-10 cursor-pointer items-center rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700">{ui.admin.logoUpload}<input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="sr-only" onChange={(event) => { const file = event.target.files?.[0]; if (!file || file.size > 1024 * 1024) { setError(ui.admin.logoSizeError); return; } const reader = new FileReader(); reader.onload = () => setSiteSettings((current) => ({ ...current, logoData: typeof reader.result === 'string' ? reader.result : '' })); reader.readAsDataURL(file); }} /></label>
+                        </div>
                       </div>
+                    </div>
+                  </section>
+
+                  <section id="site-contact" className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div className="mb-5"><h2 className="text-xl font-bold text-gray-900 dark:text-white">{ui.admin.contactEmail}</h2><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{ui.admin.address}</p></div>
+                    <div className="grid gap-5 md:grid-cols-2">
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">{ui.admin.contactPhone}<input type="tel" value={siteSettings.contactPhone} onChange={(e) => setSiteSettings({ ...siteSettings, contactPhone: e.target.value })} className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 font-normal text-gray-900 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white" /></label>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">{ui.admin.contactEmail}<input type="email" value={siteSettings.contactEmail} onChange={(e) => setSiteSettings({ ...siteSettings, contactEmail: e.target.value })} className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 font-normal text-gray-900 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white" /></label>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 md:col-span-2">{ui.admin.address}<input type="text" value={siteSettings.addressText} onChange={(e) => setSiteSettings({ ...siteSettings, addressText: e.target.value })} className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 font-normal text-gray-900 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white" /></label>
+                    </div>
+                  </section>
+
+                  <section id="site-access" className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">{ui.admin.maintenance}</h2>
+                    <label className="mt-4 flex cursor-pointer items-center gap-3 rounded-xl bg-gray-50 p-4 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600">
+                      <input type="checkbox" checked={siteSettings.maintenanceMode} onChange={(e) => setSiteSettings({ ...siteSettings, maintenanceMode: e.target.checked })} className="h-5 w-5 rounded text-amber-600 focus:ring-amber-500" />
+                      <span><span className="block text-sm font-semibold text-gray-900 dark:text-white">{ui.admin.maintenance}</span><span className="mt-1 block text-xs text-gray-500 dark:text-gray-400">{ui.admin.maintenanceDescription}</span></span>
                     </label>
-                  </div>
+                  </section>
                 </div>
 
                 <button
