@@ -456,12 +456,12 @@ export default function AdminPage() {
         )}
 
         {/* Tabs */}
-        <div className="grid min-h-[calc(100vh-7rem)] w-full bg-[var(--background)] lg:grid-cols-[260px_minmax(0,1fr)]">
-          <div className="min-h-0 overflow-x-auto border-b border-[var(--border)] bg-[var(--card)] lg:sticky lg:top-[113px] lg:h-[calc(100vh-113px)] lg:self-start lg:overflow-y-auto lg:border-b-0 lg:border-r">
-            <nav className="grid grid-cols-2 sm:flex sm:min-w-0 lg:flex-col lg:gap-1 lg:p-3">
+        <div className="grid min-h-[calc(100vh-7rem)] w-full bg-[var(--background)] pb-16 lg:grid-cols-[260px_minmax(0,1fr)] lg:pb-0">
+          <div className="fixed inset-x-0 bottom-0 z-40 min-h-16 border-t border-[var(--border)] bg-[var(--card)]/95 shadow-[0_-8px_24px_rgba(21,26,30,0.12)] backdrop-blur lg:sticky lg:top-[113px] lg:h-[calc(100vh-113px)] lg:min-h-0 lg:self-start lg:overflow-y-auto lg:border-b-0 lg:border-r lg:bg-[var(--card)] lg:shadow-none lg:backdrop-blur-none">
+            <nav className="grid grid-cols-6 sm:flex sm:min-w-0 lg:flex-col lg:gap-1 lg:p-3">
               <button type="button"
                 onClick={() => changeTab('dashboard')}
-                className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
+                className={`min-w-0 flex-1 px-1 py-2 text-[10px] font-medium flex flex-col items-center justify-center gap-1 transition-colors whitespace-nowrap touch-manipulation sm:px-6 sm:py-4 sm:flex-row sm:gap-2 sm:text-sm lg:justify-start lg:rounded-md ${
                   activeTab === 'dashboard'
                     ? 'border-b-2 border-amber-600 text-amber-600 bg-amber-50 dark:bg-amber-900/20'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
@@ -472,7 +472,7 @@ export default function AdminPage() {
               </button>
               <button type="button"
                 onClick={() => changeTab('users')}
-                className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
+                className={`min-w-0 flex-1 px-1 py-2 text-[10px] font-medium flex flex-col items-center justify-center gap-1 transition-colors whitespace-nowrap touch-manipulation sm:px-6 sm:py-4 sm:flex-row sm:gap-2 sm:text-sm lg:justify-start lg:rounded-md ${
                   activeTab === 'users'
                     ? 'border-b-2 border-amber-600 text-amber-600 bg-amber-50 dark:bg-amber-900/20'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
@@ -483,7 +483,7 @@ export default function AdminPage() {
               </button>
               <button type="button"
                 onClick={() => changeTab('settings')}
-                className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
+                className={`min-w-0 flex-1 px-1 py-2 text-[10px] font-medium flex flex-col items-center justify-center gap-1 transition-colors whitespace-nowrap touch-manipulation sm:px-6 sm:py-4 sm:flex-row sm:gap-2 sm:text-sm lg:justify-start lg:rounded-md ${
                   activeTab === 'settings'
                     ? 'border-b-2 border-amber-600 text-amber-600 bg-amber-50 dark:bg-amber-900/20'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
@@ -494,7 +494,7 @@ export default function AdminPage() {
               </button>
               <button type="button"
                 onClick={() => changeTab('orders')}
-                className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
+                className={`min-w-0 flex-1 px-1 py-2 text-[10px] font-medium flex flex-col items-center justify-center gap-1 transition-colors whitespace-nowrap touch-manipulation sm:px-6 sm:py-4 sm:flex-row sm:gap-2 sm:text-sm lg:justify-start lg:rounded-md ${
                   activeTab === 'orders'
                     ? 'border-b-2 border-amber-600 text-amber-600 bg-amber-50 dark:bg-amber-900/20'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
@@ -505,7 +505,7 @@ export default function AdminPage() {
               </button>
               <button type="button"
                 onClick={() => changeTab('products')}
-                className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
+                className={`min-w-0 flex-1 px-1 py-2 text-[10px] font-medium flex flex-col items-center justify-center gap-1 transition-colors whitespace-nowrap touch-manipulation sm:px-6 sm:py-4 sm:flex-row sm:gap-2 sm:text-sm lg:justify-start lg:rounded-md ${
                   activeTab === 'products'
                     ? 'border-b-2 border-amber-600 text-amber-600 bg-amber-50 dark:bg-amber-900/20'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
@@ -516,7 +516,7 @@ export default function AdminPage() {
               </button>
               <button type="button"
                 onClick={() => changeTab('reservations')}
-                className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
+                className={`min-w-0 flex-1 px-1 py-2 text-[10px] font-medium flex flex-col items-center justify-center gap-1 transition-colors whitespace-nowrap touch-manipulation sm:px-6 sm:py-4 sm:flex-row sm:gap-2 sm:text-sm lg:justify-start lg:rounded-md ${
                   activeTab === 'reservations'
                     ? 'border-b-2 border-amber-600 text-amber-600 bg-amber-50 dark:bg-amber-900/20'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
