@@ -95,6 +95,8 @@ interface Product {
   category?: { name: string } | null;
 }
 
+type AdminTab = 'dashboard' | 'users' | 'orders' | 'reservations' | 'products' | 'settings';
+
 const pageCopy: Record<Locale, {
   back: string; page: string; of: string; next: string; reservations: string; kitchen: string; waiters: string;
   confirm: string; takeOrder: string; ready: string; pickup: string; confirmDelivery: string; dbOrder: string; tableDetails: string;
@@ -139,8 +141,8 @@ export default function AdminPage() {
   const dashboardLabel = ui.admin.stats;
   const errorLoad = ui.admin.errorLoad;
   const requestedTab = searchParams.get('tab');
-  const initialTab = ['dashboard', 'users', 'orders', 'reservations', 'products', 'settings'].includes(requestedTab || '') ? requestedTab as 'dashboard' | 'users' | 'orders' | 'reservations' | 'products' | 'settings' : 'dashboard';
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'orders' | 'reservations' | 'products' | 'settings'>(initialTab);
+  const initialTab = ['dashboard', 'users', 'orders', 'reservations', 'products', 'settings'].includes(requestedTab || '') ? requestedTab as AdminTab : 'dashboard';
+  const [activeTab, setActiveTab] = useState<AdminTab>(initialTab);
   const [isLoading, setIsLoading] = useState(initialTab !== 'dashboard');
   const [hasLoadedDashboard, setHasLoadedDashboard] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
@@ -169,6 +171,15 @@ export default function AdminPage() {
   const usersEndRef = useRef<HTMLDivElement>(null);
   const usersRequestRef = useRef(0);
   const [ordersTotal, setOrdersTotal] = useState(0);
+
+  const changeTab = (tab: AdminTab) => {
+    setActiveTab(tab);
+    const nextParams = new URLSearchParams(searchParams.toString());
+    if (tab === 'dashboard') nextParams.delete('tab');
+    else nextParams.set('tab', tab);
+    const query = nextParams.toString();
+    window.history.replaceState(null, '', query ? `${pathname}?${query}` : pathname);
+  };
   
   // Site settings
   const [siteSettings, setSiteSettings] = useState<SiteSettings>({
@@ -409,7 +420,7 @@ export default function AdminPage() {
           <div className="min-h-0 overflow-x-auto border-b border-[var(--border)] bg-[var(--card)] lg:sticky lg:top-[113px] lg:h-[calc(100vh-113px)] lg:self-start lg:overflow-y-auto lg:border-b-0 lg:border-r">
             <nav className="grid grid-cols-2 sm:flex sm:min-w-0 lg:flex-col lg:gap-1 lg:p-3">
               <button
-                onClick={() => setActiveTab('dashboard')}
+                onClick={() => changeTab('dashboard')}
                 className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
                   activeTab === 'dashboard'
                     ? 'border-b-2 border-amber-600 text-amber-600 bg-amber-50 dark:bg-amber-900/20'
@@ -420,7 +431,7 @@ export default function AdminPage() {
                 <span>{dashboardLabel}</span>
               </button>
               <button
-                onClick={() => setActiveTab('users')}
+                onClick={() => changeTab('users')}
                 className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
                   activeTab === 'users'
                     ? 'border-b-2 border-amber-600 text-amber-600 bg-amber-50 dark:bg-amber-900/20'
@@ -431,7 +442,7 @@ export default function AdminPage() {
                 <span>{ui.admin.users}</span>
               </button>
               <button
-                onClick={() => setActiveTab('settings')}
+                onClick={() => changeTab('settings')}
                 className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
                   activeTab === 'settings'
                     ? 'border-b-2 border-amber-600 text-amber-600 bg-amber-50 dark:bg-amber-900/20'
@@ -442,7 +453,7 @@ export default function AdminPage() {
                 <span>{ui.admin.settings}</span>
               </button>
               <button
-                onClick={() => setActiveTab('orders')}
+                onClick={() => changeTab('orders')}
                 className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
                   activeTab === 'orders'
                     ? 'border-b-2 border-amber-600 text-amber-600 bg-amber-50 dark:bg-amber-900/20'
@@ -453,7 +464,7 @@ export default function AdminPage() {
                 <span>{ui.admin.ordersTab}</span>
               </button>
               <button
-                onClick={() => setActiveTab('products')}
+                onClick={() => changeTab('products')}
                 className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
                   activeTab === 'products'
                     ? 'border-b-2 border-amber-600 text-amber-600 bg-amber-50 dark:bg-amber-900/20'
@@ -464,7 +475,7 @@ export default function AdminPage() {
                 <span>{ui.admin.productsTab}</span>
               </button>
               <button
-                onClick={() => setActiveTab('reservations')}
+                onClick={() => changeTab('reservations')}
                 className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 transition-colors whitespace-nowrap touch-manipulation lg:justify-start lg:rounded-md ${
                   activeTab === 'reservations'
                     ? 'border-b-2 border-amber-600 text-amber-600 bg-amber-50 dark:bg-amber-900/20'
