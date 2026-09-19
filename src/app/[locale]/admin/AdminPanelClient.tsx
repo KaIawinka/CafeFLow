@@ -549,8 +549,8 @@ export default function AdminPage() {
                 {/* Users Table/Cards */}
                 <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
                   {/* Desktop Table View */}
-                  <div className="hidden md:block overflow-x-auto">
-                    <table className="w-full">
+                  <div className="hidden overflow-hidden md:block">
+                    <table className="w-full table-fixed">
                       <thead className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                         <tr>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -582,7 +582,7 @@ export default function AdminPage() {
                       <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                         {filteredUsers.map((user) => (
                           <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className="w-[19%] px-4 py-4 align-top">
                               <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white font-semibold">
                                   {user.first_name[0]?.toUpperCase()}
@@ -593,21 +593,21 @@ export default function AdminPage() {
                                 </span>
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+                            <td className="w-[18%] break-words px-4 py-4 align-top text-sm text-gray-600 dark:text-gray-400">
                               {user.email}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+                            <td className="w-[12%] break-words px-4 py-4 align-top text-sm text-gray-600 dark:text-gray-400">
                               {user.phone || '—'}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            <td className="w-[12%] px-4 py-4 align-top text-sm">
                               <span className={`inline-flex items-center gap-1.5 ${user.is_online ? 'text-green-600 dark:text-green-400' : 'text-gray-400'}`}><span className="h-2 w-2 rounded-full bg-current" />{user.is_online ? ui.admin.online : ui.admin.offline}</span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className="w-[10%] px-4 py-4 align-top">
                               <span className={`px-3 py-1 rounded-full text-xs font-medium ${roleColors[user.role]}`}>
                                 {ui.profile.roleLabels[user.role] || user.role}
                               </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className="w-[10%] px-4 py-4 align-top">
                               <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                                 user.status === 'active'
                                   ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
@@ -616,10 +616,10 @@ export default function AdminPage() {
                                 {user.status === 'active' ? ui.admin.active : ui.admin.blocked}
                               </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+                            <td className="w-[10%] break-words px-4 py-4 align-top text-sm text-gray-600 dark:text-gray-400">
                               {new Date(user.created_at).toLocaleDateString(locale)}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-right">
+                            <td className="w-[19%] px-4 py-4 align-top text-right">
                               <div className="flex items-center justify-end gap-2">
                                 <select
                                   aria-label={`${ui.admin.role}: ${user.email}`}
@@ -650,48 +650,33 @@ export default function AdminPage() {
                   </div>
 
                   {/* Mobile Card View */}
-                  <div className="md:hidden divide-y divide-gray-200 dark:divide-gray-700">
+                  <div className="space-y-3 p-3 md:hidden">
                     {filteredUsers.map((user) => (
-                      <div key={user.id} className="p-4 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors">
-                        <div className="flex items-start gap-3 mb-3">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white font-semibold flex-shrink-0">
+                      <div key={user.id} className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm transition hover:border-amber-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
+                        <div className="flex items-start gap-3 border-b border-stone-100 bg-stone-50/80 p-4 dark:border-gray-700 dark:bg-gray-800/80">
+                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 font-semibold text-white">
                             {user.first_name[0]?.toUpperCase()}
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-gray-900 dark:text-white truncate">
-                              {user.first_name} {user.last_name}
-                            </h4>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                              {user.email}
-                            </p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{user.phone || '—'} {user.telegram_username ? `· @${user.telegram_username}` : ''}</p>
+                          <div className="min-w-0 flex-1">
+                            <h4 className="truncate font-semibold text-gray-900 dark:text-white">{user.display_name || `${user.first_name} ${user.last_name || ''}`.trim()}</h4>
+                            <p className="mt-1 break-all text-sm text-gray-600 dark:text-gray-400">{user.email}</p>
+                            <div className="mt-2 flex flex-wrap items-center gap-2">
+                              <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${roleColors[user.role]}`}>{ui.profile.roleLabels[user.role] || user.role}</span>
+                              <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${user.is_online ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}><span className="h-2 w-2 rounded-full bg-current" />{user.is_online ? ui.admin.online : ui.admin.offline}</span>
+                            </div>
                           </div>
-                          <select
-                            aria-label={`${ui.admin.status}: ${user.email}`}
-                            value={user.status}
-                            disabled={savingId === user.id}
-                            onChange={(event) => void updateUser(user.id, { status: event.target.value })}
-                            className="min-h-10 rounded-lg border border-gray-200 bg-white px-2 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-                          >
+                        </div>
+                        <div className="grid gap-3 p-4 sm:grid-cols-[1fr_auto] sm:items-end">
+                          <div className="grid gap-2 text-sm text-gray-600 dark:text-gray-400">
+                            <span>{ui.admin.phone}: {user.phone || '—'}</span>
+                            <span>{ui.admin.telegram}: {user.telegram_username ? `@${user.telegram_username}` : '—'}</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">{ui.admin.registered}: {new Date(user.created_at).toLocaleDateString(locale)}</span>
+                          </div>
+                          <select aria-label={`${ui.admin.status}: ${user.email}`} value={user.status} disabled={savingId === user.id} onChange={(event) => void updateUser(user.id, { status: event.target.value })} className="min-h-10 w-full rounded-lg border border-gray-200 bg-white px-2 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 sm:w-36">
                             <option value="active">{ui.admin.active}</option>
                             <option value="pending">{ui.admin.pending}</option>
                             <option value="blocked">{ui.admin.blocked}</option>
                           </select>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${roleColors[user.role]}`}>
-                            {ui.profile.roleLabels[user.role] || user.role}
-                          </span>
-                          <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                            user.status === 'active'
-                              ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
-                              : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
-                          }`}>
-                              {user.status === 'active' ? ui.admin.active : ui.admin.blocked}
-                          </span>
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {new Date(user.created_at).toLocaleDateString(locale)}
-                          </span>
                         </div>
                       </div>
                     ))}
