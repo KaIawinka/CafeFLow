@@ -144,6 +144,22 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
   }, [pathname]);
 
   useEffect(() => {
+    const mediaQuery = window.matchMedia('(min-width: 768px)');
+    const closeOnDesktop = (event: MediaQueryListEvent) => {
+      if (event.matches) setIsMobileMenuOpen(false);
+    };
+    mediaQuery.addEventListener('change', closeOnDesktop);
+    if (mediaQuery.matches) {
+      const timeoutId = window.setTimeout(() => setIsMobileMenuOpen(false), 0);
+      return () => {
+        window.clearTimeout(timeoutId);
+        mediaQuery.removeEventListener('change', closeOnDesktop);
+      };
+    }
+    return () => mediaQuery.removeEventListener('change', closeOnDesktop);
+  }, []);
+
+  useEffect(() => {
     if (!logoutConfirm || logoutCountdown <= 0) return;
     const timeoutId = window.setTimeout(() => setLogoutCountdown((current) => Math.max(0, current - 1)), 1000);
     return () => window.clearTimeout(timeoutId);
@@ -603,7 +619,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="header-mobile-menu absolute left-0 right-0 top-full border-t border-white/10 bg-[#151a1e] py-4 shadow-xl md:max-w-md md:rounded-b-lg">
+          <div className="header-mobile-menu absolute left-0 right-0 top-full border-t border-white/10 bg-[#151a1e] py-4 shadow-xl md:hidden md:max-w-md md:rounded-b-lg">
             {user && <div className="flex items-center gap-3 px-4 py-3 mb-4">
               {user.avatarUrl ? (
                 <Image src={user.avatarUrl} alt="Аватар" width={40} height={40} className="h-10 w-10 rounded-full object-cover" />
