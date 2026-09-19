@@ -701,11 +701,11 @@ export default function AdminPage() {
                               <span className="rounded-full bg-gray-100 px-2 py-1 text-[11px] font-semibold text-gray-600 dark:bg-gray-700 dark:text-gray-300">{user.language.toUpperCase()}</span>
                             </div>
                           </div>
-                          <div className="flex shrink-0 gap-2 sm:w-36">
-                            <select aria-label={`${ui.admin.role}: ${user.email}`} value={user.role} disabled={savingId === user.id} onChange={(event) => void updateUser(user.id, { role: event.target.value })} className="min-h-10 w-full rounded-lg border border-gray-200 bg-white px-2 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
+                          <div className="grid w-full gap-2 sm:w-[360px] sm:grid-cols-2">
+                            <select aria-label={`${ui.admin.role}: ${user.email}`} value={user.role} disabled={savingId === user.id} onChange={(event) => void updateUser(user.id, { role: event.target.value })} className="min-h-10 min-w-0 w-full rounded-lg border border-gray-200 bg-white px-2 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
                               {['customer', 'employee', 'kitchen', 'manager', 'admin'].map((role) => <option key={role} value={role}>{ui.profile.roleLabels[role] || role}</option>)}
                             </select>
-                            <select aria-label={`${ui.admin.status}: ${user.email}`} value={user.status} disabled={savingId === user.id} onChange={(event) => void updateUser(user.id, { status: event.target.value })} className="min-h-10 w-full rounded-lg border border-gray-200 bg-white px-2 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
+                            <select aria-label={`${ui.admin.status}: ${user.email}`} value={user.status} disabled={savingId === user.id} onChange={(event) => void updateUser(user.id, { status: event.target.value })} className="min-h-10 min-w-0 w-full rounded-lg border border-gray-200 bg-white px-2 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
                               <option value="active">{ui.admin.active}</option>
                               <option value="pending">{ui.admin.pending}</option>
                               <option value="blocked">{ui.admin.blocked}</option>
