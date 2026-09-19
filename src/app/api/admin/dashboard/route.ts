@@ -154,10 +154,10 @@ export async function GET(request: NextRequest) {
     };
     const userOrderBy = sort === 'oldest'
       ? { created_at: 'asc' as const }
-      : sort === 'name'
+      : sort === 'nameAsc'
         ? [{ first_name: 'asc' as const }, { last_name: 'asc' as const }, { id: 'asc' as const }]
-        : sort === 'email'
-          ? { email: 'asc' as const }
+        : sort === 'nameDesc'
+          ? [{ first_name: 'desc' as const }, { last_name: 'desc' as const }, { id: 'desc' as const }]
           : { created_at: 'desc' as const };
 
     const orderWhere = { ...tenantScope(tenantId), ...(branchIds ? { branch_id: { in: branchIds } } : {}) };

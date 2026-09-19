@@ -495,8 +495,8 @@ export default function AdminPage() {
                       <select value={userSort} onChange={(event) => { prepareUserQuery(); setUserSort(event.target.value); }} className="mt-1 min-h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-sm text-gray-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                         <option value="newest">{ui.admin.newest}</option>
                         <option value="oldest">{ui.admin.oldest}</option>
-                        <option value="name">{ui.admin.alphabetical}</option>
-                        <option value="email">{ui.admin.byEmail}</option>
+                        <option value="nameAsc">{ui.admin.alphabetical} (А → Я)</option>
+                        <option value="nameDesc">{ui.admin.alphabetical} (Я → А)</option>
                       </select>
                     </label>
                     <label className="block text-xs font-bold uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400"><span className="mb-1.5 flex items-center gap-2 normal-case tracking-normal text-sm text-gray-800 dark:text-gray-200"><ShieldCheck className="h-4 w-4 text-amber-600" />{ui.admin.role}</span>
@@ -653,23 +653,23 @@ export default function AdminPage() {
                   <div className="grid gap-3 p-3 md:grid-cols-2">
                     {filteredUsers.map((user) => (
                       <div key={user.id} className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm transition hover:border-amber-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
-                        <div className="flex items-start gap-3 border-b border-stone-100 bg-stone-50/80 p-4 dark:border-gray-700 dark:bg-gray-800/80">
-                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 font-semibold text-white">
+                        <div className="flex items-start gap-2.5 border-b border-stone-100 bg-stone-50/80 p-3 dark:border-gray-700 dark:bg-gray-800/80">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-sm font-semibold text-white">
                             {user.first_name[0]?.toUpperCase()}
                           </div>
                           <div className="min-w-0 flex-1">
                             <h4 className="truncate font-semibold text-gray-900 dark:text-white">{user.display_name || `${user.first_name} ${user.last_name || ''}`.trim()}</h4>
                             <p className="mt-1 break-all text-sm text-gray-600 dark:text-gray-400">{user.email}</p>
                             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{user.first_name} {user.last_name || ''}</p>
-                            <div className="mt-2 flex flex-wrap items-center gap-2">
+                            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                               <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${roleColors[user.role]}`}>{ui.profile.roleLabels[user.role] || user.role}</span>
                               <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${user.status === 'active' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-200' : user.status === 'pending' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-200' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200'}`}>{user.status === 'active' ? ui.admin.active : user.status === 'pending' ? ui.admin.pending : ui.admin.blocked}</span>
                               <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${user.is_online ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}><span className="h-2 w-2 rounded-full bg-current" />{user.is_online ? ui.admin.online : ui.admin.offline}</span>
                             </div>
                           </div>
                         </div>
-                          <div className="grid gap-3 p-4 sm:grid-cols-[1fr_auto] sm:items-end">
-                          <div className="grid gap-2 text-sm text-gray-600 dark:text-gray-400">
+                          <div className="grid gap-2.5 p-3 sm:grid-cols-[1fr_auto] sm:items-end">
+                          <div className="grid gap-1.5 text-sm text-gray-600 dark:text-gray-400 sm:grid-cols-2">
                             <span>{ui.admin.phone}: {user.phone || '—'}</span>
                             <span>{ui.admin.telegram}: {user.telegram_username ? `@${user.telegram_username}` : '—'}</span>
                             <span className="text-xs text-gray-500 dark:text-gray-400">{ui.admin.registered}: {new Date(user.created_at).toLocaleDateString(locale)}</span>
