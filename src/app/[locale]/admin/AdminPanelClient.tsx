@@ -9,7 +9,6 @@ import {
   Settings as SettingsIcon,
   Loader2,
   Search,
-  Filter,
   Save,
   ShoppingCart,
   Package,
@@ -19,6 +18,13 @@ import {
   Truck,
   ArrowRight,
   LayoutDashboard,
+  SlidersHorizontal,
+  CalendarClock,
+  ArrowDownAZ,
+  AtSign,
+  ShieldCheck,
+  CircleDot,
+  RotateCcw,
 } from 'lucide-react';
 import { locales, type Locale } from '@/app/i18n/config';
 import { getUiTranslations } from '@/lib/ui-translations';
@@ -339,6 +345,15 @@ export default function AdminPage() {
 
   const filteredUsers = users;
   const userSuggestions = searchQuery.trim() ? users.slice(0, 6) : [];
+  const hasUserFilters = Boolean(searchQuery.trim() || filterRole !== 'all' || filterStatus !== 'all' || filterOnline !== 'all' || userSort !== 'newest');
+  const resetUserFilters = () => {
+    setSearchQuery('');
+    setFilterRole('all');
+    setFilterStatus('all');
+    setFilterOnline('all');
+    setUserSort('newest');
+    setUsersPage(1);
+  };
   const ordersPageCount = Math.max(1, Math.ceil(ordersTotal / 25));
   const reservationPageCount = Math.max(1, Math.ceil(reservationTotal / 25));
 
@@ -447,22 +462,25 @@ export default function AdminPage() {
             {/* Users Tab */}
             {activeTab === 'users' && (
               <div className="grid gap-5 xl:grid-cols-[240px_minmax(0,1fr)]">
-                <aside className="h-fit rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900 xl:sticky xl:top-6">
-                  <div className="mb-4 flex items-center gap-2 text-sm font-bold text-gray-900 dark:text-white">
-                    <Filter className="h-4 w-4 text-amber-600" />
-                    {ui.admin.details}
+                <aside className="h-fit rounded-[24px] border border-stone-200/80 bg-[#fffdf8] p-4 shadow-[0_18px_50px_-28px_rgba(34,42,38,0.55)] dark:border-gray-700 dark:bg-gray-900 xl:sticky xl:top-6">
+                  <div className="mb-5 border-b border-stone-200 pb-4 dark:border-gray-700">
+                    <div className="flex items-center gap-2 text-base font-black text-gray-900 dark:text-white">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#17332f] text-amber-200"><SlidersHorizontal className="h-4 w-4" /></span>
+                      {ui.admin.filterTitle}
+                    </div>
+                    <p className="mt-2 text-xs leading-5 text-gray-500 dark:text-gray-400">{ui.admin.filterSubtitle}</p>
                   </div>
-                  <div className="space-y-3">
-                    <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400">{ui.admin.sort}
-                      <select value={userSort} onChange={(event) => { setUserSort(event.target.value); setUsersPage(1); }} className="mt-1 min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+                  <div className="space-y-4">
+                    <label className="block text-xs font-bold uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400"><span className="mb-1.5 flex items-center gap-2 normal-case tracking-normal text-sm text-gray-800 dark:text-gray-200"><CalendarClock className="h-4 w-4 text-amber-600" />{ui.admin.registered}</span>
+                      <select value={userSort} onChange={(event) => { setUserSort(event.target.value); setUsersPage(1); }} className="mt-1 min-h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-sm text-gray-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                         <option value="newest">{ui.admin.newest}</option>
                         <option value="oldest">{ui.admin.oldest}</option>
                         <option value="name">{ui.admin.alphabetical}</option>
                         <option value="email">{ui.admin.byEmail}</option>
                       </select>
                     </label>
-                    <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400">{ui.admin.role}
-                      <select value={filterRole} onChange={(event) => { setFilterRole(event.target.value); setUsersPage(1); }} className="mt-1 min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+                    <label className="block text-xs font-bold uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400"><span className="mb-1.5 flex items-center gap-2 normal-case tracking-normal text-sm text-gray-800 dark:text-gray-200"><ShieldCheck className="h-4 w-4 text-amber-600" />{ui.admin.role}</span>
+                      <select value={filterRole} onChange={(event) => { setFilterRole(event.target.value); setUsersPage(1); }} className="mt-1 min-h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-sm text-gray-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                         <option value="all">{ui.admin.allRoles}</option>
                         <option value="admin">{ui.admin.administrators}</option>
                         <option value="manager">{ui.admin.managers}</option>
@@ -471,33 +489,35 @@ export default function AdminPage() {
                         <option value="customer">{ui.admin.customers}</option>
                       </select>
                     </label>
-                    <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400">{ui.admin.statusFilter}
-                      <select value={filterStatus} onChange={(event) => { setFilterStatus(event.target.value); setUsersPage(1); }} className="mt-1 min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+                    <label className="block text-xs font-bold uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400"><span className="mb-1.5 flex items-center gap-2 normal-case tracking-normal text-sm text-gray-800 dark:text-gray-200"><CircleDot className="h-4 w-4 text-amber-600" />{ui.admin.statusFilter}</span>
+                      <select value={filterStatus} onChange={(event) => { setFilterStatus(event.target.value); setUsersPage(1); }} className="mt-1 min-h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-sm text-gray-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                         <option value="all">{ui.admin.allStatuses}</option>
                         <option value="active">{ui.admin.active}</option>
                         <option value="pending">{ui.admin.pending}</option>
                         <option value="blocked">{ui.admin.blocked}</option>
                       </select>
                     </label>
-                    <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400">{ui.admin.presence}
-                      <select value={filterOnline} onChange={(event) => { setFilterOnline(event.target.value); setUsersPage(1); }} className="mt-1 min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+                    <label className="block text-xs font-bold uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400"><span className="mb-1.5 flex items-center gap-2 normal-case tracking-normal text-sm text-gray-800 dark:text-gray-200"><AtSign className="h-4 w-4 text-amber-600" />{ui.admin.presence}</span>
+                      <select value={filterOnline} onChange={(event) => { setFilterOnline(event.target.value); setUsersPage(1); }} className="mt-1 min-h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-sm text-gray-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                         <option value="all">{ui.admin.allPresence}</option>
                         <option value="online">{ui.admin.online}</option>
                         <option value="offline">{ui.admin.offline}</option>
                       </select>
                     </label>
+                    {hasUserFilters && <button type="button" onClick={resetUserFilters} className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border border-stone-200 px-3 text-sm font-bold text-gray-600 transition hover:border-amber-400 hover:text-amber-700 dark:border-gray-700 dark:text-gray-300"><RotateCcw className="h-4 w-4" />{ui.admin.clearFilters}</button>}
                   </div>
                 </aside>
 
                 <div className="min-w-0 space-y-4 sm:space-y-6">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
+                  <div className="relative rounded-[24px] border border-stone-200/80 bg-[#fffdf8] p-3 shadow-[0_18px_50px_-28px_rgba(34,42,38,0.55)] dark:border-gray-700 dark:bg-gray-900">
+                    <div className="mb-2 flex items-center justify-between px-1"><div className="flex items-center gap-2 text-sm font-black text-gray-900 dark:text-white"><ArrowDownAZ className="h-4 w-4 text-amber-600" />{ui.admin.users}</div><span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">{usersTotal}</span></div>
+                    <Search className="absolute left-6 top-[4.4rem] -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                     <input
                       type="text"
                       placeholder={ui.admin.searchHint}
                       value={searchQuery}
                       onChange={(e) => { setSearchQuery(e.target.value); setUsersPage(1); }}
-                      className="w-full pl-9 sm:pl-10 pr-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white touch-manipulation"
+                      className="w-full rounded-xl border border-stone-200 bg-stone-50 py-3 pl-10 pr-4 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white touch-manipulation"
                     />
                     {userSuggestions.length > 0 && (
                       <div className="absolute left-0 right-0 top-full z-20 mt-2 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800">
