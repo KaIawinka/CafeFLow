@@ -928,7 +928,6 @@ export default function AdminPage() {
                   </section>
                 </div>
 
-                <div className="flex items-center justify-end border-t border-[var(--border)] pt-4"><button type="button" onClick={() => void saveTenantSettings()} disabled={savingId === 'tenant'} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-[var(--primary)] px-6 text-sm font-bold text-[var(--primary-foreground)] shadow-sm transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60"><Save className="h-4 w-4" />{ui.admin.save}</button></div>
               </div>
             )}
 
