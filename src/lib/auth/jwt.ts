@@ -10,9 +10,9 @@ import { logger } from '@/lib/logger';
 import { getJwtSecret } from '@/lib/config';
 
 // Token expiration times
-const ACCESS_TOKEN_EXPIRY = '15m'; // 15 minutes
-const REFRESH_TOKEN_EXPIRY = '7d'; // 7 days
-const SESSION_IDLE_TIMEOUT_MS = 7 * 24 * 60 * 60 * 1000;
+const ACCESS_TOKEN_EXPIRY = '30d';
+const REFRESH_TOKEN_EXPIRY = '30d';
+const SESSION_IDLE_TIMEOUT_MS = 30 * 24 * 60 * 60 * 1000;
 
 /**
  * JWT Payload Interface
@@ -228,7 +228,7 @@ export function extractTokenFromHeader(authHeader: string | null): string | null
  */
 export function getTokenExpirySeconds(type: 'access' | 'refresh'): number {
   if (type === 'access') {
-    return 15 * 60; // 15 minutes
+    return 30 * 24 * 60 * 60;
   }
-  return 7 * 24 * 60 * 60; // 7 days
+  return 30 * 24 * 60 * 60;
 }

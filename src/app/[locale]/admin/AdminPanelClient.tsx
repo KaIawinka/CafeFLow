@@ -494,7 +494,8 @@ export default function AdminPage() {
             {/* Users Tab */}
             {activeTab === 'users' && (
               <div className="grid gap-5 xl:grid-cols-[240px_minmax(0,1fr)]">
-                <aside className="h-fit rounded-[24px] border border-stone-200/80 bg-[#fffdf8] p-4 shadow-[0_18px_50px_-28px_rgba(34,42,38,0.55)] dark:border-gray-700 dark:bg-gray-900 xl:sticky xl:top-[129px]">
+                <div className="xl:min-h-screen">
+                <aside className="h-fit rounded-[24px] border border-stone-200/80 bg-[#fffdf8] p-4 shadow-[0_18px_50px_-28px_rgba(34,42,38,0.55)] dark:border-gray-700 dark:bg-gray-900 xl:fixed xl:left-[300px] xl:top-[129px] xl:z-20 xl:w-[240px] xl:max-h-[calc(100vh-145px)] xl:overflow-y-auto">
                   <div className="mb-5 border-b border-stone-200 pb-4 dark:border-gray-700">
                     <div className="flex items-center gap-2 text-base font-black text-gray-900 dark:text-white">
                       <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#17332f] text-amber-200"><SlidersHorizontal className="h-4 w-4" /></span>
@@ -539,6 +540,7 @@ export default function AdminPage() {
                     {hasUserFilters && <button type="button" onClick={resetUserFilters} className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border border-stone-200 px-3 text-sm font-bold text-gray-600 transition hover:border-amber-400 hover:text-amber-700 dark:border-gray-700 dark:text-gray-300"><RotateCcw className="h-4 w-4" />{ui.admin.clearFilters}</button>}
                   </div>
                 </aside>
+                </div>
 
                 <div className="min-w-0 space-y-4 sm:space-y-6">
                   <div className="relative rounded-[24px] border border-stone-200/80 bg-[#fffdf8] p-3 shadow-[0_18px_50px_-28px_rgba(34,42,38,0.55)] dark:border-gray-700 dark:bg-gray-900 xl:sticky xl:top-[129px] xl:z-10">
@@ -672,8 +674,8 @@ export default function AdminPage() {
                   {/* Mobile Card View */}
                   <div className="grid gap-2 p-2">
                     {filteredUsers.map((user) => (
-                      <div key={user.id} className="flex flex-wrap items-center gap-3 overflow-hidden rounded-xl border border-stone-200 bg-white p-2.5 shadow-sm transition hover:border-amber-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
-                        <div className="flex min-w-0 flex-1 basis-full items-center gap-2.5 sm:basis-[220px]">
+                      <div key={user.id} className="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm transition hover:border-amber-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
+                        <div className="flex items-start gap-2.5 border-b border-stone-100 bg-stone-50/80 p-2.5 dark:border-gray-700 dark:bg-gray-800/80">
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-sm font-semibold text-white">
                             {user.first_name[0]?.toUpperCase()}
                           </div>
@@ -687,10 +689,9 @@ export default function AdminPage() {
                             </div>
                           </div>
                         </div>
-                        <div className="flex w-full flex-[2] flex-wrap items-center justify-between gap-2 sm:w-auto">
+                        <div className="grid gap-2.5 p-2.5 sm:grid-cols-[1fr_auto] sm:items-center">
                           <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-gray-600 dark:text-gray-400">
                             <span>{ui.admin.phone}: {user.phone || '—'}</span>
-                            <span>{ui.admin.telegram}: {user.telegram_username ? `@${user.telegram_username}` : '—'}</span>
                             <span className="text-xs text-gray-500 dark:text-gray-400">{ui.admin.registered}: {new Date(user.created_at).toLocaleDateString(locale)}</span>
                             <span className="text-xs text-gray-500 dark:text-gray-400">{ui.profile.lastLogin} {user.last_login_at ? new Date(user.last_login_at).toLocaleDateString(locale) : '—'}</span>
                             <span className="text-xs text-gray-500 dark:text-gray-400">{ui.admin.lastSeen}: {user.last_seen_at ? new Date(user.last_seen_at).toLocaleDateString(locale) : '—'}</span>

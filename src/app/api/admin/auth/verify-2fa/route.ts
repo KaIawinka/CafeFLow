@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { createAuthSession, generateTokenPair } from '@/lib/auth/jwt';
+import { createAuthSession, generateTokenPair, getTokenExpirySeconds } from '@/lib/auth/jwt';
 import { logger } from '@/lib/logger';
 import { cookies } from 'next/headers';
 import crypto from 'crypto';
@@ -204,7 +204,7 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 15 * 60, // 15 minutes
+      maxAge: getTokenExpirySeconds('access'),
       path: '/',
     });
 
@@ -212,7 +212,7 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60, // 7 days
+      maxAge: getTokenExpirySeconds('refresh'),
       path: '/',
     });
 

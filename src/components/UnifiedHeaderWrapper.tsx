@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { verifyAccessToken } from '@/lib/auth/jwt';
-import { prisma } from '@/lib/prisma';
+import { isDatabaseUnavailableError, prisma } from '@/lib/prisma';
 import { UnifiedHeader } from './UnifiedHeader';
 
 /**
@@ -78,7 +78,9 @@ export async function UnifiedHeaderWrapper() {
       applyTenantBranding(tenant);
     }
   } catch (error) {
-    console.error('Error fetching user for header:', error);
+    if (!isDatabaseUnavailableError(error)) {
+      console.error('Error fetching user for header:', error);
+    }
     // Silently fail - user will see login/register buttons
   }
 

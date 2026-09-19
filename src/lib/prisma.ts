@@ -10,6 +10,25 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
+export const isDatabaseUnavailableError = (error: unknown) => {
+  if (!error || typeof error !== 'object') return false;
+
+  const prismaError = error as { code?: string; message?: string };
+  return prismaError.code === 'P1001' || prismaError.message?.includes('Can\'t reach database server') === true;
+};
+
+const normalizeConnectionString = (connectionString: string) => {
+  try {
+    const url = new URL(connectionString);
+    if (url.protocol === 'postgresql:' || url.protocol === 'postgres:') {
+      url.searchParams.set('sslmode', 'verify-full');
+    }
+    return url.toString();
+  } catch {
+    return connectionString;
+  }
+};
+
 const createPrismaClient = () => {
   const connectionString = process.env.DATABASE_URL;
   
@@ -17,11 +36,11 @@ const createPrismaClient = () => {
     throw new Error('DATABASE_URL environment variable is not set');
   }
 
-  const adapter = new PrismaPg(connectionString);
+  const adapter = new PrismaPg(normalizeConnectionString(connectionString));
 
   return new PrismaClient({
     adapter,
-    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+    log: process.env.NODE_ENV === 'development' ? ['query', 'warn'] : ['warn'],
   });
 };
 

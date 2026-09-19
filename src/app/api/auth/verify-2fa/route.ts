@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyCode } from '@/lib/telegram/utils';
-import { generateTokenPair, hashSessionToken } from '@/lib/auth/jwt';
+import { generateTokenPair, getTokenExpirySeconds, hashSessionToken } from '@/lib/auth/jwt';
 import { sendLoginAlert } from '@/lib/telegram/messages';
 import { logger } from '@/lib/logger';
 
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
       where: { id: tempSessionId },
       data: {
         token: hashSessionToken(refreshToken),
-        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        expires_at: new Date(Date.now() + getTokenExpirySeconds('refresh') * 1000),
         is_2fa_verified: true,
         last_activity: new Date(),
       },
@@ -160,14 +160,14 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 15 * 60,
+      maxAge: getTokenExpirySeconds('access'),
       path: '/',
     });
     response.cookies.set('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60,
+      maxAge: getTokenExpirySeconds('refresh'),
       path: '/',
     });
     return response;

@@ -8,7 +8,7 @@ import { prisma } from '@/lib/prisma';
 import { verifyPassword } from '@/lib/auth/password';
 import { createVerificationCode, checkCodeGenerationRateLimit } from '@/lib/telegram/utils';
 import { sendVerificationCode } from '@/lib/telegram/messages';
-import { createAuthSession, generateTokenPair, hashSessionToken } from '@/lib/auth/jwt';
+import { createAuthSession, generateTokenPair, getTokenExpirySeconds, hashSessionToken } from '@/lib/auth/jwt';
 import { logger } from '@/lib/logger';
 import crypto from 'crypto';
 import { verifyRecaptcha } from '@/lib/recaptcha';
@@ -251,14 +251,14 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 15 * 60,
+      maxAge: getTokenExpirySeconds('access'),
       path: '/',
     });
     response.cookies.set('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60,
+      maxAge: getTokenExpirySeconds('refresh'),
       path: '/',
     });
     return response;

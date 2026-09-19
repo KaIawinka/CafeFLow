@@ -4,7 +4,7 @@ import { getTranslations } from "../i18n/utils";
 import { UnifiedHeaderWrapper } from "@/components/UnifiedHeaderWrapper";
 import { SessionKeepAlive } from "@/components/SessionKeepAlive";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { prisma } from "@/lib/prisma";
+import { isDatabaseUnavailableError, prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +21,9 @@ export async function generateMetadata({
     const tenant = await prisma.tenants.findFirst({ orderBy: { created_at: 'asc' }, select: { name: true } });
     tenantName = tenant?.name || null;
   } catch (error) {
-    console.error('Tenant metadata unavailable:', error);
+    if (!isDatabaseUnavailableError(error)) {
+      console.error('Tenant metadata unavailable:', error);
+    }
   }
 
   return {
