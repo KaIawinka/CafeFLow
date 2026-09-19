@@ -187,7 +187,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
     if (locales.includes(segments[0] as Locale)) {
       segments.shift();
     }
-    const newPath = `/${newLocale}${segments.length ? '/' + segments.join('/') : ''}`;
+    const newPath = `/${newLocale}${segments.length ? '/' + segments.join('/') : ''}${window.location.search}${window.location.hash}`;
     startTransition(() => router.push(newPath));
     setIsLangDropdownOpen(false);
   };
@@ -471,7 +471,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
               </button>
 
               {isLangDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2">
+                <div className="absolute right-0 z-[70] mt-2 w-48 rounded-lg border border-gray-200 bg-white py-2 shadow-xl dark:border-gray-700 dark:bg-gray-800">
                   {locales.map((locale) => (
                     <button
                       key={locale}

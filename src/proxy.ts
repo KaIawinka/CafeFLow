@@ -28,19 +28,7 @@ export function proxy(request: NextRequest) {
 
   // Если в URL есть валидный язык
   if (locales.includes(currentLocale)) {
-    // Если есть сохранённый язык и он отличается от текущего
-    if (savedLocale && locales.includes(savedLocale) && savedLocale !== currentLocale) {
-      // Заменяем язык в URL
-      segments[0] = savedLocale;
-      const newPathname = '/' + segments.join('/');
-      
-      const url = request.nextUrl.clone();
-      url.pathname = newPathname;
-      
-      return NextResponse.redirect(url);
-    }
-    
-    // Язык совпадает - пропускаем
+    // An explicit locale in the URL takes precedence over the preference cookie.
     return NextResponse.next();
   }
 

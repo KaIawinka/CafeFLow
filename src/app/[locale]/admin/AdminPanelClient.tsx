@@ -494,7 +494,7 @@ export default function AdminPage() {
             {/* Users Tab */}
             {activeTab === 'users' && (
               <div className="grid gap-5 xl:grid-cols-[240px_minmax(0,1fr)]">
-                <aside className="h-fit rounded-[24px] border border-stone-200/80 bg-[#fffdf8] p-4 shadow-[0_18px_50px_-28px_rgba(34,42,38,0.55)] dark:border-gray-700 dark:bg-gray-900 xl:sticky xl:top-6">
+                <aside className="h-fit rounded-[24px] border border-stone-200/80 bg-[#fffdf8] p-4 shadow-[0_18px_50px_-28px_rgba(34,42,38,0.55)] dark:border-gray-700 dark:bg-gray-900 xl:sticky xl:top-[129px]">
                   <div className="mb-5 border-b border-stone-200 pb-4 dark:border-gray-700">
                     <div className="flex items-center gap-2 text-base font-black text-gray-900 dark:text-white">
                       <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#17332f] text-amber-200"><SlidersHorizontal className="h-4 w-4" /></span>
@@ -541,7 +541,7 @@ export default function AdminPage() {
                 </aside>
 
                 <div className="min-w-0 space-y-4 sm:space-y-6">
-                  <div className="relative rounded-[24px] border border-stone-200/80 bg-[#fffdf8] p-3 shadow-[0_18px_50px_-28px_rgba(34,42,38,0.55)] dark:border-gray-700 dark:bg-gray-900">
+                  <div className="relative rounded-[24px] border border-stone-200/80 bg-[#fffdf8] p-3 shadow-[0_18px_50px_-28px_rgba(34,42,38,0.55)] dark:border-gray-700 dark:bg-gray-900 xl:sticky xl:top-[129px] xl:z-10">
                     <div className="mb-2 flex items-center justify-between px-1"><div className="flex items-center gap-2 text-sm font-black text-gray-900 dark:text-white"><ArrowDownAZ className="h-4 w-4 text-amber-600" />{ui.admin.users}</div><span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">{usersTotal}</span></div>
                     <Search className="absolute left-6 top-[4.4rem] -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                     <input
@@ -670,25 +670,25 @@ export default function AdminPage() {
                   </div>
 
                   {/* Mobile Card View */}
-                  <div className="grid gap-3 p-3">
+                  <div className="grid gap-2 p-2">
                     {filteredUsers.map((user) => (
-                      <div key={user.id} className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm transition hover:border-amber-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
-                        <div className="flex items-start gap-2.5 border-b border-stone-100 bg-stone-50/80 p-3 dark:border-gray-700 dark:bg-gray-800/80">
+                      <div key={user.id} className="flex flex-wrap items-center gap-3 overflow-hidden rounded-xl border border-stone-200 bg-white p-2.5 shadow-sm transition hover:border-amber-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
+                        <div className="flex min-w-0 flex-1 basis-full items-center gap-2.5 sm:basis-[220px]">
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-sm font-semibold text-white">
                             {user.first_name[0]?.toUpperCase()}
                           </div>
                           <div className="min-w-0 flex-1">
                             <h4 className="truncate font-semibold text-gray-900 dark:text-white">{user.display_name || `${user.first_name} ${user.last_name || ''}`.trim()}</h4>
                             <p className="mt-1 break-all text-sm text-gray-600 dark:text-gray-400">{user.email}</p>
-                            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                            <div className="mt-1 flex flex-wrap items-center gap-1.5">
                               <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${roleColors[user.role]}`}>{ui.profile.roleLabels[user.role] || user.role}</span>
                               <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${user.status === 'active' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-200' : user.status === 'pending' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-200' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200'}`}>{user.status === 'active' ? ui.admin.active : user.status === 'pending' ? ui.admin.pending : ui.admin.blocked}</span>
                               <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${user.is_online ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}><span className="h-2 w-2 rounded-full bg-current" />{user.is_online ? ui.admin.online : ui.admin.offline}</span>
                             </div>
                           </div>
                         </div>
-                          <div className="grid gap-2.5 p-3 sm:grid-cols-[1fr_auto] sm:items-end">
-                          <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-gray-600 dark:text-gray-400">
+                        <div className="flex w-full flex-[2] flex-wrap items-center justify-between gap-2 sm:w-auto">
+                          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-gray-600 dark:text-gray-400">
                             <span>{ui.admin.phone}: {user.phone || '—'}</span>
                             <span>{ui.admin.telegram}: {user.telegram_username ? `@${user.telegram_username}` : '—'}</span>
                             <span className="text-xs text-gray-500 dark:text-gray-400">{ui.admin.registered}: {new Date(user.created_at).toLocaleDateString(locale)}</span>
@@ -700,7 +700,7 @@ export default function AdminPage() {
                               <span className="rounded-full bg-gray-100 px-2 py-1 text-[11px] font-semibold text-gray-600 dark:bg-gray-700 dark:text-gray-300">{user.language.toUpperCase()}</span>
                             </div>
                           </div>
-                          <div className="grid gap-2 sm:w-36">
+                          <div className="flex shrink-0 gap-2 sm:w-36">
                             <select aria-label={`${ui.admin.role}: ${user.email}`} value={user.role} disabled={savingId === user.id} onChange={(event) => void updateUser(user.id, { role: event.target.value })} className="min-h-10 w-full rounded-lg border border-gray-200 bg-white px-2 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
                               {['customer', 'employee', 'kitchen', 'manager', 'admin'].map((role) => <option key={role} value={role}>{ui.profile.roleLabels[role] || role}</option>)}
                             </select>
