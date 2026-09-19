@@ -867,15 +867,15 @@ export default function AdminPage() {
 
             {/* Settings Tab */}
             {activeTab === 'settings' && (
-              <div className="mx-auto max-w-5xl space-y-4">
-                <header className="flex flex-col gap-3 border-b border-gray-200 pb-4 dark:border-gray-700 sm:flex-row sm:items-end sm:justify-between">
-                  <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-600">CaféFlow</p><h1 className="mt-1 text-2xl font-black tracking-tight text-gray-950 dark:text-white">{ui.admin.settings}</h1><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{siteOptionLabels.operationsHint}</p></div>
-                  <button type="button" onClick={() => void saveTenantSettings()} disabled={savingId === 'tenant'} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-[#17332f] px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#21463f] disabled:cursor-not-allowed disabled:opacity-60"><Save className="h-4 w-4" />{ui.admin.save}</button>
+              <div className="space-y-5">
+                <header className="flex flex-col gap-3 border-b border-[var(--border)] pb-4 sm:flex-row sm:items-end sm:justify-between">
+                  <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--primary)]">CaféFlow</p><h1 className="mt-1 text-2xl font-black tracking-tight text-[var(--foreground)]">{ui.admin.settings}</h1><p className="mt-1 text-sm text-[var(--muted-foreground)]">{siteOptionLabels.operationsHint}</p></div>
+                  <button type="button" onClick={() => void saveTenantSettings()} disabled={savingId === 'tenant'} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-[var(--primary)] px-5 text-sm font-bold text-[var(--primary-foreground)] shadow-sm transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60"><Save className="h-4 w-4" />{ui.admin.save}</button>
                 </header>
 
                 <div className="min-w-0 space-y-4">
-                  <section id="site-identity" className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:p-5">
-                    <div className="mb-4"><h2 className="text-lg font-bold text-gray-900 dark:text-white">{ui.admin.siteName}</h2><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{ui.admin.logoUrl}</p></div>
+                  <section id="site-identity" className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-5">
+                    <div className="mb-4"><h2 className="text-lg font-bold text-[var(--card-foreground)]">{ui.admin.siteName}</h2><p className="mt-1 text-sm text-[var(--muted-foreground)]">{ui.admin.logoUrl}</p></div>
                     <div className="grid gap-5 md:grid-cols-2">
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">{ui.admin.siteName}
                         <input type="text" value={siteSettings.siteName} onChange={(e) => setSiteSettings({ ...siteSettings, siteName: e.target.value })} className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 font-normal text-gray-900 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
@@ -892,8 +892,8 @@ export default function AdminPage() {
                     </div>
                   </section>
 
-                  <section id="site-contact" className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:p-5">
-                    <div className="mb-4"><h2 className="text-lg font-bold text-gray-900 dark:text-white">{ui.admin.contactEmail}</h2><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{ui.admin.address}</p></div>
+                  <section id="site-contact" className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-5">
+                    <div className="mb-4"><h2 className="text-lg font-bold text-[var(--card-foreground)]">{ui.admin.contactEmail}</h2><p className="mt-1 text-sm text-[var(--muted-foreground)]">{ui.admin.address}</p></div>
                     <div className="grid gap-5 md:grid-cols-2">
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">{ui.admin.contactPhone}<input type="tel" value={siteSettings.contactPhone} onChange={(e) => setSiteSettings({ ...siteSettings, contactPhone: e.target.value })} className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 font-normal text-gray-900 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white" /></label>
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">{ui.admin.contactEmail}<input type="email" value={siteSettings.contactEmail} onChange={(e) => setSiteSettings({ ...siteSettings, contactEmail: e.target.value })} className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 font-normal text-gray-900 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white" /></label>
@@ -901,34 +901,34 @@ export default function AdminPage() {
                     </div>
                   </section>
 
-                  <section id="site-access" className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:p-5">
-                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">{ui.admin.maintenance}</h2>
-                    <label className="mt-4 flex cursor-pointer items-center gap-3 rounded-xl bg-gray-50 p-4 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600">
+                  <section id="site-access" className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-5">
+                    <h2 className="text-lg font-bold text-[var(--card-foreground)]">{ui.admin.maintenance}</h2>
+                    <label className="mt-4 flex cursor-pointer items-center gap-3 rounded-xl bg-[var(--muted)]/60 p-4 transition hover:bg-[var(--muted)]">
                       <input type="checkbox" checked={siteSettings.maintenanceMode} onChange={(e) => setSiteSettings({ ...siteSettings, maintenanceMode: e.target.checked })} className="h-5 w-5 rounded text-amber-600 focus:ring-amber-500" />
-                      <span><span className="block text-sm font-semibold text-gray-900 dark:text-white">{ui.admin.maintenance}</span><span className="mt-1 block text-xs text-gray-500 dark:text-gray-400">{ui.admin.maintenanceDescription}</span></span>
+                      <span><span className="block text-sm font-semibold text-[var(--card-foreground)]">{ui.admin.maintenance}</span><span className="mt-1 block text-xs text-[var(--muted-foreground)]">{ui.admin.maintenanceDescription}</span></span>
                     </label>
                   </section>
 
-                  <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:p-5">
-                    <div className="mb-4"><h2 className="text-lg font-bold text-gray-900 dark:text-white">{siteOptionLabels.operations}</h2><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{siteOptionLabels.operationsHint}</p></div>
+                  <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-5">
+                    <div className="mb-4"><h2 className="text-lg font-bold text-[var(--card-foreground)]">{siteOptionLabels.operations}</h2><p className="mt-1 text-sm text-[var(--muted-foreground)]">{siteOptionLabels.operationsHint}</p></div>
                     <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-3">
                       {([
                         ['publicSiteEnabled', siteOptionLabels.publicSite], ['acceptOnlineOrders', siteOptionLabels.onlineOrders], ['showReservations', siteOptionLabels.reservations], ['allowGuestCheckout', siteOptionLabels.guestCheckout], ['requirePhone', siteOptionLabels.requirePhone], ['autoConfirmOrders', siteOptionLabels.autoConfirm],
-                      ] as const).map(([key, label]) => <label key={key} className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-900/60"><input type="checkbox" checked={siteSettings.siteOptions[key]} onChange={(event) => setSiteSettings((current) => ({ ...current, siteOptions: { ...current.siteOptions, [key]: event.target.checked } }))} className="h-5 w-5 rounded text-amber-600 focus:ring-amber-500" /><span className="text-sm font-semibold text-gray-800 dark:text-gray-200">{label}</span></label>)}
+                      ] as const).map(([key, label]) => <label key={key} className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl bg-[var(--muted)]/60 px-4 py-3 transition hover:bg-[var(--muted)]"><input type="checkbox" checked={siteSettings.siteOptions[key]} onChange={(event) => setSiteSettings((current) => ({ ...current, siteOptions: { ...current.siteOptions, [key]: event.target.checked } }))} className="h-5 w-5 rounded text-[var(--primary)] focus:ring-[var(--ring)]" /><span className="text-sm font-semibold text-[var(--card-foreground)]">{label}</span></label>)}
                     </div>
                   </section>
 
-                  <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:p-5">
-                    <div className="mb-4"><h2 className="text-lg font-bold text-gray-900 dark:text-white">{siteOptionLabels.fulfillment}</h2></div>
+                  <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-5">
+                    <div className="mb-4"><h2 className="text-lg font-bold text-[var(--card-foreground)]">{siteOptionLabels.fulfillment}</h2></div>
                     <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-3">
                       {([
                         ['deliveryEnabled', siteOptionLabels.delivery], ['pickupEnabled', siteOptionLabels.pickup], ['emailOrderAlerts', siteOptionLabels.emailOrders], ['reservationAlerts', siteOptionLabels.emailReservations], ['showMenuPrices', siteOptionLabels.prices], ['showOutOfStock', siteOptionLabels.outOfStock],
-                      ] as const).map(([key, label]) => <label key={key} className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-900/60"><input type="checkbox" checked={siteSettings.siteOptions[key]} onChange={(event) => setSiteSettings((current) => ({ ...current, siteOptions: { ...current.siteOptions, [key]: event.target.checked } }))} className="h-5 w-5 rounded text-amber-600 focus:ring-amber-500" /><span className="text-sm font-semibold text-gray-800 dark:text-gray-200">{label}</span></label>)}
+                      ] as const).map(([key, label]) => <label key={key} className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl bg-[var(--muted)]/60 px-4 py-3 transition hover:bg-[var(--muted)]"><input type="checkbox" checked={siteSettings.siteOptions[key]} onChange={(event) => setSiteSettings((current) => ({ ...current, siteOptions: { ...current.siteOptions, [key]: event.target.checked } }))} className="h-5 w-5 rounded text-[var(--primary)] focus:ring-[var(--ring)]" /><span className="text-sm font-semibold text-[var(--card-foreground)]">{label}</span></label>)}
                     </div>
                   </section>
                 </div>
 
-                <div className="flex items-center justify-end border-t border-gray-200 pt-4 dark:border-gray-700"><button type="button" onClick={() => void saveTenantSettings()} disabled={savingId === 'tenant'} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-[#17332f] px-6 text-sm font-bold text-white shadow-sm transition hover:bg-[#21463f] disabled:cursor-not-allowed disabled:opacity-60"><Save className="h-4 w-4" />{ui.admin.save}</button></div>
+                <div className="flex items-center justify-end border-t border-[var(--border)] pt-4"><button type="button" onClick={() => void saveTenantSettings()} disabled={savingId === 'tenant'} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-[var(--primary)] px-6 text-sm font-bold text-[var(--primary-foreground)] shadow-sm transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60"><Save className="h-4 w-4" />{ui.admin.save}</button></div>
               </div>
             )}
 
