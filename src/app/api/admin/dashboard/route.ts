@@ -121,6 +121,8 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search')?.trim() || '';
     const role = searchParams.get('role');
     const status = searchParams.get('status');
+    const sort = searchParams.get('sort') || 'newest';
+    const online = searchParams.get('online');
     const usersPage = Math.max(1, Number(searchParams.get('usersPage') || 1));
     const ordersPage = Math.max(1, Number(searchParams.get('ordersPage') || 1));
     const pageSize = 25;
@@ -130,12 +132,24 @@ export async function GET(request: NextRequest) {
           { email: { contains: search, mode: 'insensitive' as const } },
           { first_name: { contains: search, mode: 'insensitive' as const } },
           { last_name: { contains: search, mode: 'insensitive' as const } },
+          { display_name: { contains: search, mode: 'insensitive' as const } },
+          { phone: { contains: search, mode: 'insensitive' as const } },
+          { telegram_username: { contains: search, mode: 'insensitive' as const } },
         ],
       } : {}),
       ...(roles.includes(role as Role) ? { role: role as Role } : {}),
       ...(statuses.includes(status as Status) ? { status: status as Status } : {}),
+      ...(online === 'online' ? { last_seen_at: { gte: new Date(Date.now() - 5 * 60 * 1000) } } : {}),
+      ...(online === 'offline' ? { OR: [{ last_seen_at: null }, { last_seen_at: { lt: new Date(Date.now() - 5 * 60 * 1000) } }] } : {}),
       ...tenantScope(tenantId),
     };
+    const userOrderBy = sort === 'oldest'
+      ? { created_at: 'asc' as const }
+      : sort === 'name'
+        ? [{ first_name: 'asc' as const }, { last_name: 'asc' as const }, { id: 'asc' as const }]
+        : sort === 'email'
+          ? { email: 'asc' as const }
+          : { created_at: 'desc' as const };
 
     const orderWhere = { ...tenantScope(tenantId), ...(branchIds ? { branch_id: { in: branchIds } } : {}) };
     const productWhere = { deleted_at: null, ...tenantScope(tenantId) };
@@ -144,10 +158,11 @@ export async function GET(request: NextRequest) {
         where: userWhere,
         select: {
           id: true, email: true, first_name: true, last_name: true, display_name: true,
+          phone: true, telegram_username: true,
           role: true, status: true, requires_approval: true, two_fa_enabled: true,
-          language: true, last_login_at: true, created_at: true,
+          language: true, last_login_at: true, last_seen_at: true, created_at: true,
         },
-        orderBy: { created_at: 'desc' },
+        orderBy: userOrderBy,
         skip: (usersPage - 1) * pageSize,
         take: pageSize,
       }),
@@ -180,7 +195,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(serialize({
       success: true,
       actor: { id: actor.id, email: actor.email, role: actor.role },
-      users,
+      users: users.map((user) => ({ ...user, is_online: Boolean(user.last_seen_at && user.last_seen_at.getTime() >= Date.now() - 5 * 60 * 1000) })),
       pagination: { usersPage, ordersPage, pageSize, usersTotal: filteredUsersCount, ordersTotal: recentOrdersCount },
       metrics: { users: usersCount, activeUsers: activeUsersCount, admins: adminCount, orders: ordersCount, revenue: revenue._sum.total || 0, products: productsCount, activeProducts: activeProductsCount },
       recentOrders,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useEffectEvent, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -29,10 +29,15 @@ interface User {
   email: string;
   first_name: string;
   last_name?: string;
+  display_name?: string;
+  phone?: string;
+  telegram_username?: string;
   role: string;
   status: string;
   created_at: string;
   last_login_at?: string;
+  last_seen_at?: string;
+  is_online?: boolean;
   requires_approval: boolean;
   two_fa_enabled: boolean;
   language: string;
@@ -146,9 +151,14 @@ export default function AdminPage() {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterRole, setFilterRole] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterOnline, setFilterOnline] = useState<string>('all');
+  const [userSort, setUserSort] = useState('newest');
   const [usersPage, setUsersPage] = useState(1);
   const [ordersPage, setOrdersPage] = useState(1);
   const [usersTotal, setUsersTotal] = useState(0);
+  const [hasMoreUsers, setHasMoreUsers] = useState(false);
+  const usersEndRef = useRef<HTMLDivElement>(null);
   const [ordersTotal, setOrdersTotal] = useState(0);
   
   // Site settings
@@ -172,15 +182,20 @@ export default function AdminPage() {
       const query = new URLSearchParams();
       if (searchQuery.trim()) query.set('search', searchQuery.trim());
       if (filterRole !== 'all') query.set('role', filterRole);
+      if (filterStatus !== 'all') query.set('status', filterStatus);
+      if (filterOnline !== 'all') query.set('online', filterOnline);
+      query.set('sort', userSort);
       query.set('usersPage', String(usersPage));
       query.set('ordersPage', String(ordersPage));
       const response = await fetch(`/api/admin/dashboard?${query.toString()}`, { cache: 'no-store', signal });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || errorLoad);
-      setUsers(data.users || []);
+      const nextUsers = data.users || [];
+      setUsers((current) => usersPage === 1 ? nextUsers : [...current, ...nextUsers]);
       setHasLoadedDashboard(true);
       setRecentOrders(data.recentOrders || []);
       setUsersTotal(data.pagination?.usersTotal || 0);
+      setHasMoreUsers(usersPage * 25 < (data.pagination?.usersTotal || 0) && nextUsers.length > 0);
       setOrdersTotal(data.pagination?.ordersTotal || 0);
       setProducts(data.products || []);
       if (data.tenant) {
@@ -213,7 +228,16 @@ export default function AdminPage() {
       window.clearTimeout(timeoutId);
       controller.abort();
     };
-  }, [filterRole, searchQuery, usersPage, ordersPage]);
+  }, [filterRole, filterOnline, filterStatus, searchQuery, userSort, usersPage, ordersPage]);
+
+  useEffect(() => {
+    if (activeTab !== 'users' || !hasMoreUsers || !usersEndRef.current) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0]?.isIntersecting) setUsersPage((page) => page + 1);
+    }, { rootMargin: '320px' });
+    observer.observe(usersEndRef.current);
+    return () => observer.disconnect();
+  }, [activeTab, hasMoreUsers, usersPage]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -314,7 +338,7 @@ export default function AdminPage() {
   };
 
   const filteredUsers = users;
-  const usersPageCount = Math.max(1, Math.ceil(usersTotal / 25));
+  const userSuggestions = searchQuery.trim() ? users.slice(0, 6) : [];
   const ordersPageCount = Math.max(1, Math.ceil(ordersTotal / 25));
   const reservationPageCount = Math.max(1, Math.ceil(reservationTotal / 25));
 
@@ -422,35 +446,65 @@ export default function AdminPage() {
 
             {/* Users Tab */}
             {activeTab === 'users' && (
-              <div className="space-y-4 sm:space-y-6">
-                {/* Search and Filter */}
-                <div className="flex flex-col gap-3 sm:gap-4">
-                  <div className="flex-1 relative">
+              <div className="grid gap-5 xl:grid-cols-[240px_minmax(0,1fr)]">
+                <aside className="h-fit rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900 xl:sticky xl:top-6">
+                  <div className="mb-4 flex items-center gap-2 text-sm font-bold text-gray-900 dark:text-white">
+                    <Filter className="h-4 w-4 text-amber-600" />
+                    {ui.admin.details}
+                  </div>
+                  <div className="space-y-3">
+                    <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400">{ui.admin.sort}
+                      <select value={userSort} onChange={(event) => { setUserSort(event.target.value); setUsersPage(1); }} className="mt-1 min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+                        <option value="newest">{ui.admin.newest}</option>
+                        <option value="oldest">{ui.admin.oldest}</option>
+                        <option value="name">{ui.admin.alphabetical}</option>
+                        <option value="email">{ui.admin.byEmail}</option>
+                      </select>
+                    </label>
+                    <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400">{ui.admin.role}
+                      <select value={filterRole} onChange={(event) => { setFilterRole(event.target.value); setUsersPage(1); }} className="mt-1 min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+                        <option value="all">{ui.admin.allRoles}</option>
+                        <option value="admin">{ui.admin.administrators}</option>
+                        <option value="manager">{ui.admin.managers}</option>
+                        <option value="kitchen">{ui.admin.roleKitchen}</option>
+                        <option value="employee">{ui.admin.employees}</option>
+                        <option value="customer">{ui.admin.customers}</option>
+                      </select>
+                    </label>
+                    <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400">{ui.admin.statusFilter}
+                      <select value={filterStatus} onChange={(event) => { setFilterStatus(event.target.value); setUsersPage(1); }} className="mt-1 min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+                        <option value="all">{ui.admin.allStatuses}</option>
+                        <option value="active">{ui.admin.active}</option>
+                        <option value="pending">{ui.admin.pending}</option>
+                        <option value="blocked">{ui.admin.blocked}</option>
+                      </select>
+                    </label>
+                    <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400">{ui.admin.presence}
+                      <select value={filterOnline} onChange={(event) => { setFilterOnline(event.target.value); setUsersPage(1); }} className="mt-1 min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+                        <option value="all">{ui.admin.allPresence}</option>
+                        <option value="online">{ui.admin.online}</option>
+                        <option value="offline">{ui.admin.offline}</option>
+                      </select>
+                    </label>
+                  </div>
+                </aside>
+
+                <div className="min-w-0 space-y-4 sm:space-y-6">
+                  <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                     <input
                       type="text"
-                      placeholder={ui.admin.search}
+                      placeholder={ui.admin.searchHint}
                       value={searchQuery}
                       onChange={(e) => { setSearchQuery(e.target.value); setUsersPage(1); }}
                       className="w-full pl-9 sm:pl-10 pr-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white touch-manipulation"
                     />
+                    {userSuggestions.length > 0 && (
+                      <div className="absolute left-0 right-0 top-full z-20 mt-2 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800">
+                        {userSuggestions.map((user) => <button key={user.id} type="button" onClick={() => { setSearchQuery(user.email); setUsersPage(1); }} className="flex w-full items-center gap-3 border-b border-gray-100 px-4 py-3 text-left last:border-0 hover:bg-amber-50 dark:border-gray-700 dark:hover:bg-gray-700"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500 text-sm font-bold text-white">{user.first_name[0]?.toUpperCase()}</span><span className="min-w-0"><span className="block truncate text-sm font-semibold text-gray-900 dark:text-white">{user.display_name || `${user.first_name} ${user.last_name || ''}`.trim()}</span><span className="block truncate text-xs text-gray-500 dark:text-gray-400">{user.email} · {new Date(user.created_at).toLocaleDateString(locale)}</span></span></button>)}
+                      </div>
+                    )}
                   </div>
-                  <div className="relative">
-                    <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <select
-                      value={filterRole}
-                      onChange={(e) => { setFilterRole(e.target.value); setUsersPage(1); }}
-                      className="pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none cursor-pointer min-w-[200px]"
-                    >
-                      <option value="all">{ui.admin.allRoles}</option>
-                      <option value="admin">{ui.admin.administrators}</option>
-                      <option value="manager">{ui.admin.managers}</option>
-                      <option value="kitchen">{ui.admin.roleKitchen}</option>
-                      <option value="employee">{ui.admin.employees}</option>
-                      <option value="customer">{ui.admin.customers}</option>
-                    </select>
-                  </div>
-                </div>
 
                 {/* Users Table/Cards */}
                 <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
@@ -464,6 +518,12 @@ export default function AdminPage() {
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                             {ui.admin.email}
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            {ui.admin.phone}
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            {ui.admin.presence}
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                             {ui.admin.role}
@@ -488,12 +548,19 @@ export default function AdminPage() {
                                   {user.first_name[0]?.toUpperCase()}
                                 </div>
                                 <span className="font-medium text-gray-900 dark:text-white">
-                                  {user.first_name} {user.last_name}
+                                  {user.display_name || `${user.first_name} ${user.last_name || ''}`.trim()}
+                                  {user.telegram_username && <span className="mt-1 block text-xs font-normal text-gray-500 dark:text-gray-400">@{user.telegram_username}</span>}
                                 </span>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
                               {user.email}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+                              {user.phone || '—'}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <span className={`inline-flex items-center gap-1.5 ${user.is_online ? 'text-green-600 dark:text-green-400' : 'text-gray-400'}`}><span className="h-2 w-2 rounded-full bg-current" />{user.is_online ? ui.admin.online : ui.admin.offline}</span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`px-3 py-1 rounded-full text-xs font-medium ${roleColors[user.role]}`}>
@@ -557,6 +624,7 @@ export default function AdminPage() {
                             <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
                               {user.email}
                             </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{user.phone || '—'} {user.telegram_username ? `· @${user.telegram_username}` : ''}</p>
                           </div>
                           <select
                             aria-label={`${ui.admin.status}: ${user.email}`}
@@ -598,9 +666,8 @@ export default function AdminPage() {
                     </p>
                   </div>
                 )}
-                {usersTotal > 0 && (
-                  <PaginationControls page={usersPage} pageCount={usersPageCount} onPageChange={setUsersPage} copy={copy} />
-                )}
+                {usersTotal > 0 && <div ref={usersEndRef} className="flex min-h-12 items-center justify-center text-sm text-gray-500 dark:text-gray-400">{hasMoreUsers ? <Loader2 className="h-5 w-5 animate-spin text-amber-600" /> : `${users.length} / ${usersTotal}`}</div>}
+              </div>
               </div>
             )}
 
