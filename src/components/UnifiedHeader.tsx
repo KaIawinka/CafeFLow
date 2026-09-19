@@ -89,17 +89,30 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
 
   const currentLocale = getPreferredLocale(pathname);
   const ui = getUiTranslations(currentLocale);
+  const isStaff = Boolean(user && ['employee', 'kitchen', 'manager', 'admin'].includes(user.role));
+  const canSearchAdmin = user?.role === 'admin' || user?.role === 'manager';
 
   const searchItems: SearchItem[] = [
     { label: currentLocale === 'en' ? 'Home' : currentLocale === 'kg' ? 'Башкы бет' : 'Главная', description: currentLocale === 'en' ? 'CafeFlow home page, food, atmosphere and welcome' : 'Главная страница CaféFlow, вкусная еда и уютная атмосфера', href: `/${currentLocale}`, keywords: ['главная', 'home', 'башкы', 'добро пожаловать', 'атмосфера', 'еда'] },
     { label: currentLocale === 'en' ? 'Menu' : 'Меню', description: currentLocale === 'en' ? 'Browse dishes, drinks, coffee, breakfast and chef specials' : 'Блюда, напитки, кофе, завтраки и выбор шефа', href: `/${currentLocale}/menu`, keywords: ['меню', 'блюда', 'menu', 'еда', 'напитки', 'кофе', 'завтрак', 'шеф', 'десерт'] },
     { label: currentLocale === 'en' ? 'Booking' : currentLocale === 'kg' ? 'Брондоо' : 'Бронирование', description: currentLocale === 'en' ? 'Reserve a table for breakfast, dinner or a special evening' : 'Забронировать столик для завтрака, ужина или встречи', href: `/${currentLocale}/booking`, keywords: ['бронь', 'бронирование', 'столик', 'booking', 'брондо', 'ужин', 'встреча'] },
     { label: currentLocale === 'en' ? 'My orders' : currentLocale === 'kg' ? 'Буйрутмаларым' : 'Мои заказы', description: currentLocale === 'en' ? 'View order history and delivery status' : 'История заказов и статус доставки', href: `/${currentLocale}/orders`, keywords: ['заказы', 'заказ', 'orders', 'буйрутма', 'доставка', 'статус'] },
-    { label: currentLocale === 'en' ? 'Cart' : currentLocale === 'kg' ? 'Себет' : 'Корзина', description: currentLocale === 'en' ? 'Open your cart' : 'Товары для оформления', href: `/${currentLocale}/cart`, keywords: ['корзина', 'cart', 'себет'] },
+    ...(!isStaff ? [{ label: currentLocale === 'en' ? 'Cart' : currentLocale === 'kg' ? 'Себет' : 'Корзина', description: currentLocale === 'en' ? 'Open your cart' : 'Товары для оформления', href: `/${currentLocale}/cart`, keywords: ['корзина', 'cart', 'себет'] }] : []),
     { label: currentLocale === 'en' ? 'Promotions' : currentLocale === 'kg' ? 'Акциялар' : 'Акции', description: currentLocale === 'en' ? 'Current CafeFlow offers, breakfast for two and seasonal specials' : 'Скидки, специальные предложения, новинки и завтрак для двоих', href: `/${currentLocale}#promotions`, keywords: ['акции', 'скидки', 'промо', 'promo', 'sale', 'акция', 'новинка', 'сезон'] },
     { label: currentLocale === 'en' ? 'About us' : currentLocale === 'kg' ? 'Биз жөнүндө' : 'О нас', description: currentLocale === 'en' ? 'Learn more about CafeFlow' : 'История и атмосфера CaféFlow', href: `/${currentLocale}#about`, keywords: ['о нас', 'about', 'биз жөнүндө'] },
     { label: currentLocale === 'en' ? 'Address' : currentLocale === 'kg' ? 'Дарек' : 'Адрес', description: currentLocale === 'en' ? 'Find our cafe' : 'Где находится CaféFlow', href: `/${currentLocale}#address`, keywords: ['адрес', 'address', 'дарек'] },
     { label: currentLocale === 'en' ? 'Contact us' : currentLocale === 'kg' ? 'Байланышуу' : 'Связаться с нами', description: currentLocale === 'en' ? 'Phone and email' : 'Телефон и электронная почта', href: `/${currentLocale}#contact`, keywords: ['связаться', 'контакты', 'contact', 'телефон'] },
+    { label: currentLocale === 'en' ? 'Profile' : currentLocale === 'kg' ? 'Профиль' : 'Профиль', description: currentLocale === 'en' ? 'Your profile and personal data' : 'Профиль и личные данные пользователя', href: `/${currentLocale}/profile`, keywords: ['профиль', 'profile', 'профиль', 'личные данные'] },
+    { label: currentLocale === 'en' ? 'Settings' : currentLocale === 'kg' ? 'Жөндөөлөр' : 'Настройки', description: currentLocale === 'en' ? 'Account and notification settings' : 'Настройки аккаунта и уведомлений', href: `/${currentLocale}/settings`, keywords: ['настройки', 'settings', 'жөндөөлөр', 'аккаунт', 'уведомления'] },
+    { label: currentLocale === 'en' ? 'Registration' : currentLocale === 'kg' ? 'Катталуу' : 'Регистрация', description: currentLocale === 'en' ? 'Create a new account' : 'Создать новый аккаунт', href: `/${currentLocale}/register`, keywords: ['регистрация', 'register', 'sign up', 'катталуу', 'аккаунт'] },
+    { label: currentLocale === 'en' ? 'Log in' : currentLocale === 'kg' ? 'Кирүү' : 'Войти', description: currentLocale === 'en' ? 'Sign in to your account' : 'Вход в аккаунт', href: `/${currentLocale}/login`, keywords: ['войти', 'login', 'sign in', 'кирүү'] },
+    { label: currentLocale === 'en' ? 'Forgot password' : currentLocale === 'kg' ? 'Сырсөздү унуттум' : 'Забыли пароль', description: currentLocale === 'en' ? 'Recover access to your account' : 'Восстановить доступ к аккаунту', href: `/${currentLocale}/forgot-password`, keywords: ['пароль', 'password', 'забыли', 'forgot', 'сырсөз'] },
+    ...(canSearchAdmin ? [
+      { label: currentLocale === 'en' ? 'Admin panel' : currentLocale === 'kg' ? 'Админ панели' : 'Админ-панель', description: currentLocale === 'en' ? 'Users, orders, reservations and settings' : 'Пользователи, заказы, брони и настройки', href: `/${currentLocale}/admin`, keywords: ['админ', 'admin', 'панель', 'башкаруу'] },
+      { label: currentLocale === 'en' ? 'Admin menu' : currentLocale === 'kg' ? 'Админ менюсу' : 'Меню админки', description: currentLocale === 'en' ? 'Manage dishes and categories' : 'Управление блюдами и категориями', href: `/${currentLocale}/admin/menu`, keywords: ['админ меню', 'admin menu', 'категории', 'блюда'] },
+      { label: currentLocale === 'en' ? 'Deliveries' : currentLocale === 'kg' ? 'Жеткирүү' : 'Доставка', description: currentLocale === 'en' ? 'Manage delivery operations' : 'Управление доставками', href: `/${currentLocale}/admin/deliveries`, keywords: ['доставка', 'deliveries', 'жеткирүү'] },
+      { label: currentLocale === 'en' ? 'Admin dashboard' : currentLocale === 'kg' ? 'Башкаруу панели' : 'Панель управления', description: currentLocale === 'en' ? 'Business metrics and operations' : 'Показатели и рабочие процессы заведения', href: `/${currentLocale}/admin/dashboard`, keywords: ['dashboard', 'статистика', 'показатели', 'башкаруу'] },
+    ] : []),
   ];
 
   const searchResults = searchQuery.trim()
@@ -203,6 +216,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
   };
 
   const navigateToSearchResult = (destination: string) => {
+    if (destination.includes('/admin') && !canSearchAdmin) return;
     if (destination.startsWith(`${pathname}#`)) {
       document.querySelector(destination.slice(destination.indexOf('#')))?.scrollIntoView({ behavior: 'smooth' });
     } else {
@@ -235,7 +249,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
                 ? `/${currentLocale}/menu?view=favorites`
                 : query.match(/профил|profile/)
                   ? `/${currentLocale}/profile`
-                  : query.match(/админ|admin/)
+                    : canSearchAdmin && query.match(/админ|admin|башкаруу|башкаруу панели/)
                     ? `/${currentLocale}/admin`
                     : query.match(/контакт|contact/)
                       ? `/${currentLocale}#contact`
@@ -243,7 +257,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
 
     if (destination) return navigateToSearchResult(destination);
 
-    const searchable = Array.from(document.querySelectorAll<HTMLElement>('h1, h2, h3, p, a, button'));
+    const searchable = Array.from(document.querySelectorAll<HTMLElement>('main, main *')).filter((element) => element.children.length === 0);
     const match = searchable.find((element) => element.textContent?.toLowerCase().includes(query));
     if (match) {
       match.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -285,7 +299,6 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
   };
 
   const currentRole = user ? roleConfig[user.role] || roleConfig.customer : null;
-  const isStaff = Boolean(user && ['employee', 'kitchen', 'manager', 'admin'].includes(user.role));
   const isAdmin = user?.role === 'admin';
 
   const getNavLinks = () => {
@@ -393,14 +406,14 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
               <div className="header-search-results absolute left-0 right-0 top-[calc(100%+0.6rem)] z-[60] overflow-hidden rounded-xl border border-white/10 bg-[#20272c] p-2 shadow-2xl">
                 {searchResults.length > 0 ? (
                   <>
-                    <p className="px-3 pb-2 pt-1 text-[11px] font-bold uppercase tracking-[0.16em] text-orange-300">{currentLocale === 'en' ? 'Found on the site' : 'Найдено на сайте'}</p>
+                    <p className="px-3 pb-2 pt-1 text-[11px] font-bold uppercase tracking-[0.16em] text-orange-300">{currentLocale === 'en' ? 'Found on the site' : currentLocale === 'kg' ? 'Сайттан табылды' : 'Найдено на сайте'}</p>
                     {searchResults.slice(0, 5).map((item) => <button type="button" key={item.href} onClick={() => navigateToSearchResult(item.href)} className="flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left text-white transition hover:bg-orange-500/15"><Search className="mt-0.5 h-4 w-4 shrink-0 text-orange-300" /><span><strong className="block text-sm">{item.label}</strong><span className="block text-xs text-white/55">{item.description}</span></span></button>)}
                   </>
                 ) : (
                   <>
                     <p className="px-3 pb-2 pt-1 text-sm font-semibold text-white">{currentLocale === 'en' ? 'Nothing found' : currentLocale === 'kg' ? 'Эч нерсе табылган жок' : 'Ничего не найдено'}</p>
-                    <p className="px-3 pb-2 text-xs text-white/55">{currentLocale === 'en' ? 'Similar sections' : 'Похожие разделы'}</p>
-                    {similarResults.length > 0 ? similarResults.map((item) => <button type="button" key={item.href} onClick={() => navigateToSearchResult(item.href)} className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-white/75 transition hover:bg-orange-500/15 hover:text-white"><Search className="h-4 w-4 text-orange-300" />{item.label}</button>) : <p className="px-3 pb-2 text-xs text-white/45">{currentLocale === 'en' ? 'Try: menu, booking, orders or promotions.' : 'Попробуйте: меню, бронь, заказы или акции.'}</p>}
+                    <p className="px-3 pb-2 text-xs text-white/55">{currentLocale === 'en' ? 'Similar sections' : currentLocale === 'kg' ? 'Окшош бөлүмдөр' : 'Похожие разделы'}</p>
+                    {similarResults.length > 0 ? similarResults.map((item) => <button type="button" key={item.href} onClick={() => navigateToSearchResult(item.href)} className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-white/75 transition hover:bg-orange-500/15 hover:text-white"><Search className="h-4 w-4 text-orange-300" />{item.label}</button>) : <p className="px-3 pb-2 text-xs text-white/45">{currentLocale === 'en' ? 'Try: menu, booking, orders or promotions.' : currentLocale === 'kg' ? 'Меню, брондоо, буйрутмалар же акцияларды издеп көрүңүз.' : 'Попробуйте: меню, бронь, заказы или акции.'}</p>}
                   </>
                 )}
               </div>
@@ -434,13 +447,17 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
               </button>
             </div>
 
-            <Link href={`/${currentLocale}/cart`} className="hidden h-10 w-10 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-orange-500 hover:text-white md:flex" aria-label="Корзина" title="Корзина">
-              <ShoppingCart className="h-4 w-4" />
-            </Link>
+            {!isStaff && (
+              <>
+                <Link href={`/${currentLocale}/cart`} className="hidden h-10 w-10 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-orange-500 hover:text-white md:flex" aria-label="Корзина" title="Корзина">
+                  <ShoppingCart className="h-4 w-4" />
+                </Link>
 
-            <Link href={`/${currentLocale}/menu?view=favorites`} className="hidden h-10 w-10 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-orange-500 hover:text-white md:flex" aria-label="Избранное" title="Избранное">
-              <Heart className="h-4 w-4" />
-            </Link>
+                <Link href={`/${currentLocale}/menu?view=favorites`} className="hidden h-10 w-10 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-orange-500 hover:text-white md:flex" aria-label="Избранное" title="Избранное">
+                  <Heart className="h-4 w-4" />
+                </Link>
+              </>
+            )}
 
             {/* Language Switcher */}
             <div className="hidden md:block relative" ref={langDropdownRef}>
