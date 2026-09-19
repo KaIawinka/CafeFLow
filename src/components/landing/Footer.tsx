@@ -50,12 +50,12 @@ export function Footer({ t, locale }: FooterProps) {
   return (
     <footer id="contact" className="footer-surface relative bg-[#151a1e] py-10 text-white sm:py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-6 border-b border-white/10 pb-8 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-center justify-between gap-4 border-b border-white/10 pb-8">
           <div className="flex items-center gap-3">
             <Image src="/cafeflow-logo.svg" alt="CaféFlow" width={44} height={44} className="h-11 w-11 rounded-md" />
             <div><h3 className="text-xl font-bold text-orange-300">CaféFlow</h3></div>
           </div>
-          <div className="text-left sm:text-right"><p className="font-serif text-lg italic text-orange-300">{copy.open}</p></div>
+          <div className="shrink-0 text-right"><p className="font-serif text-base italic text-orange-300 sm:text-lg">{copy.open}</p></div>
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-x-7 gap-y-4 py-7 text-sm font-medium text-white/60 sm:justify-between">

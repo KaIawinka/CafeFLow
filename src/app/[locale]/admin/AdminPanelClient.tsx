@@ -549,7 +549,7 @@ export default function AdminPage() {
                 {/* Users Table/Cards */}
                 <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
                   {/* Desktop Table View */}
-                  <div className="hidden overflow-hidden md:block">
+                  <div className="hidden">
                     <table className="w-full table-fixed">
                       <thead className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                         <tr>
@@ -650,7 +650,7 @@ export default function AdminPage() {
                   </div>
 
                   {/* Mobile Card View */}
-                  <div className="space-y-3 p-3 md:hidden">
+                  <div className="grid gap-3 p-3 md:grid-cols-2">
                     {filteredUsers.map((user) => (
                       <div key={user.id} className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm transition hover:border-amber-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
                         <div className="flex items-start gap-3 border-b border-stone-100 bg-stone-50/80 p-4 dark:border-gray-700 dark:bg-gray-800/80">
@@ -660,23 +660,37 @@ export default function AdminPage() {
                           <div className="min-w-0 flex-1">
                             <h4 className="truncate font-semibold text-gray-900 dark:text-white">{user.display_name || `${user.first_name} ${user.last_name || ''}`.trim()}</h4>
                             <p className="mt-1 break-all text-sm text-gray-600 dark:text-gray-400">{user.email}</p>
+                            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{user.first_name} {user.last_name || ''}</p>
                             <div className="mt-2 flex flex-wrap items-center gap-2">
                               <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${roleColors[user.role]}`}>{ui.profile.roleLabels[user.role] || user.role}</span>
+                              <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${user.status === 'active' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-200' : user.status === 'pending' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-200' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200'}`}>{user.status === 'active' ? ui.admin.active : user.status === 'pending' ? ui.admin.pending : ui.admin.blocked}</span>
                               <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${user.is_online ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}><span className="h-2 w-2 rounded-full bg-current" />{user.is_online ? ui.admin.online : ui.admin.offline}</span>
                             </div>
                           </div>
                         </div>
-                        <div className="grid gap-3 p-4 sm:grid-cols-[1fr_auto] sm:items-end">
+                          <div className="grid gap-3 p-4 sm:grid-cols-[1fr_auto] sm:items-end">
                           <div className="grid gap-2 text-sm text-gray-600 dark:text-gray-400">
                             <span>{ui.admin.phone}: {user.phone || '—'}</span>
                             <span>{ui.admin.telegram}: {user.telegram_username ? `@${user.telegram_username}` : '—'}</span>
                             <span className="text-xs text-gray-500 dark:text-gray-400">{ui.admin.registered}: {new Date(user.created_at).toLocaleDateString(locale)}</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">{ui.profile.lastLogin} {user.last_login_at ? new Date(user.last_login_at).toLocaleDateString(locale) : '—'}</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">{ui.admin.lastSeen}: {user.last_seen_at ? new Date(user.last_seen_at).toLocaleDateString(locale) : '—'}</span>
+                            <div className="flex flex-wrap gap-1.5 pt-1">
+                              {user.requires_approval && <span className="rounded-full bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-800 dark:bg-amber-900/30 dark:text-amber-200">{ui.admin.pending}</span>}
+                              {user.two_fa_enabled && <span className="rounded-full bg-blue-100 px-2 py-1 text-[11px] font-semibold text-blue-800 dark:bg-blue-900/30 dark:text-blue-200">2FA</span>}
+                              <span className="rounded-full bg-gray-100 px-2 py-1 text-[11px] font-semibold text-gray-600 dark:bg-gray-700 dark:text-gray-300">{user.language.toUpperCase()}</span>
+                            </div>
                           </div>
-                          <select aria-label={`${ui.admin.status}: ${user.email}`} value={user.status} disabled={savingId === user.id} onChange={(event) => void updateUser(user.id, { status: event.target.value })} className="min-h-10 w-full rounded-lg border border-gray-200 bg-white px-2 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 sm:w-36">
-                            <option value="active">{ui.admin.active}</option>
-                            <option value="pending">{ui.admin.pending}</option>
-                            <option value="blocked">{ui.admin.blocked}</option>
-                          </select>
+                          <div className="grid gap-2 sm:w-36">
+                            <select aria-label={`${ui.admin.role}: ${user.email}`} value={user.role} disabled={savingId === user.id} onChange={(event) => void updateUser(user.id, { role: event.target.value })} className="min-h-10 w-full rounded-lg border border-gray-200 bg-white px-2 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
+                              {['customer', 'employee', 'kitchen', 'manager', 'admin'].map((role) => <option key={role} value={role}>{ui.profile.roleLabels[role] || role}</option>)}
+                            </select>
+                            <select aria-label={`${ui.admin.status}: ${user.email}`} value={user.status} disabled={savingId === user.id} onChange={(event) => void updateUser(user.id, { status: event.target.value })} className="min-h-10 w-full rounded-lg border border-gray-200 bg-white px-2 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
+                              <option value="active">{ui.admin.active}</option>
+                              <option value="pending">{ui.admin.pending}</option>
+                              <option value="blocked">{ui.admin.blocked}</option>
+                            </select>
+                          </div>
                         </div>
                       </div>
                     ))}
