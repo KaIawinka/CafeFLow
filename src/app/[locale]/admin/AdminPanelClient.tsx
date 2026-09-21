@@ -152,30 +152,9 @@ function createDefaultSiteSettings(): SiteSettings {
 
 type AdminTab = 'dashboard' | 'users' | 'orders' | 'reservations' | 'products' | 'settings';
 
-const pageCopy: Record<Locale, {
-  back: string; page: string; of: string; next: string; reservations: string; kitchen: string; waiters: string;
-  confirm: string; takeOrder: string; ready: string; pickup: string; confirmDelivery: string; dbOrder: string; tableDetails: string;
-  reservationsDescription: string; confirmed: string; allStatuses: string; reset: string; capacity: string; request: string; free: string;
-  guests: string; cancel: string; noReservations: string;
-}> = {
-  ru: { back: 'Назад', page: 'Страница', of: 'из', next: 'Вперёд', reservations: 'Брони', kitchen: 'Кухня', waiters: 'Официанты', confirm: 'Подтвердить', takeOrder: 'Взять в работу', ready: 'Готово', pickup: 'Забрать заказ', confirmDelivery: 'Подтвердить доставку', dbOrder: 'Заказ из базы', tableDetails: 'Столик / детали', reservationsDescription: 'Проверяйте свободные места и подтверждайте заявки гостей.', confirmed: 'подтверждено', allStatuses: 'Все статусы', reset: 'Сбросить', capacity: 'до', request: 'заявка', free: 'Свободен', guests: 'гостей', cancel: 'Отменить', noReservations: 'Бронирований пока нет' },
-  en: { back: 'Back', page: 'Page', of: 'of', next: 'Next', reservations: 'Reservations', kitchen: 'Kitchen', waiters: 'Waiters', confirm: 'Confirm', takeOrder: 'Start preparing', ready: 'Ready', pickup: 'Pick up order', confirmDelivery: 'Confirm delivery', dbOrder: 'Database order', tableDetails: 'Table / details', reservationsDescription: 'Check availability and confirm guest requests.', confirmed: 'confirmed', allStatuses: 'All statuses', reset: 'Reset', capacity: 'up to', request: 'request', free: 'Available', guests: 'guests', cancel: 'Cancel', noReservations: 'No reservations yet' },
-  kg: { back: 'Артка', page: 'Барак', of: 'ичинен', next: 'Алдыга', reservations: 'Брондоолор', kitchen: 'Ашкана', waiters: 'Официанттар', confirm: 'Ырастоо', takeOrder: 'Иштөөгө алуу', ready: 'Даяр', pickup: 'Буйрутманы алуу', confirmDelivery: 'Жеткирүүнү ырастоо', dbOrder: 'Маалымат базасындагы буйрутма', tableDetails: 'Стол / маалымат', reservationsDescription: 'Бош орундарды текшерип, коноктордун өтүнүчтөрүн ырастаңыз.', confirmed: 'ырасталды', allStatuses: 'Бардык статустар', reset: 'Тазалоо', capacity: 'чейин', request: 'өтүнүч', free: 'Бош', guests: 'конок', cancel: 'Жокко чыгаруу', noReservations: 'Брондоолор азырынча жок' },
-};
+type AdminCopy = ReturnType<typeof getUiTranslations>['admin'];
 
-const orderStatusLabels: Record<Locale, Record<string, string>> = {
-  ru: { new: 'Новый', confirmed: 'Подтверждён', cooking: 'Готовится', ready: 'Готов', delivering: 'Доставка', completed: 'Завершён', cancelled: 'Отменён' },
-  en: { new: 'New', confirmed: 'Confirmed', cooking: 'Cooking', ready: 'Ready', delivering: 'Delivery', completed: 'Completed', cancelled: 'Cancelled' },
-  kg: { new: 'Жаңы', confirmed: 'Ырасталды', cooking: 'Даярдалууда', ready: 'Даяр', delivering: 'Жеткирүү', completed: 'Аяктады', cancelled: 'Жокко чыгарылды' },
-};
-
-const reservationStatusLabels: Record<Locale, Record<string, string>> = {
-  ru: { pending: 'Ожидает', confirmed: 'Подтверждено', seated: 'Гости за столом', completed: 'Завершено', cancelled: 'Отменено', no_show: 'Не пришли' },
-  en: { pending: 'Pending', confirmed: 'Confirmed', seated: 'Seated', completed: 'Completed', cancelled: 'Cancelled', no_show: 'No-show' },
-  kg: { pending: 'Күтүүдө', confirmed: 'Ырасталды', seated: 'Отурду', completed: 'Аякталды', cancelled: 'Жокко чыгарылды', no_show: 'Келген жок' },
-};
-
-function PaginationControls({ page, pageCount, onPageChange, copy }: { page: number; pageCount: number; onPageChange: (page: number) => void; copy: typeof pageCopy[Locale] }) {
+function PaginationControls({ page, pageCount, onPageChange, copy }: { page: number; pageCount: number; onPageChange: (page: number) => void; copy: AdminCopy['pagination'] }) {
   if (pageCount <= 1) return null;
   return (
     <div className="flex items-center justify-center gap-3 pt-2">
@@ -204,7 +183,9 @@ export default function AdminPage() {
   const router = useRouter();
   const locale = (locales.find((item) => pathname.split('/')[1] === item) || 'ru') as Locale;
   const ui = getUiTranslations(locale);
-  const copy = pageCopy[locale];
+  const copy = ui.admin.pagination;
+  const orderStatusLabels: Record<string, string> = ui.admin.orderStatuses;
+  const reservationStatusLabels: Record<string, string> = ui.admin.reservationStatuses;
   const dashboardLabel = ui.admin.stats;
   const errorLoad = ui.admin.errorLoad;
   const requestedTab = searchParams.get('tab');
@@ -486,16 +467,7 @@ export default function AdminPage() {
     customer: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
   };
 
-  const siteOptionLabels = locale === 'en' ? {
-    operations: 'Operations', operationsHint: 'Control how guests can use the cafe website.', publicSite: 'Public website enabled', onlineOrders: 'Accept online orders', reservations: 'Show reservation form', guestCheckout: 'Allow checkout without an account', requirePhone: 'Require a phone number for orders', autoConfirm: 'Confirm new orders automatically',
-    fulfillment: 'Ordering and fulfillment', delivery: 'Offer delivery', pickup: 'Offer pickup', notifications: 'Staff notifications', emailOrders: 'Email alerts for new orders', emailReservations: 'Alerts for new reservations', menu: 'Menu visibility', prices: 'Show prices on the public menu', outOfStock: 'Show unavailable items', siteStatus: 'Site status', maintenanceMode: 'Maintenance mode', online: 'Published', enabled: 'Enabled', disabled: 'Disabled', configured: 'configured', activeChannels: 'active channels', quickActions: 'Quick actions', preview: 'Open public site', previewHint: 'Preview the current public experience', copyLink: 'Copy public link', copied: 'Public link copied', reset: 'Reset changes', saved: 'All changes saved', unsaved: 'Unsaved changes', identityHint: 'Brand, appearance and public identity', contactHint: 'How guests can reach the cafe', accessHint: 'Visibility and availability', fulfillmentHint: 'Ways guests can order and receive food', color: 'Brand color', description: 'Site description', timezone: 'Timezone', channels: 'Guest channels', deliveryStatus: 'Delivery and pickup', savedState: 'Save status',
-  } : locale === 'kg' ? {
-    operations: 'Иштөө жөндөөлөрү', operationsHint: 'Коноктор сайтты кандай колдонорун башкарыңыз.', publicSite: 'Ачык сайт иштетилди', onlineOrders: 'Онлайн буйрутмаларды кабыл алуу', reservations: 'Брондоо формасын көрсөтүү', guestCheckout: 'Каттоосуз буйрутма берүүгө уруксат', requirePhone: 'Буйрутмада телефонду талап кылуу', autoConfirm: 'Жаңы буйрутмаларды автоматтык ырастоо',
-    fulfillment: 'Буйрутма жана жеткирүү', delivery: 'Жеткирүүнү сунуштоо', pickup: 'Өзү алып кетүүнү сунуштоо', notifications: 'Кызматкерлердин билдирүүлөрү', emailOrders: 'Жаңы буйрутмалар тууралуу email', emailReservations: 'Жаңы брондоолор тууралуу билдирүү', menu: 'Менюну көрсөтүү', prices: 'Менюда бааларды көрсөтүү', outOfStock: 'Жок товарларды көрсөтүү', siteStatus: 'Сайттын абалы', maintenanceMode: 'Тейлөө режими', online: 'Жарыяланды', enabled: 'Иштетилди', disabled: 'Өчүрүлдү', configured: 'жөндөлдү', activeChannels: 'активдүү канал', quickActions: 'Ыкчам аракеттер', preview: 'Ачык сайтты ачуу', previewHint: 'Учурдагы сайтты алдын ала көрүү', copyLink: 'Сайт шилтемесин көчүрүү', copied: 'Сайт шилтемеси көчүрүлдү', reset: 'Өзгөртүүлөрдү жокко чыгаруу', saved: 'Бардык өзгөртүү сакталды', unsaved: 'Сакталбаган өзгөртүүлөр', identityHint: 'Бренд, көрүнүш жана сайт маалыматы', contactHint: 'Коноктор сиз менен кантип байланышат', accessHint: 'Көрүнүү жана жеткиликтүүлүк', fulfillmentHint: 'Буйрутма жана алуу жолдору', color: 'Бренд түсү', description: 'Сайттын сүрөттөмөсү', timezone: 'Убакыт алкагы', channels: 'Конок каналдары', deliveryStatus: 'Жеткирүү жана алып кетүү', savedState: 'Сактоо абалы',
-  } : {
-    operations: 'Работа сайта', operationsHint: 'Управляйте тем, как гости используют сайт кафе.', publicSite: 'Публичный сайт включён', onlineOrders: 'Принимать онлайн-заказы', reservations: 'Показывать форму бронирования', guestCheckout: 'Разрешить заказ без регистрации', requirePhone: 'Требовать телефон при заказе', autoConfirm: 'Автоматически подтверждать новые заказы',
-    fulfillment: 'Заказы и получение', delivery: 'Предлагать доставку', pickup: 'Предлагать самовывоз', notifications: 'Уведомления персонала', emailOrders: 'Email о новых заказах', emailReservations: 'Уведомления о новых бронированиях', menu: 'Видимость меню', prices: 'Показывать цены в меню', outOfStock: 'Показывать недоступные позиции', siteStatus: 'Статус сайта', maintenanceMode: 'Режим обслуживания', online: 'Опубликован', enabled: 'Включено', disabled: 'Выключено', configured: 'настроено', activeChannels: 'активных каналов', quickActions: 'Быстрые действия', preview: 'Открыть сайт', previewHint: 'Посмотреть текущую публичную версию', copyLink: 'Копировать ссылку', copied: 'Ссылка на сайт скопирована', reset: 'Сбросить изменения', saved: 'Все изменения сохранены', unsaved: 'Есть несохранённые изменения', identityHint: 'Бренд, внешний вид и данные сайта', contactHint: 'Как гости могут связаться с кафе', accessHint: 'Публичность и доступность', fulfillmentHint: 'Способы заказа и получения', color: 'Цвет бренда', description: 'Описание сайта', timezone: 'Часовой пояс', channels: 'Каналы для гостей', deliveryStatus: 'Доставка и самовывоз', savedState: 'Статус сохранения',
-  };
+  const siteOptionLabels = ui.admin.settingsOptions;
 
   const hasUnsavedSettings = Boolean(savedSiteSettings && JSON.stringify(siteSettings) !== JSON.stringify(savedSiteSettings));
   const enabledOptions = Object.values(siteSettings.siteOptions).filter(Boolean).length;
@@ -871,7 +843,7 @@ export default function AdminPage() {
                           <td className="px-4 py-3 font-semibold text-amber-600 dark:text-amber-400">{order.total} {order.currency}</td>
                           <td className="px-4 py-3">
                             <select value={order.status} disabled={savingId === order.id} onChange={(event) => void updateOrder(order.id, event.target.value)} className="min-h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
-                              {['new', 'confirmed', 'cooking', 'ready', 'delivering', 'completed', 'cancelled'].map((status) => <option key={status} value={status}>{orderStatusLabels[locale][status]}</option>)}
+                              {['new', 'confirmed', 'cooking', 'ready', 'delivering', 'completed', 'cancelled'].map((status) => <option key={status} value={status}>{orderStatusLabels[status]}</option>)}
                             </select>
                           </td>
                         </tr>
@@ -921,7 +893,7 @@ export default function AdminPage() {
                   <input type="date" value={reservationDate} onChange={(event) => { setReservationDate(event.target.value); setReservationPage(1); }} className="min-h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
                   <select value={reservationStatus} onChange={(event) => { setReservationStatus(event.target.value); setReservationPage(1); }} className="min-h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white">
                     <option value="all">{copy.allStatuses}</option>
-                    {['pending', 'confirmed', 'seated', 'completed', 'cancelled', 'no_show'].map((status) => <option key={status} value={status}>{reservationStatusLabels[locale][status]}</option>)}
+                    {['pending', 'confirmed', 'seated', 'completed', 'cancelled', 'no_show'].map((status) => <option key={status} value={status}>{reservationStatusLabels[status]}</option>)}
                   </select>
                   {(reservationDate || reservationStatus !== 'all') && <button type="button" onClick={() => { setReservationDate(''); setReservationStatus('all'); setReservationPage(1); }} className="min-h-11 rounded-lg border border-gray-200 px-3 text-sm font-semibold text-gray-700 dark:border-gray-700 dark:text-gray-200">{copy.reset}</button>}
                 </div>
