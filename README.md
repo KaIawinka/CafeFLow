@@ -30,10 +30,10 @@ npm install
 
 ### 3. Настройте переменные окружения
 
-Скопируйте `.env.example` в `.env`:
+Создайте файл `.env` в корне проекта. В репозитории шаблон `.env.example` не хранится, чтобы секреты не попадали в Git:
 
 ```bash
-cp .env.example .env
+touch .env
 ```
 
 Заполните переменные:
@@ -47,6 +47,8 @@ JWT_SECRET="your-generated-secret"
 
 # Telegram Bot (@BotFather)
 TELEGRAM_BOT_TOKEN="1234567890:ABCdefGHIjklMNOpqrsTUVwxyz"
+# Username бота из BotFather, без символа @
+NEXT_PUBLIC_TELEGRAM_BOT_USERNAME="your_cafeflow_bot"
 
 # Webhook Secret (generate: openssl rand -base64 32)
 TELEGRAM_WEBHOOK_SECRET="your-webhook-secret"
@@ -56,6 +58,11 @@ ADMIN_SETUP_TOKEN="your-admin-token"
 
 # App URL
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
+
+# Resend: API key from resend.com
+RESEND_API_KEY="re_your_api_key"
+# Адрес отправителя на подтверждённом в Resend домене
+EMAIL_FROM="CaféFlow <noreply@your-domain.com>"
 
 # Public tenant used when requests do not include ?tenant=slug or x-cafeflow-tenant
 CAFEFLOW_DEFAULT_TENANT_SLUG="cafeflow-demo"
