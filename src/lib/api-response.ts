@@ -5,6 +5,7 @@ import { defaultLocale, locales, type Locale } from '@/app/i18n/config';
 type ApiErrorKey = keyof TranslationCatalog['api']['errors'];
 type ApiAuthCatalog = TranslationCatalog['api']['auth'];
 type ApiUserCatalog = TranslationCatalog['api']['user'];
+type ApiPublicCatalog = TranslationCatalog['api']['public'];
 type ApiMessageKey = {
   [Key in keyof ApiAuthCatalog]: ApiAuthCatalog[Key] extends string ? Key : never;
 }[keyof ApiAuthCatalog];
@@ -12,6 +13,7 @@ type ApiListKey = {
   [Key in keyof ApiAuthCatalog]: ApiAuthCatalog[Key] extends string[] ? Key : never;
 }[keyof ApiAuthCatalog];
 type ApiUserMessageKey = keyof ApiUserCatalog;
+type ApiPublicMessageKey = keyof ApiPublicCatalog;
 
 function parseLocale(value: string | null | undefined): Locale | undefined {
   if (!value) return undefined;
@@ -76,6 +78,15 @@ export function apiUserMessage(
 ) {
   const locale = getRequestLocale(request);
   return interpolateApiMessage(getLocaleTranslations(locale).api.user[key], params);
+}
+
+export function apiPublicMessage(
+  request: NextRequest,
+  key: ApiPublicMessageKey,
+  params: Record<string, string | number> = {},
+) {
+  const locale = getRequestLocale(request);
+  return interpolateApiMessage(getLocaleTranslations(locale).api.public[key], params);
 }
 
 function interpolateApiMessage(template: string, params: Record<string, string | number>) {

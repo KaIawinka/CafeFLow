@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isIP } from 'node:net';
 import { prisma } from '@/lib/prisma';
+import { apiPublicMessage } from '@/lib/api-response';
 
 function clientIp(request: NextRequest): string | null {
   const value = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || request.headers.get('x-real-ip')?.trim() || '';
@@ -16,16 +17,16 @@ export async function POST(request: NextRequest) {
     const company = body.company?.trim() || null;
     const message = body.message?.trim() || null;
     if (!name || name.length > 160 || !/^\S+@\S+\.\S+$/.test(email) || email.length > 255 || (phone && phone.length > 40) || (company && company.length > 200) || (message && message.length > 4000)) {
-      return NextResponse.json({ error: 'Проверьте данные формы' }, { status: 400 });
+      return NextResponse.json({ error: apiPublicMessage(request, 'contactInvalid') }, { status: 400 });
     }
     const ipAddress = clientIp(request);
     if (ipAddress) {
       const recent = await prisma.contact_leads.count({ where: { ip_address: ipAddress, created_at: { gte: new Date(Date.now() - 60 * 60 * 1000) } } });
-      if (recent >= 3) return NextResponse.json({ error: 'Слишком много заявок. Попробуйте позже.' }, { status: 429 });
+      if (recent >= 3) return NextResponse.json({ error: apiPublicMessage(request, 'contactRateLimited') }, { status: 429 });
     }
     await prisma.contact_leads.create({ data: { name, email, phone, company, message, ip_address: ipAddress } });
     return NextResponse.json({ success: true }, { status: 201 });
   } catch {
-    return NextResponse.json({ error: 'Не удалось отправить заявку' }, { status: 500 });
+    return NextResponse.json({ error: apiPublicMessage(request, 'contactSendFailed') }, { status: 500 });
   }
 }

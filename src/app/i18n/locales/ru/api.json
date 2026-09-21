@@ -112,5 +112,23 @@
     "reviewInvalid": "Оценка и текст отзыва некорректны",
     "reviewTargetRequired": "Заказ или блюдо обязательно",
     "reviewOrderIncomplete": "Можно оставить отзыв только по завершённому заказу"
+  },
+  "public": {
+    "cafeNotConfigured": "Кафе пока не настроено",
+    "branchNotConfigured": "Филиал кафе пока не настроен",
+    "cartLoadFailed": "Не удалось загрузить корзину",
+    "cartInvalid": "Некорректное содержимое корзины",
+    "cartProductUnavailable": "Одно из блюд больше недоступно",
+    "cartSaveFailed": "Не удалось сохранить корзину",
+    "cartClearFailed": "Не удалось очистить корзину",
+    "contactInvalid": "Проверьте данные формы",
+    "contactRateLimited": "Слишком много заявок. Попробуйте позже.",
+    "contactSendFailed": "Не удалось отправить заявку",
+    "menuLoadFailed": "Не удалось загрузить меню",
+    "promotionRequired": "Промокод и сумма обязательны",
+    "promotionInvalid": "Промокод недействителен",
+    "promotionLimit": "Лимит промокода исчерпан",
+    "promotionMinimumAmount": "Минимальная сумма: {amount}",
+    "tablesLoadFailed": "Не удалось загрузить столики"
   }
 }

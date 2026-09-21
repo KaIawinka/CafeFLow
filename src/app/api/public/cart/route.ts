@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { getPublicCafeContext } from '@/lib/public-context';
+import { apiPublicMessage } from '@/lib/api-response';
 
 const cartCookie = 'guestCartSession';
 const maxQuantity = 20;
@@ -31,28 +32,28 @@ function responseWithCart(cart: unknown, session: string, status = 200) {
 export async function GET(request: NextRequest) {
   try {
     const context = await getCartContext(request);
-    if (!context) return NextResponse.json({ error: 'Филиал кафе пока не настроен' }, { status: 503 });
+    if (!context) return NextResponse.json({ error: apiPublicMessage(request, 'branchNotConfigured') }, { status: 503 });
     const branch = context.branch;
-    if (!branch) return NextResponse.json({ error: 'Филиал кафе пока не настроен' }, { status: 503 });
+    if (!branch) return NextResponse.json({ error: apiPublicMessage(request, 'branchNotConfigured') }, { status: 503 });
     const cart = await loadCart(context.tenant.id, branch.id, context.sessionKey);
     return responseWithCart(cart || { items: [], subtotal: 0, status: 'active' }, context.sessionKey);
   } catch (error) {
     console.error('Public cart read error', error);
-    return NextResponse.json({ error: 'Не удалось загрузить корзину' }, { status: 500 });
+    return NextResponse.json({ error: apiPublicMessage(request, 'cartLoadFailed') }, { status: 500 });
   }
 }
 
 export async function PUT(request: NextRequest) {
   try {
     const context = await getCartContext(request);
-    if (!context) return NextResponse.json({ error: 'Филиал кафе пока не настроен' }, { status: 503 });
-    if (!context.branch) return NextResponse.json({ error: 'Филиал кафе пока не настроен' }, { status: 503 });
+    if (!context) return NextResponse.json({ error: apiPublicMessage(request, 'branchNotConfigured') }, { status: 503 });
+    if (!context.branch) return NextResponse.json({ error: apiPublicMessage(request, 'branchNotConfigured') }, { status: 503 });
     const branch = context.branch;
 
     const body = await request.json() as { items?: CartInput[] };
     const input = body.items || [];
     if (!Array.isArray(input) || input.length > 100 || input.some((item) => !item?.productId || !Number.isInteger(item.quantity) || item.quantity < 0 || item.quantity > maxQuantity)) {
-      return NextResponse.json({ error: 'Некорректное содержимое корзины' }, { status: 400 });
+      return NextResponse.json({ error: apiPublicMessage(request, 'cartInvalid') }, { status: 400 });
     }
 
     const quantities = new Map<string, number>();
@@ -62,7 +63,7 @@ export async function PUT(request: NextRequest) {
       where: { tenant_id: context.tenant.id, id: { in: productIds }, is_available: true, deleted_at: null },
       select: { id: true, name: true, price: true, currency: true },
     });
-    if (products.length !== productIds.length) return NextResponse.json({ error: 'Одно из блюд больше недоступно' }, { status: 409 });
+    if (products.length !== productIds.length) return NextResponse.json({ error: apiPublicMessage(request, 'cartProductUnavailable') }, { status: 409 });
 
     const items = products.map((product) => ({ productId: product.id, quantity: quantities.get(product.id) || 0, unitPrice: product.price.toString(), name: product.name, currency: product.currency }));
     const subtotal = items.reduce((sum, item) => sum.add(new Prisma.Decimal(item.unitPrice).mul(item.quantity)), new Prisma.Decimal(0));
@@ -73,20 +74,20 @@ export async function PUT(request: NextRequest) {
     return responseWithCart(cart, context.sessionKey);
   } catch (error) {
     console.error('Public cart update error', error);
-    return NextResponse.json({ error: 'Не удалось сохранить корзину' }, { status: 500 });
+    return NextResponse.json({ error: apiPublicMessage(request, 'cartSaveFailed') }, { status: 500 });
   }
 }
 
 export async function DELETE(request: NextRequest) {
   try {
     const context = await getCartContext(request);
-    if (!context) return NextResponse.json({ error: 'Филиал кафе пока не настроен' }, { status: 503 });
+    if (!context) return NextResponse.json({ error: apiPublicMessage(request, 'branchNotConfigured') }, { status: 503 });
     const branch = context.branch;
-    if (!branch) return NextResponse.json({ error: 'Филиал кафе пока не настроен' }, { status: 503 });
+    if (!branch) return NextResponse.json({ error: apiPublicMessage(request, 'branchNotConfigured') }, { status: 503 });
     await prisma.carts.updateMany({ where: { tenant_id: context.tenant.id, branch_id: branch.id, session_key: context.sessionKey, status: 'active' }, data: { status: 'abandoned', items: [], subtotal: 0 } });
     return responseWithCart({ items: [], subtotal: 0, status: 'abandoned' }, context.sessionKey);
   } catch (error) {
     console.error('Public cart delete error', error);
-    return NextResponse.json({ error: 'Не удалось очистить корзину' }, { status: 500 });
+    return NextResponse.json({ error: apiPublicMessage(request, 'cartClearFailed') }, { status: 500 });
   }
 }

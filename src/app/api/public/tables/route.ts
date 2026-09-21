@@ -3,11 +3,12 @@ import { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { getPublicCafeContext } from '@/lib/public-context';
 import { prisma } from '@/lib/prisma';
+import { apiPublicMessage } from '@/lib/api-response';
 
 export async function GET(request: NextRequest) {
   try {
     const context = await getPublicCafeContext(request);
-    if (!context?.branch) return NextResponse.json({ error: 'Филиал кафе пока не настроен' }, { status: 503 });
+    if (!context?.branch) return NextResponse.json({ error: apiPublicMessage(request, 'branchNotConfigured') }, { status: 503 });
     const tables = await prisma.restaurant_tables.findMany({ where: { tenant_id: context.tenant.id, branch_id: context.branch.id, status: 'active' }, select: { id: true, name: true, zone: true, capacity: true, position: true }, orderBy: { name: 'asc' } });
     const response = NextResponse.json({ tables });
     if (!request.cookies.get('guestOrderIdempotencyKey')) {
@@ -15,6 +16,6 @@ export async function GET(request: NextRequest) {
     }
     return response;
   } catch {
-    return NextResponse.json({ error: 'Не удалось загрузить столики' }, { status: 500 });
+    return NextResponse.json({ error: apiPublicMessage(request, 'tablesLoadFailed') }, { status: 500 });
   }
 }

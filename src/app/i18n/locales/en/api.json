@@ -112,5 +112,23 @@
     "reviewInvalid": "The rating or review text is invalid",
     "reviewTargetRequired": "An order or dish is required",
     "reviewOrderIncomplete": "You can review only a completed order"
+  },
+  "public": {
+    "cafeNotConfigured": "The cafe is not configured yet",
+    "branchNotConfigured": "The cafe branch is not configured yet",
+    "cartLoadFailed": "Could not load the cart",
+    "cartInvalid": "Invalid cart contents",
+    "cartProductUnavailable": "One of the dishes is no longer available",
+    "cartSaveFailed": "Could not save the cart",
+    "cartClearFailed": "Could not clear the cart",
+    "contactInvalid": "Check the form data",
+    "contactRateLimited": "Too many requests. Please try again later.",
+    "contactSendFailed": "Could not send the request",
+    "menuLoadFailed": "Could not load the menu",
+    "promotionRequired": "Promotion code and amount are required",
+    "promotionInvalid": "Promotion code is invalid",
+    "promotionLimit": "Promotion code usage limit reached",
+    "promotionMinimumAmount": "Minimum amount: {amount}",
+    "tablesLoadFailed": "Could not load tables"
   }
 }

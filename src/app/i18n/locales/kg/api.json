@@ -112,5 +112,23 @@
     "reviewInvalid": "Баалоо же пикирдин тексти туура эмес",
     "reviewTargetRequired": "Буйрутма же тамак талап кылынат",
     "reviewOrderIncomplete": "Пикирди аяктаган буйрутма боюнча гана калтырууга болот"
+  },
+  "public": {
+    "cafeNotConfigured": "Кафе азырынча жөндөлгөн эмес",
+    "branchNotConfigured": "Кафенин филиалы азырынча жөндөлгөн эмес",
+    "cartLoadFailed": "Себетти жүктөө мүмкүн болгон жок",
+    "cartInvalid": "Себеттин мазмуну туура эмес",
+    "cartProductUnavailable": "Тамактардын бири эми жеткиликсиз",
+    "cartSaveFailed": "Себетти сактоо мүмкүн болгон жок",
+    "cartClearFailed": "Себетти тазалоо мүмкүн болгон жок",
+    "contactInvalid": "Формадагы маалыматты текшериңиз",
+    "contactRateLimited": "Сурамдар өтө көп. Кийин кайра аракет кылыңыз.",
+    "contactSendFailed": "Сурамды жөнөтүү мүмкүн болгон жок",
+    "menuLoadFailed": "Менюну жүктөө мүмкүн болгон жок",
+    "promotionRequired": "Промокод жана сумма талап кылынат",
+    "promotionInvalid": "Промокод туура эмес",
+    "promotionLimit": "Промокоддун лимити бүттү",
+    "promotionMinimumAmount": "Минималдуу сумма: {amount}",
+    "tablesLoadFailed": "Столдорду жүктөө мүмкүн болгон жок"
   }
 }
