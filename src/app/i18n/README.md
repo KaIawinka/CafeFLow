@@ -3,17 +3,19 @@
 ## Структура
 
 ```
-app/i18n/
-├── config.ts          # Конфигурация языков
-├── utils.ts           # Хелперы для работы с переводами
+src/app/i18n/
+├── config.ts          # Поддерживаемые языки и их названия
+├── catalog.ts         # Типизированный каталог переводов
+├── utils.ts           # Хелперы выбора языка и каталога
 └── locales/
-    ├── ru/            # Русский язык
-    │   ├── landing.json
-    │   └── common.json
-    └── kg/            # Кыргызский язык
-        ├── landing.json
-        └── common.json
+  ├── ru/            # Русский язык
+  ├── en/            # English
+  └── kg/            # Кыргызский язык
 ```
+
+Поддерживаемые локали: `ru`, `kg`, `en`. Локаль по умолчанию: `ru`.
+Каждый язык содержит одинаковые каталоги: `api`, `auth`, `common`, `landing`,
+`dashboard`, `delivery`, `checkout`, `ui`, `admin` и `cafe`.
 
 ## Добавление нового языка
 
@@ -22,22 +24,20 @@ app/i18n/
 export const locales = ['ru', 'kg', 'en'] as const;
 ```
 
-2. Создайте папку для языка в `locales/`
-3. Скопируйте JSON файлы из существующего языка
-4. Переведите тексты
+2. Создайте папку для языка в `src/app/i18n/locales/`
+3. Скопируйте все JSON-каталоги из существующего языка
+4. Добавьте язык в каждый объект `translationCatalog` в `catalog.ts`
+5. Переведите тексты
 
 ## Добавление новой страницы
 
-1. Создайте JSON файл для каждого языка:
-   - `locales/ru/page-name.json`
-   - `locales/kg/page-name.json`
+1. Добавьте ключ каталога в `TranslationCatalog` в `catalog.ts`.
+2. Создайте JSON-файл для каждого языка:
+  - `src/app/i18n/locales/ru/page-name.json`
+  - `src/app/i18n/locales/en/page-name.json`
+  - `src/app/i18n/locales/kg/page-name.json`
 
-2. Добавьте тип ключа в `utils.ts`:
-```typescript
-type TranslationKey = 'landing' | 'common' | 'page-name';
-```
-
-3. Используйте в компоненте:
+3. Используйте каталог в компоненте:
 ```typescript
 const t = await getTranslations(locale, 'page-name');
 ```
@@ -56,17 +56,9 @@ export default async function Page({ params }) {
 }
 ```
 
-### Переключатель языков
-```typescript
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-
-<LanguageSwitcher currentLocale={locale} />
-```
-
 ## URL структура
 
-- `/` → автоматический редирект на `/ru` или `/kg` (по Accept-Language)
+- `/` → автоматический редирект на локализованный маршрут
 - `/ru` → русская версия
+- `/en` → English version
 - `/kg` → кыргызская версия
-- `/ru/about` → русская версия страницы "О нас"
-- `/kg/about` → кыргызская версия страницы "О нас"
