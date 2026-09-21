@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, useState } from 'react';
-import { useSearchParams, usePathname } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Eye, EyeOff, LogIn, Mail, Lock, AlertCircle, Loader2, ShieldCheck } from 'lucide-react';
@@ -21,6 +21,7 @@ export default function LoginPage() {
 }
 
 function LoginContent() {
+  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/';
@@ -78,6 +79,13 @@ function LoginContent() {
       });
 
       const data = await response.json();
+
+      if (data.requiresEmailVerification && data.userId && data.email) {
+        router.push(
+          `/${currentLocale}/verify-email?userId=${encodeURIComponent(data.userId)}&email=${encodeURIComponent(data.email)}`
+        );
+        return;
+      }
 
       if (!response.ok) {
         setError(data.error || auth.login.errors.serverError);

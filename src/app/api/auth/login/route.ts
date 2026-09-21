@@ -92,17 +92,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Email verification is required before the first login.
-    if (user.status === 'pending' && !user.email_verified_at) {
-      await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'email_not_verified', userId: user.id });
-      return NextResponse.json(
-        { error: apiMessage(request, 'emailVerificationRequired') },
-        { status: 403 }
-      );
-    }
-
-    // Check if user is active
-    if (user.status !== 'active') {
+    // Keep blocked accounts from reaching password verification, but allow pending
+    // users to prove the password before sending them to email verification.
+    if (user.status !== 'active' && user.status !== 'pending') {
       await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'account_inactive', userId: user.id });
       logger.warn('Login failed: User inactive', { email, status: user.status });
       
@@ -136,6 +128,26 @@ export async function POST(request: NextRequest) {
     // Password is correct
     await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: true, reason: user.two_fa_enabled && user.telegram_chat_id ? '2fa_required' : 'authenticated', userId: user.id });
     logger.info('Password verified', { email: user.email });
+
+    // Email verification is required before the first login.
+    if (user.status === 'pending' && !user.email_verified_at) {
+      return NextResponse.json(
+        {
+          error: apiMessage(request, 'emailVerificationRequired'),
+          requiresEmailVerification: true,
+          userId: user.id,
+          email: user.email,
+        },
+        { status: 403 }
+      );
+    }
+
+    if (user.status !== 'active') {
+      return NextResponse.json(
+        { error: apiMessage(request, 'accountBlocked') },
+        { status: 403 }
+      );
+    }
 
     // Check if 2FA is enabled and Telegram is connected
     if (user.two_fa_enabled && user.telegram_chat_id) {
