@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json() as { date?: string; time?: string; guests?: number; name?: string; phone?: string; tableId?: string; comment?: string };
     const guests = Number(body.guests);
-    if (!body.date || !/^\d{2}:\d{2}$/.test(body.time || '') || !body.name?.trim() || !body.phone?.trim() || !body.tableId || !Number.isInteger(guests) || guests < 1 || guests > 50) return NextResponse.json({ error: apiPublicMessage(request, 'reservationFieldsRequired') }, { status: 400 });
+    if (!body.date || !body.time || !/^\d{2}:\d{2}$/.test(body.time) || !body.name?.trim() || !body.phone?.trim() || !body.tableId || !Number.isInteger(guests) || guests < 1 || guests > 50) return NextResponse.json({ error: apiPublicMessage(request, 'reservationFieldsRequired') }, { status: 400 });
     const context = await getPublicCafeContext(request);
     if (!context?.branch) return NextResponse.json({ error: apiPublicMessage(request, 'branchNotConfigured') }, { status: 503 });
     const branch = context.branch;
