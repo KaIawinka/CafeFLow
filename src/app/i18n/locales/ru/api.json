@@ -21,6 +21,7 @@
     "tooManyLoginAttempts": "Слишком много попыток входа. Попробуйте позже.",
     "invalidCredentials": "Неверный email или пароль",
     "accountBlocked": "Аккаунт заблокирован. Обратитесь к администратору.",
+    "emailVerificationRequired": "Сначала подтвердите email по коду из письма.",
     "verificationSendFailed": "Не удалось отправить код подтверждения. Попробуйте позже.",
     "codeRateLimited": "Слишком много запросов кода. Попробуйте через {minutes} минут.",
     "twoFaCodeSent": "Код подтверждения отправлен в Telegram",

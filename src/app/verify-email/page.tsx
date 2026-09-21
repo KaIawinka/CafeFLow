@@ -118,7 +118,7 @@ function VerifyEmailContent() {
       // Success
       setSuccess(true);
       setTimeout(() => {
-        router.push('/profile?verified=true');
+        router.push(`/${currentLocale}/profile?message=welcome`);
       }, 2000);
     } catch {
       setError(auth.verify.errors.serverError);

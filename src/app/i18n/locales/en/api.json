@@ -21,6 +21,7 @@
     "tooManyLoginAttempts": "Too many login attempts. Please try again later.",
     "invalidCredentials": "Invalid email or password",
     "accountBlocked": "Account is blocked. Contact an administrator.",
+    "emailVerificationRequired": "Verify your email with the code from the email first.",
     "verificationSendFailed": "We could not send the verification code. Please try again later.",
     "codeRateLimited": "Too many code requests. Please try again in {minutes} minutes.",
     "twoFaCodeSent": "Verification code sent to Telegram",

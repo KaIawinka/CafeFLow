@@ -105,7 +105,7 @@ function RegisterForm() {
         return;
       }
 
-      router.push(`/verify-email?userId=${data.user.id}&email=${encodeURIComponent(data.user.email)}`);
+      router.push(`/${currentLocale}/verify-email?userId=${data.user.id}&email=${encodeURIComponent(data.user.email)}`);
     } catch {
       setError(auth.register.errors.serverError);
       setIsLoading(false);

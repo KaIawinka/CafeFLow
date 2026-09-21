@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
         status: true,
         two_fa_enabled: true,
         telegram_chat_id: true,
+        email_verified_at: true,
         requires_approval: true,
         last_login_at: true,
       },
@@ -88,6 +89,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: apiMessage(request, 'invalidCredentials') },
         { status: 401 }
+      );
+    }
+
+    // Email verification is required before the first login.
+    if (user.status === 'pending' && !user.email_verified_at) {
+      await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'email_not_verified', userId: user.id });
+      return NextResponse.json(
+        { error: apiMessage(request, 'emailVerificationRequired') },
+        { status: 403 }
       );
     }
 

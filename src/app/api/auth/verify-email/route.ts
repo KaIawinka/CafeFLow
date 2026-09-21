@@ -7,7 +7,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { verifyCode } from '@/lib/email/verification';
+import { createAuthSession, generateTokenPair, getTokenExpirySeconds } from '@/lib/auth/jwt';
 import { apiError, apiMessage } from '@/lib/api-response';
+import crypto from 'crypto';
 
 interface VerifyEmailRequest {
   userId: string;
@@ -42,6 +44,8 @@ export async function POST(request: NextRequest) {
         email: true,
         first_name: true,
         email_verified_at: true,
+        role: true,
+        requires_approval: true,
       },
     });
 
@@ -79,15 +83,50 @@ export async function POST(request: NextRequest) {
       data: {
         email_verified_at: new Date(),
         status: 'active',
+        last_login_at: new Date(),
+        last_seen_at: new Date(),
       },
     });
 
     logger.info('Email verified successfully', { userId, email: user.email });
 
-    return NextResponse.json({
+    const sessionId = crypto.randomUUID();
+    const { accessToken, refreshToken } = await generateTokenPair({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      status: 'active',
+      requiresApproval: user.requires_approval,
+      sessionId,
+    });
+    await createAuthSession({ sessionId, userId: user.id, refreshToken, request });
+
+    const response = NextResponse.json({
       success: true,
       message: apiMessage(request, 'emailVerified'),
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.first_name,
+        role: user.role,
+        requiresApproval: user.requires_approval,
+      },
     });
+    response.cookies.set('accessToken', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: getTokenExpirySeconds('access'),
+      path: '/',
+    });
+    response.cookies.set('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: getTokenExpirySeconds('refresh'),
+      path: '/',
+    });
+    return response;
 
   } catch (error) {
     logger.error('Email verification error', error);

@@ -21,6 +21,7 @@
     "tooManyLoginAttempts": "Кирүү аракеттери өтө көп. Кийин кайра аракет кылыңыз.",
     "invalidCredentials": "Email же сырсөз туура эмес",
     "accountBlocked": "Аккаунт бөгөттөлгөн. Администраторго кайрылыңыз.",
+    "emailVerificationRequired": "Алгач email'ди каттагы код менен ырастаңыз.",
     "verificationSendFailed": "Ырастоо кодун жөнөтүү мүмкүн болгон жок. Кийин кайра аракет кылыңыз.",
     "codeRateLimited": "Кодду суроо аракеттери өтө көп. {minutes} мүнөттөн кийин аракет кылыңыз.",
     "twoFaCodeSent": "Ырастоо коду Telegram'га жөнөтүлдү",
