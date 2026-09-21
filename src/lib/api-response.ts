@@ -4,12 +4,14 @@ import { defaultLocale, locales, type Locale } from '@/app/i18n/config';
 
 type ApiErrorKey = keyof TranslationCatalog['api']['errors'];
 type ApiAuthCatalog = TranslationCatalog['api']['auth'];
+type ApiUserCatalog = TranslationCatalog['api']['user'];
 type ApiMessageKey = {
   [Key in keyof ApiAuthCatalog]: ApiAuthCatalog[Key] extends string ? Key : never;
 }[keyof ApiAuthCatalog];
 type ApiListKey = {
   [Key in keyof ApiAuthCatalog]: ApiAuthCatalog[Key] extends string[] ? Key : never;
 }[keyof ApiAuthCatalog];
+type ApiUserMessageKey = keyof ApiUserCatalog;
 
 function parseLocale(value: string | null | undefined): Locale | undefined {
   if (!value) return undefined;
@@ -59,13 +61,26 @@ export function apiMessage(
   params: Record<string, string | number> = {},
 ) {
   const locale = getRequestLocale(request);
-  return Object.entries(params).reduce(
-    (message, [name, value]) => message.replaceAll(`{${name}}`, String(value)),
-    getLocaleTranslations(locale).api.auth[key],
-  );
+  return interpolateApiMessage(getLocaleTranslations(locale).api.auth[key], params);
 }
 
 export function apiList(request: NextRequest, key: ApiListKey) {
   const locale = getRequestLocale(request);
   return getLocaleTranslations(locale).api.auth[key];
+}
+
+export function apiUserMessage(
+  request: NextRequest,
+  key: ApiUserMessageKey,
+  params: Record<string, string | number> = {},
+) {
+  const locale = getRequestLocale(request);
+  return interpolateApiMessage(getLocaleTranslations(locale).api.user[key], params);
+}
+
+function interpolateApiMessage(template: string, params: Record<string, string | number>) {
+  return Object.entries(params).reduce(
+    (message, [name, value]) => message.replaceAll(`{${name}}`, String(value)),
+    template,
+  );
 }

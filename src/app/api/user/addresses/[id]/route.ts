@@ -3,12 +3,13 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { verifyAuth } from '@/lib/api-middleware';
 import { parseAddressUpdate } from '@/lib/customer-address';
+import { apiError, apiUserMessage } from '@/lib/api-response';
 
 async function getAddressActor(request: NextRequest) {
   const auth = await verifyAuth(request);
-  if (!auth.success || !auth.userId) return { error: auth.error || NextResponse.json({ error: 'Не авторизован' }, { status: 401 }) };
+  if (!auth.success || !auth.userId) return { error: auth.error || apiError(request, 'unauthorized', 401) };
   const user = await prisma.users.findFirst({ where: { id: auth.userId, status: 'active' }, select: { id: true, tenant_id: true } });
-  if (!user?.tenant_id) return { error: NextResponse.json({ error: 'Tenant не настроен' }, { status: 409 }) };
+  if (!user?.tenant_id) return { error: apiError(request, 'tenantNotConfigured', 409) };
   return { user: { id: user.id, tenantId: user.tenant_id } };
 }
 
@@ -17,12 +18,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   if ('error' in actor) return actor.error;
   const { id } = await params;
   const input = parseAddressUpdate(await request.json().catch(() => null));
-  if (!input) return NextResponse.json({ error: 'Некорректные данные адреса' }, { status: 400 });
+  if (!input) return NextResponse.json({ error: apiUserMessage(request, 'addressUpdateInvalid') }, { status: 400 });
   const existing = await prisma.customer_addresses.findFirst({
     where: { id, tenant_id: actor.user.tenantId, user_id: actor.user.id },
     select: { id: true, is_default: true },
   });
-  if (!existing) return NextResponse.json({ error: 'Адрес не найден' }, { status: 404 });
+  if (!existing) return NextResponse.json({ error: apiUserMessage(request, 'addressNotFound') }, { status: 404 });
 
   try {
     const address = await prisma.$transaction(async (tx) => {
@@ -49,7 +50,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
     return NextResponse.json({ address });
   } catch (error) {
-    if (error instanceof Error && error.message === 'ONLY_DEFAULT_ADDRESS') return NextResponse.json({ error: 'Нельзя снять единственный адрес по умолчанию' }, { status: 409 });
+    if (error instanceof Error && error.message === 'ONLY_DEFAULT_ADDRESS') return NextResponse.json({ error: apiUserMessage(request, 'onlyDefaultAddress') }, { status: 409 });
     throw error;
   }
 }
@@ -62,7 +63,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     where: { id, tenant_id: actor.user.tenantId, user_id: actor.user.id },
     select: { id: true, is_default: true },
   });
-  if (!existing) return NextResponse.json({ error: 'Адрес не найден' }, { status: 404 });
+  if (!existing) return NextResponse.json({ error: apiUserMessage(request, 'addressNotFound') }, { status: 404 });
   await prisma.$transaction(async (tx) => {
     if (existing.is_default) {
       const replacement = await tx.customer_addresses.findFirst({

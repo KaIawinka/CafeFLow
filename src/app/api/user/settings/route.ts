@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAccessToken } from '@/lib/auth/jwt';
 import { logger } from '@/lib/logger';
+import { apiError, apiUserMessage } from '@/lib/api-response';
 
 /**
  * GET - Get user settings
@@ -17,19 +18,13 @@ export async function GET(request: NextRequest) {
     const token = request.cookies.get('accessToken')?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { error: 'Не авторизован' },
-        { status: 401 }
-      );
+      return apiError(request, 'unauthorized', 401);
     }
 
     const payload = await verifyAccessToken(token);
 
     if (!payload) {
-      return NextResponse.json(
-        { error: 'Невалидный токен' },
-        { status: 401 }
-      );
+      return apiError(request, 'invalidToken', 401);
     }
 
     const user = await prisma.users.findUnique({
@@ -43,7 +38,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
+      return apiError(request, 'userNotFound', 404);
     }
 
     let settings = await prisma.user_settings.findUnique({
@@ -82,10 +77,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     logger.error('Get settings error', error);
     
-    return NextResponse.json(
-      { error: 'Внутренняя ошибка сервера' },
-      { status: 500 }
-    );
+    return apiError(request, 'server', 500);
   }
 }
 
@@ -97,19 +89,13 @@ export async function PATCH(request: NextRequest) {
     const token = request.cookies.get('accessToken')?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { error: 'Не авторизован' },
-        { status: 401 }
-      );
+      return apiError(request, 'unauthorized', 401);
     }
 
     const payload = await verifyAccessToken(token);
 
     if (!payload) {
-      return NextResponse.json(
-        { error: 'Невалидный токен' },
-        { status: 401 }
-      );
+      return apiError(request, 'invalidToken', 401);
     }
 
     const body = await request.json() as {
@@ -128,10 +114,10 @@ export async function PATCH(request: NextRequest) {
     const language = body.language_ui || body.language;
     const supportedLanguages = ['ru', 'en', 'kg'];
     if (language !== undefined && !supportedLanguages.includes(language)) {
-      return NextResponse.json({ error: 'Недопустимый язык интерфейса' }, { status: 400 });
+      return NextResponse.json({ error: apiUserMessage(request, 'invalidLanguage') }, { status: 400 });
     }
     if (body.theme !== undefined && !['light', 'dark', 'system'].includes(body.theme)) {
-      return NextResponse.json({ error: 'Недопустимая тема оформления' }, { status: 400 });
+      return NextResponse.json({ error: apiUserMessage(request, 'invalidTheme') }, { status: 400 });
     }
     const {
       emailNotifications,
@@ -190,9 +176,6 @@ export async function PATCH(request: NextRequest) {
   } catch (error) {
     logger.error('Update settings error', error);
     
-    return NextResponse.json(
-      { error: 'Внутренняя ошибка сервера' },
-      { status: 500 }
-    );
+    return apiError(request, 'server', 500);
   }
 }

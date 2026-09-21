@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAccessToken } from '@/lib/auth/jwt';
 import { logger } from '@/lib/logger';
+import { apiError } from '@/lib/api-response';
 
 /**
  * GET - Get current user profile
@@ -18,20 +19,14 @@ export async function GET(request: NextRequest) {
     const token = request.cookies.get('accessToken')?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { error: 'Не авторизован' },
-        { status: 401 }
-      );
+      return apiError(request, 'unauthorized', 401);
     }
 
     // Verify token
     const payload = await verifyAccessToken(token);
 
     if (!payload) {
-      return NextResponse.json(
-        { error: 'Невалидный токен' },
-        { status: 401 }
-      );
+      return apiError(request, 'invalidToken', 401);
     }
 
     // Get user profile
@@ -84,10 +79,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Пользователь не найден' },
-        { status: 404 }
-      );
+      return apiError(request, 'userNotFound', 404);
     }
 
     // Update last seen
@@ -104,10 +96,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     logger.error('Get profile error', error);
     
-    return NextResponse.json(
-      { error: 'Внутренняя ошибка сервера' },
-      { status: 500 }
-    );
+    return apiError(request, 'server', 500);
   }
 }
 
@@ -120,20 +109,14 @@ export async function PATCH(request: NextRequest) {
     const token = request.cookies.get('accessToken')?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { error: 'Не авторизован' },
-        { status: 401 }
-      );
+      return apiError(request, 'unauthorized', 401);
     }
 
     // Verify token
     const payload = await verifyAccessToken(token);
 
     if (!payload) {
-      return NextResponse.json(
-        { error: 'Невалидный токен' },
-        { status: 401 }
-      );
+      return apiError(request, 'invalidToken', 401);
     }
 
     const body = await request.json();
@@ -186,9 +169,6 @@ export async function PATCH(request: NextRequest) {
   } catch (error) {
     logger.error('Update profile error', error);
     
-    return NextResponse.json(
-      { error: 'Внутренняя ошибка сервера' },
-      { status: 500 }
-    );
+    return apiError(request, 'server', 500);
   }
 }

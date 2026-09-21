@@ -3,17 +3,18 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { verifyAuth } from '@/lib/api-middleware';
 import { parseAddressCreate } from '@/lib/customer-address';
+import { apiError, apiUserMessage } from '@/lib/api-response';
 
 const MAX_ADDRESSES_PER_CUSTOMER = 20;
 
 async function getAddressActor(request: NextRequest) {
   const auth = await verifyAuth(request);
-  if (!auth.success || !auth.userId) return { error: auth.error || NextResponse.json({ error: 'Не авторизован' }, { status: 401 }) };
+  if (!auth.success || !auth.userId) return { error: auth.error || apiError(request, 'unauthorized', 401) };
   const user = await prisma.users.findFirst({
     where: { id: auth.userId, status: 'active' },
     select: { id: true, tenant_id: true },
   });
-  if (!user?.tenant_id) return { error: NextResponse.json({ error: 'Tenant не настроен' }, { status: 409 }) };
+  if (!user?.tenant_id) return { error: apiError(request, 'tenantNotConfigured', 409) };
   return { user: { id: user.id, tenantId: user.tenant_id } };
 }
 
@@ -31,7 +32,7 @@ export async function POST(request: NextRequest) {
   const actor = await getAddressActor(request);
   if ('error' in actor) return actor.error;
   const input = parseAddressCreate(await request.json().catch(() => null));
-  if (!input) return NextResponse.json({ error: 'Укажите корректный адрес, координаты должны передаваться парой' }, { status: 400 });
+  if (!input) return NextResponse.json({ error: apiUserMessage(request, 'addressCreateInvalid') }, { status: 400 });
 
   try {
     const address = await prisma.$transaction(async (tx) => {
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest) {
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
     return NextResponse.json({ address }, { status: 201 });
   } catch (error) {
-    if (error instanceof Error && error.message === 'ADDRESS_LIMIT_REACHED') return NextResponse.json({ error: 'Можно сохранить не более 20 адресов' }, { status: 409 });
+    if (error instanceof Error && error.message === 'ADDRESS_LIMIT_REACHED') return NextResponse.json({ error: apiUserMessage(request, 'addressLimitReached') }, { status: 409 });
     throw error;
   }
 }

@@ -7,7 +7,9 @@
     "adminOrManagerRequired": "Access denied. Administrator or manager permissions are required.",
     "accountUnavailable": "Account is unavailable",
     "branchAccessDenied": "No active access to the branch",
-    "server": "Internal server error"
+    "server": "Internal server error",
+    "tenantNotConfigured": "Tenant is not configured",
+    "userNotFound": "User not found"
   },
   "auth": {
     "forgotPasswordGeneric": "If an account with this email exists, a recovery code has been sent.",
@@ -72,5 +74,20 @@
       "Press START in the bot",
       "Your account will be linked automatically"
     ]
+  },
+  "user": {
+    "addressCreateInvalid": "Enter a valid address; coordinates must be provided as a pair",
+    "addressLimitReached": "You can save no more than 20 addresses",
+    "addressUpdateInvalid": "Invalid address data",
+    "addressNotFound": "Address not found",
+    "onlyDefaultAddress": "You cannot unset the only default address",
+    "passwordFieldsRequired": "Enter the current password and the new password twice",
+    "passwordsDoNotMatch": "The new passwords do not match",
+    "passwordMustDiffer": "The new password must differ from the current password",
+    "currentPasswordInvalid": "The current password is incorrect",
+    "passwordChangedAllSessions": "Password changed. Sign in again on all devices.",
+    "passwordChangeFailed": "Could not change the password",
+    "invalidLanguage": "Invalid interface language",
+    "invalidTheme": "Invalid appearance theme"
   }
 }

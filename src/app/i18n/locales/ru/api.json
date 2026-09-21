@@ -7,7 +7,9 @@
     "adminOrManagerRequired": "Доступ запрещён. Требуются права администратора или менеджера.",
     "accountUnavailable": "Учетная запись недоступна",
     "branchAccessDenied": "Нет активного доступа к филиалу",
-    "server": "Внутренняя ошибка сервера"
+    "server": "Внутренняя ошибка сервера",
+    "tenantNotConfigured": "Tenant не настроен",
+    "userNotFound": "Пользователь не найден"
   },
   "auth": {
     "forgotPasswordGeneric": "Если аккаунт с таким email существует, код восстановления отправлен на почту.",
@@ -72,5 +74,20 @@
       "Нажмите START в боте",
       "Ваш аккаунт будет привязан автоматически"
     ]
+  },
+  "user": {
+    "addressCreateInvalid": "Укажите корректный адрес, координаты должны передаваться парой",
+    "addressLimitReached": "Можно сохранить не более 20 адресов",
+    "addressUpdateInvalid": "Некорректные данные адреса",
+    "addressNotFound": "Адрес не найден",
+    "onlyDefaultAddress": "Нельзя снять единственный адрес по умолчанию",
+    "passwordFieldsRequired": "Заполните текущий пароль и новый пароль дважды",
+    "passwordsDoNotMatch": "Новые пароли не совпадают",
+    "passwordMustDiffer": "Новый пароль должен отличаться от текущего",
+    "currentPasswordInvalid": "Текущий пароль указан неверно",
+    "passwordChangedAllSessions": "Пароль изменён. Войдите снова на всех устройствах.",
+    "passwordChangeFailed": "Не удалось изменить пароль",
+    "invalidLanguage": "Недопустимый язык интерфейса",
+    "invalidTheme": "Недопустимая тема оформления"
   }
 }
