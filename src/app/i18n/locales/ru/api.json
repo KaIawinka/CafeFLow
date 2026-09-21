@@ -164,6 +164,25 @@
     "telegramNotLinked": "У вас не привязан Telegram. Обратитесь к администратору системы для настройки 2FA.",
     "invalidBotKeyType": "Неверный тип ключа. Допустимые: master, manager, kitchen, staff",
     "botKeyNotFound": "Ключ не найден",
-    "botKeyDeleted": "Ключ успешно удалён"
+    "botKeyDeleted": "Ключ успешно удалён",
+    "branchMembershipInputInvalid": "userId, branchId и capabilities обязательны",
+    "capabilitiesGrantDenied": "Недостаточно прав для выдачи этих capabilities",
+    "branchUnavailable": "Филиал недоступен",
+    "userOrBranchNotFound": "Пользователь или филиал не найден",
+    "membershipIdRequired": "id обязателен",
+    "membershipNotFound": "Доступ не найден",
+    "invalidDomainName": "Некорректное доменное имя",
+    "domainAlreadyRegistered": "Домен уже зарегистрирован",
+    "domainCreateFailed": "Не удалось добавить домен",
+    "domainRequired": "Домен обязателен",
+    "domainNotFoundOrProcessed": "Домен не найден или уже обработан",
+    "domainTxtMissing": "TXT запись ещё не найдена",
+    "domainTxtMismatch": "TXT запись не совпадает",
+    "domainNotFound": "Домен не найден",
+    "categoryInputInvalid": "Название и slug категории обязательны",
+    "categoryNotFound": "Категория не найдена",
+    "categoryHasProducts": "Нельзя удалить категорию с блюдами",
+    "productInputInvalid": "Название и корректная цена обязательны",
+    "productNotFound": "Блюдо не найдено"
   }
 }

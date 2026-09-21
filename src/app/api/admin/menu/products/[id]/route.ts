@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { verifyAdminOrManager } from '@/lib/api-middleware';
+import { apiAdminMessage, apiError } from '@/lib/api-response';
 
 async function scope(request: NextRequest, id: string) {
   const auth = await verifyAdminOrManager(request, 'manage_menu');
-  if (!auth.success || !auth.userId) return { error: auth.error || NextResponse.json({ error: 'Не авторизован' }, { status: 401 }) };
-  if (!auth.tenantId) return { error: NextResponse.json({ error: 'Tenant не настроен' }, { status: 409 }) };
+  if (!auth.success || !auth.userId) return { error: auth.error || apiError(request, 'unauthorized', 401) };
+  if (!auth.tenantId) return { error: apiError(request, 'tenantNotConfigured', 409) };
   const product = await prisma.products.findFirst({ where: { id, tenant_id: auth.tenantId, deleted_at: null } });
-  if (!product) return { error: NextResponse.json({ error: 'Блюдо не найдено' }, { status: 404 }) };
+  if (!product) return { error: NextResponse.json({ error: apiAdminMessage(request, 'productNotFound') }, { status: 404 }) };
   return { product };
 }
 

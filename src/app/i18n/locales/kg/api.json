@@ -164,6 +164,25 @@
     "telegramNotLinked": "Telegram аккаунтуңузга байланышкан эмес. 2FA жөндөө үчүн системанын администраторуна кайрылыңыз.",
     "invalidBotKeyType": "Ачкычтын түрү туура эмес. Уруксат берилгендер: master, manager, kitchen, staff",
     "botKeyNotFound": "Ачкыч табылган жок",
-    "botKeyDeleted": "Ачкыч ийгиликтүү өчүрүлдү"
+    "botKeyDeleted": "Ачкыч ийгиликтүү өчүрүлдү",
+    "branchMembershipInputInvalid": "userId, branchId жана capabilities талап кылынат",
+    "capabilitiesGrantDenied": "Бул capabilities берүүгө укук жетишсиз",
+    "branchUnavailable": "Филиал жеткиликсиз",
+    "userOrBranchNotFound": "Колдонуучу же филиал табылган жок",
+    "membershipIdRequired": "Membership ID талап кылынат",
+    "membershipNotFound": "Кирүү мүмкүнчүлүгү табылган жок",
+    "invalidDomainName": "Домендин аты туура эмес",
+    "domainAlreadyRegistered": "Домен мурунтан катталган",
+    "domainCreateFailed": "Доменди кошуу мүмкүн болгон жок",
+    "domainRequired": "Домен талап кылынат",
+    "domainNotFoundOrProcessed": "Домен табылган жок же мурунтан иштетилген",
+    "domainTxtMissing": "TXT жазуусу азырынча табылган жок",
+    "domainTxtMismatch": "TXT жазуусу дал келген жок",
+    "domainNotFound": "Домен табылган жок",
+    "categoryInputInvalid": "Категориянын аты жана slug талап кылынат",
+    "categoryNotFound": "Категория табылган жок",
+    "categoryHasProducts": "Тамактары бар категорияны өчүрүүгө болбойт",
+    "productInputInvalid": "Тамактын аты жана туура баасы талап кылынат",
+    "productNotFound": "Тамак табылган жок"
   }
 }

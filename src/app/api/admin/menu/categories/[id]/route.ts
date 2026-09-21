@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAdminOrManager } from '@/lib/api-middleware';
+import { apiAdminMessage, apiError } from '@/lib/api-response';
 
 async function scope(request: NextRequest, id: string) {
   const auth = await verifyAdminOrManager(request, 'manage_menu');
-  if (!auth.success || !auth.userId) return { error: auth.error || NextResponse.json({ error: 'Не авторизован' }, { status: 401 }) };
-  if (!auth.tenantId) return { error: NextResponse.json({ error: 'Tenant не настроен' }, { status: 409 }) };
+  if (!auth.success || !auth.userId) return { error: auth.error || apiError(request, 'unauthorized', 401) };
+  if (!auth.tenantId) return { error: apiError(request, 'tenantNotConfigured', 409) };
   const category = await prisma.menu_categories.findFirst({ where: { id, tenant_id: auth.tenantId } });
-  if (!category) return { error: NextResponse.json({ error: 'Категория не найдена' }, { status: 404 }) };
+  if (!category) return { error: NextResponse.json({ error: apiAdminMessage(request, 'categoryNotFound') }, { status: 404 }) };
   return { category };
 }
 
@@ -25,7 +26,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   const result = await scope(request, id);
   if ('error' in result) return result.error;
   const products = await prisma.products.count({ where: { category_id: id, deleted_at: null } });
-  if (products) return NextResponse.json({ error: 'Нельзя удалить категорию с блюдами' }, { status: 409 });
+  if (products) return NextResponse.json({ error: apiAdminMessage(request, 'categoryHasProducts') }, { status: 409 });
   await prisma.menu_categories.delete({ where: { id } });
   return NextResponse.json({ success: true });
 }

@@ -164,6 +164,25 @@
     "telegramNotLinked": "Telegram is not linked to your account. Contact the system administrator to set up 2FA.",
     "invalidBotKeyType": "Invalid key type. Allowed: master, manager, kitchen, staff",
     "botKeyNotFound": "Key not found",
-    "botKeyDeleted": "Key deleted successfully"
+    "botKeyDeleted": "Key deleted successfully",
+    "branchMembershipInputInvalid": "User ID, branch ID, and capabilities are required",
+    "capabilitiesGrantDenied": "Insufficient permissions to grant these capabilities",
+    "branchUnavailable": "Branch is unavailable",
+    "userOrBranchNotFound": "User or branch not found",
+    "membershipIdRequired": "Membership ID is required",
+    "membershipNotFound": "Membership not found",
+    "invalidDomainName": "Invalid domain name",
+    "domainAlreadyRegistered": "Domain is already registered",
+    "domainCreateFailed": "Could not add the domain",
+    "domainRequired": "Domain is required",
+    "domainNotFoundOrProcessed": "Domain not found or already processed",
+    "domainTxtMissing": "TXT record not found yet",
+    "domainTxtMismatch": "TXT record does not match",
+    "domainNotFound": "Domain not found",
+    "categoryInputInvalid": "Category name and slug are required",
+    "categoryNotFound": "Category not found",
+    "categoryHasProducts": "Cannot delete a category with dishes",
+    "productInputInvalid": "Product name and a valid price are required",
+    "productNotFound": "Dish not found"
   }
 }
