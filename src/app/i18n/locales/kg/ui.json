@@ -15,7 +15,10 @@
     "theme": "Тема",
     "themeLight": "Ачык",
     "themeDark": "Караңгы",
-    "themeAuto": "Авто"
+    "themeAuto": "Авто",
+    "openMenu": "Менюну ачуу",
+    "closeMenu": "Менюну жабуу",
+    "avatar": "Аватар"
   },
   "profile": {
     "title": "Профиль",

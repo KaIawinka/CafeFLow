@@ -15,7 +15,10 @@
     "theme": "Theme",
     "themeLight": "Light",
     "themeDark": "Dark",
-    "themeAuto": "Auto"
+    "themeAuto": "Auto",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "avatar": "Avatar"
   },
   "profile": {
     "title": "Profile",

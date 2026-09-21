@@ -15,7 +15,10 @@
     "theme": "Тема",
     "themeLight": "Светлая",
     "themeDark": "Тёмная",
-    "themeAuto": "Авто"
+    "themeAuto": "Авто",
+    "openMenu": "Открыть меню",
+    "closeMenu": "Закрыть меню",
+    "avatar": "Аватар"
   },
   "profile": {
     "title": "Профиль",
