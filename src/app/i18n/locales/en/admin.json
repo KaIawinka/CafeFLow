@@ -12,7 +12,8 @@
       "required": "Email and password are required",
       "invalid": "Invalid email or password",
       "blocked": "Account blocked",
-      "serverError": "Server connection error"
+      "serverError": "Server connection error",
+      "login": "Sign-in failed"
     }
   },
   "twoFa": {

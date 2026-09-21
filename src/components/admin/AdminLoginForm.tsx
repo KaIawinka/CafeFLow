@@ -8,20 +8,35 @@
 import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { locales, type Locale } from '@/app/i18n/config';
+import { getLocaleTranslations } from '@/app/i18n/catalog';
 
 type Step = 'credentials' | '2fa';
-
-const loginCopy: Record<Locale, { signIn: string; verify: string; password: string; loginSubtitle: string; verifySubtitle: string; codeSent: string; codeLabel: string; codeHint: string; back: string; loading: string; checking: string; invalidCode: string; loginError: string; connectionError: string }> = {
-  ru: { signIn: 'Войти', verify: 'Подтвердить', password: 'Пароль', loginSubtitle: 'Вход в панель управления', verifySubtitle: 'Подтверждение входа', codeSent: 'Код отправлен в Telegram', codeLabel: 'Код подтверждения', codeHint: 'Введите 6-значный код из Telegram', back: 'Назад к вводу пароля', loading: 'Вход...', checking: 'Проверка...', invalidCode: 'Неверный код', loginError: 'Ошибка входа', connectionError: 'Ошибка соединения с сервером' },
-  en: { signIn: 'Sign in', verify: 'Verify', password: 'Password', loginSubtitle: 'Sign in to the admin panel', verifySubtitle: 'Verify your sign-in', codeSent: 'Code sent to Telegram', codeLabel: 'Verification code', codeHint: 'Enter the 6-digit code from Telegram', back: 'Back to password', loading: 'Signing in...', checking: 'Verifying...', invalidCode: 'Invalid code', loginError: 'Sign-in failed', connectionError: 'Could not connect to the server' },
-  kg: { signIn: 'Кирүү', verify: 'Ырастоо', password: 'Сырсөз', loginSubtitle: 'Башкаруу панелине кирүү', verifySubtitle: 'Кирүүнү ырастоо', codeSent: 'Код Telegramʼга жөнөтүлдү', codeLabel: 'Ырастоо коду', codeHint: 'Telegramʼдан 6 орундуу кодду киргизиңиз', back: 'Сырсөзгө кайтуу', loading: 'Кирүүдө...', checking: 'Текшерилүүдө...', invalidCode: 'Туура эмес код', loginError: 'Кирүү катасы', connectionError: 'Серверге туташуу мүмкүн болгон жок' },
-};
 
 export default function AdminLoginForm() {
   const router = useRouter();
   const pathname = usePathname();
   const locale = (locales.find((item) => pathname.split('/')[1] === item) || 'ru') as Locale;
-  const copy = loginCopy[locale];
+  const translations = getLocaleTranslations(locale).admin;
+  const copy = {
+    email: translations.login.email,
+    emailPlaceholder: translations.login.emailPlaceholder,
+    signIn: translations.login.loginButton,
+    verify: translations.twoFa.verifyButton,
+    password: translations.login.password,
+    passwordPlaceholder: translations.login.passwordPlaceholder,
+    loginSubtitle: translations.login.subtitle,
+    verifySubtitle: translations.twoFa.title,
+    codeSent: translations.twoFa.subtitle,
+    codeLabel: translations.twoFa.code,
+    codeHint: translations.twoFa.codeHint,
+    codePlaceholder: translations.twoFa.codePlaceholder,
+    back: translations.twoFa.backButton,
+    loading: translations.login.loggingIn,
+    checking: translations.twoFa.verifying,
+    invalidCode: translations.twoFa.errors.invalid,
+    loginError: translations.login.errors.login,
+    connectionError: translations.login.errors.serverError,
+  };
   const [step, setStep] = useState<Step>('credentials');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -118,7 +133,7 @@ export default function AdminLoginForm() {
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-zinc-300 mb-2">
-              Email
+              {copy.email}
             </label>
             <input
               id="email"
@@ -127,7 +142,7 @@ export default function AdminLoginForm() {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              placeholder="admin@cafeflow.com"
+              placeholder={copy.emailPlaceholder}
               disabled={loading}
             />
           </div>
@@ -143,7 +158,7 @@ export default function AdminLoginForm() {
               onChange={(e) => setPassword(e.target.value)}
               required
               className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              placeholder="••••••••"
+              placeholder={copy.passwordPlaceholder}
               disabled={loading}
             />
           </div>
@@ -153,7 +168,7 @@ export default function AdminLoginForm() {
             disabled={loading}
             className="w-full py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Вход...' : 'Войти'}
+            {loading ? copy.loading : copy.signIn}
           </button>
         </form>
       )}
@@ -184,7 +199,7 @@ export default function AdminLoginForm() {
               required
               maxLength={6}
               className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-700 rounded-lg text-white text-center text-2xl tracking-widest placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              placeholder="000000"
+              placeholder={copy.codePlaceholder}
               disabled={loading}
               autoComplete="off"
             />
@@ -208,7 +223,7 @@ export default function AdminLoginForm() {
             }}
             className="w-full py-2 text-zinc-400 hover:text-white text-sm transition-colors"
           >
-            ← {copy.back}
+            {copy.back}
           </button>
         </form>
       )}
