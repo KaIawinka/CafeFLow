@@ -3,6 +3,7 @@
 import { useEffect, useEffectEvent, useState } from 'react';
 import { Check, Loader2, MapPin, Pencil, Plus, Trash2, X } from 'lucide-react';
 import type { Locale } from '@/app/i18n/config';
+import { getLocaleTranslations } from '@/app/i18n/catalog';
 
 type Address = {
   id: string;
@@ -35,12 +36,6 @@ const emptyForm: AddressForm = {
   isDefault: false,
 };
 
-const labels: Record<Locale, Record<string, string>> = {
-  ru: { title: 'Адреса доставки', add: 'Добавить адрес', edit: 'Редактировать', delete: 'Удалить', default: 'Основной', noAddresses: 'Сохранённых адресов пока нет', address: 'Адрес', label: 'Название', entrance: 'Подъезд', floor: 'Этаж', apartment: 'Квартира', comment: 'Комментарий курьеру', save: 'Сохранить', cancel: 'Отмена', loadError: 'Не удалось загрузить адреса', saveError: 'Не удалось сохранить адрес', deleteError: 'Не удалось удалить адрес', makeDefault: 'Сделать основным' },
-  en: { title: 'Delivery addresses', add: 'Add address', edit: 'Edit', delete: 'Delete', default: 'Default', noAddresses: 'No saved addresses yet', address: 'Address', label: 'Label', entrance: 'Entrance', floor: 'Floor', apartment: 'Apartment', comment: 'Courier note', save: 'Save', cancel: 'Cancel', loadError: 'Unable to load addresses', saveError: 'Unable to save address', deleteError: 'Unable to delete address', makeDefault: 'Make default' },
-  kg: { title: 'Жеткирүү даректери', add: 'Дарек кошуу', edit: 'Түзөтүү', delete: 'Өчүрүү', default: 'Негизги', noAddresses: 'Сакталган даректер жок', address: 'Дарек', label: 'Аталышы', entrance: 'Кире бериш', floor: 'Кабат', apartment: 'Батир', comment: 'Курьерге комментарий', save: 'Сактоо', cancel: 'Жокко чыгаруу', loadError: 'Даректерди жүктөө мүмкүн болгон жок', saveError: 'Даректи сактоо мүмкүн болгон жок', deleteError: 'Даректи өчүрүү мүмкүн болгон жок', makeDefault: 'Негизги кылуу' },
-};
-
 function toForm(address: Address): AddressForm {
   return {
     label: address.label || '',
@@ -54,7 +49,7 @@ function toForm(address: Address): AddressForm {
 }
 
 export function CustomerAddresses({ locale }: { locale: Locale }) {
-  const t = labels[locale];
+  const t = getLocaleTranslations(locale).ui.profile.addresses;
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [form, setForm] = useState<AddressForm>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);

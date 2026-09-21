@@ -81,6 +81,26 @@
       "avatarError": "Failed to upload avatar",
       "saveError": "Save error",
       "genericError": "An error occurred"
+    },
+    "addresses": {
+      "title": "Delivery addresses",
+      "add": "Add address",
+      "edit": "Edit",
+      "delete": "Delete",
+      "default": "Default",
+      "noAddresses": "No saved addresses yet",
+      "address": "Address",
+      "label": "Label",
+      "entrance": "Entrance",
+      "floor": "Floor",
+      "apartment": "Apartment",
+      "comment": "Courier note",
+      "save": "Save",
+      "cancel": "Cancel",
+      "loadError": "Unable to load addresses",
+      "saveError": "Unable to save address",
+      "deleteError": "Unable to delete address",
+      "makeDefault": "Make default"
     }
   },
   "notFound": {
