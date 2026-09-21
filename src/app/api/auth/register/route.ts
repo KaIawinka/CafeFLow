@@ -9,7 +9,7 @@ import { hashPassword } from '@/lib/auth/password';
 import { logger } from '@/lib/logger';
 import { validateEmailAddress, createVerificationCode } from '@/lib/email/verification';
 import { sendVerificationEmail } from '@/lib/email/client';
-import { verifyRecaptcha } from '@/lib/recaptcha';
+import { isRecaptchaEnabled, verifyRecaptcha } from '@/lib/recaptcha';
 import { getPasswordStrengthErrorKeys } from '@/lib/auth/password';
 import { apiError, apiMessage } from '@/lib/api-response';
 
@@ -40,9 +40,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify reCAPTCHA only in production
-    if (process.env.NODE_ENV === 'production' && recaptchaToken) {
-      const recaptchaResult = await verifyRecaptcha(recaptchaToken, 'register');
+    // Verify reCAPTCHA in production when it is configured.
+    if (process.env.NODE_ENV === 'production' && isRecaptchaEnabled()) {
+      const recaptchaResult = await verifyRecaptcha(recaptchaToken || '', 'register');
       if (!recaptchaResult.success) {
         logger.warn('Registration blocked by reCAPTCHA', { 
           email, 

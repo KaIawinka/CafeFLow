@@ -11,7 +11,7 @@ import { sendVerificationCode } from '@/lib/telegram/messages';
 import { createAuthSession, generateTokenPair, getTokenExpirySeconds, hashSessionToken } from '@/lib/auth/jwt';
 import { logger } from '@/lib/logger';
 import crypto from 'crypto';
-import { verifyRecaptcha } from '@/lib/recaptcha';
+import { isRecaptchaEnabled, verifyRecaptcha } from '@/lib/recaptcha';
 import { getClientIp, isLoginRateLimited, recordLoginAttempt } from '@/lib/auth/login-attempts';
 import { apiError, apiMessage } from '@/lib/api-response';
 
@@ -34,9 +34,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify reCAPTCHA only in production
-    if (process.env.NODE_ENV === 'production' && recaptchaToken) {
-      const recaptchaResult = await verifyRecaptcha(recaptchaToken, 'login');
+    // Verify reCAPTCHA in production when it is configured.
+    if (process.env.NODE_ENV === 'production' && isRecaptchaEnabled()) {
+      const recaptchaResult = await verifyRecaptcha(recaptchaToken || '', 'login');
       if (!recaptchaResult.success) {
         logger.warn('Login blocked by reCAPTCHA', { 
           email, 
