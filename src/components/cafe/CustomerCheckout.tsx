@@ -13,6 +13,7 @@ type CartItem = {
 type Address = { id: string; label: string | null; address_text: string; is_default: boolean };
 type DeliveryZone = { id: string; name: string; delivery_fee: string | number; min_order_amount: string | number; estimated_minutes: number | null };
 type Table = { id: string; name: string; zone: string | null; capacity: number };
+type PromotionPreview = { code: string; discount: number };
 
 function publicPath(path: string) {
   if (typeof window === 'undefined') return path;
@@ -37,6 +38,8 @@ export function CustomerCheckout({ items, locale, onQuantityChange, onComplete }
   const [tables, setTables] = useState<Table[]>([]);
   const [isLoadingOptions, setIsLoadingOptions] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCheckingPromotion, setIsCheckingPromotion] = useState(false);
+  const [promotion, setPromotion] = useState<PromotionPreview | null>(null);
   const [message, setMessage] = useState('');
 
   const loadOptions = useEffectEvent(async () => {
@@ -69,7 +72,46 @@ export function CustomerCheckout({ items, locale, onQuantityChange, onComplete }
 
   const selectedZone = zones.find((zone) => zone.id === form.zoneId);
   const subtotal = items.reduce((sum, item) => sum + Number(item.product.price) * item.quantity, 0);
-  const estimatedTotal = subtotal + (selectedZone ? Number(selectedZone.delivery_fee) : 0);
+  const deliveryFee = selectedZone ? Number(selectedZone.delivery_fee) : 0;
+  const estimatedTotal = Math.max(0, subtotal + deliveryFee - (promotion?.discount || 0));
+
+  const validatePromotion = async () => {
+    const code = form.promoCode.trim();
+    if (!code || isCheckingPromotion) return;
+    setIsCheckingPromotion(true);
+    setMessage('');
+    try {
+      const response = await fetch(publicPath('/api/public/promotions/validate'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, subtotal: subtotal.toFixed(2), deliveryFee: deliveryFee.toFixed(2) }),
+      });
+      const data = await response.json() as { promotion?: { code?: string }; discount?: string; error?: string };
+      const discount = Number(data.discount);
+      if (!response.ok || !data.promotion || !Number.isFinite(discount)) throw new Error(data.error || t.error);
+      setPromotion({ code: data.promotion.code || code.toUpperCase(), discount: Math.max(0, discount) });
+    } catch (error) {
+      setPromotion(null);
+      setMessage(error instanceof Error ? error.message : t.error);
+    } finally {
+      setIsCheckingPromotion(false);
+    }
+  };
+
+  const updateQuantity = (productId: string, quantity: number) => {
+    setPromotion(null);
+    onQuantityChange(productId, quantity);
+  };
+
+  const updateFulfillment = (fulfillmentType: string) => {
+    setPromotion(null);
+    setForm({ ...form, fulfillmentType, tableId: '', zoneId: '' });
+  };
+
+  const updateZone = (zoneId: string) => {
+    setPromotion(null);
+    setForm({ ...form, zoneId });
+  };
 
   const submit = async () => {
     if (!items.length || isSubmitting) return;
@@ -88,7 +130,7 @@ export function CustomerCheckout({ items, locale, onQuantityChange, onComplete }
           addressId: form.addressId || undefined,
           deliveryAddress: form.addressId ? undefined : form.addressText ? { addressText: form.addressText } : undefined,
           zoneId: form.zoneId || undefined,
-          promoCode: form.promoCode || undefined,
+          promoCode: promotion?.code === form.promoCode.trim().toUpperCase() ? form.promoCode : undefined,
           comment: form.comment || undefined,
         }),
       });
@@ -109,9 +151,9 @@ export function CustomerCheckout({ items, locale, onQuantityChange, onComplete }
         {items.map((item) => (
           <article key={item.product.id} className="flex items-center gap-3 rounded-lg border border-[#dde4dc] bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
             <div className="min-w-0 flex-1"><h2 className="font-semibold">{item.product.name}</h2><p className="mt-1 text-sm text-[#60706b]">{money(item.product.price, item.product.currency)}</p></div>
-            <button type="button" onClick={() => onQuantityChange(item.product.id, item.quantity - 1)} className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800" aria-label={t.removeItem}><Minus className="h-4 w-4" /></button>
+            <button type="button" onClick={() => updateQuantity(item.product.id, item.quantity - 1)} className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800" aria-label={t.removeItem}><Minus className="h-4 w-4" /></button>
             <span className="w-6 text-center font-bold">{item.quantity}</span>
-            <button type="button" onClick={() => onQuantityChange(item.product.id, item.quantity + 1)} className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800" aria-label={t.addItem}><Plus className="h-4 w-4" /></button>
+            <button type="button" onClick={() => updateQuantity(item.product.id, item.quantity + 1)} className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800" aria-label={t.addItem}><Plus className="h-4 w-4" /></button>
           </article>
         ))}
         {!items.length && <p className="rounded-lg border border-dashed border-[#d9dfd8] p-6 text-center text-sm text-[#60706b] dark:border-gray-700">{t.empty}</p>}
@@ -121,7 +163,7 @@ export function CustomerCheckout({ items, locale, onQuantityChange, onComplete }
         <div className="flex items-center gap-2"><ReceiptText className="h-5 w-5 text-[#d06b3c]" /><h2 className="text-xl font-black">{t.title}</h2></div>
         <fieldset className="grid grid-cols-3 gap-2"><legend className="sr-only">{t.fulfillment}</legend>{[
           ['pickup', t.pickup, ShoppingBag], ['delivery', t.delivery, Truck], ['dine_in', t.dineIn, Table2],
-        ].map(([value, label, Icon]) => <button key={value as string} type="button" onClick={() => setForm({ ...form, fulfillmentType: value as string, tableId: '', zoneId: '' })} className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg border text-xs font-semibold ${form.fulfillmentType === value ? 'border-[#d06b3c] bg-[#fff1e9] text-[#9e4a25] dark:border-amber-500 dark:bg-amber-900/20 dark:text-amber-300' : 'border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300'}`}><Icon className="h-4 w-4" />{label as string}</button>)}</fieldset>
+        ].map(([value, label, Icon]) => <button key={value as string} type="button" onClick={() => updateFulfillment(value as string)} className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg border text-xs font-semibold ${form.fulfillmentType === value ? 'border-[#d06b3c] bg-[#fff1e9] text-[#9e4a25] dark:border-amber-500 dark:bg-amber-900/20 dark:text-amber-300' : 'border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300'}`}><Icon className="h-4 w-4" />{label as string}</button>)}</fieldset>
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="text-sm font-medium">{t.name}<input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} className="mt-1 w-full rounded-lg border px-3 py-2 dark:border-gray-700 dark:bg-gray-800" /></label>
           <label className="text-sm font-medium">{t.phone}<input required type="tel" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} className="mt-1 w-full rounded-lg border px-3 py-2 dark:border-gray-700 dark:bg-gray-800" /></label>
@@ -131,14 +173,14 @@ export function CustomerCheckout({ items, locale, onQuantityChange, onComplete }
           <label className="block text-sm font-medium"><span className="flex items-center gap-2"><MapPin className="h-4 w-4" />{t.savedAddress}</span><select value={form.addressId} onChange={(event) => setForm({ ...form, addressId: event.target.value })} className="mt-1 w-full rounded-lg border bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900"><option value="">{t.manualAddress}</option>{addresses.map((address) => <option key={address.id} value={address.id}>{address.label || t.address}: {address.address_text}</option>)}</select></label>
           {!form.addressId && <label className="block text-sm font-medium">{t.address}<input required value={form.addressText} onChange={(event) => setForm({ ...form, addressText: event.target.value })} className="mt-1 w-full rounded-lg border bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900" /></label>}
           <a href={`/${locale}/profile`} className="text-sm font-semibold text-[#9e4a25] underline underline-offset-4 dark:text-amber-300">{t.saveAddress}</a>
-          <label className="block text-sm font-medium">{t.zone}<select required value={form.zoneId} onChange={(event) => setForm({ ...form, zoneId: event.target.value })} className="mt-1 w-full rounded-lg border bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900"><option value="">{t.selectZone}</option>{zones.map((zone) => <option key={zone.id} value={zone.id}>{zone.name} · {money(zone.delivery_fee)}</option>)}</select></label>
+          <label className="block text-sm font-medium">{t.zone}<select required value={form.zoneId} onChange={(event) => updateZone(event.target.value)} className="mt-1 w-full rounded-lg border bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900"><option value="">{t.selectZone}</option>{zones.map((zone) => <option key={zone.id} value={zone.id}>{zone.name} · {money(zone.delivery_fee)}</option>)}</select></label>
           {!zones.length && !isLoadingOptions && <p className="text-sm text-red-700 dark:text-red-300">{t.unavailable}</p>}
           {selectedZone?.estimated_minutes && <p className="text-xs text-[#60706b]">{t.estimated}: {selectedZone.estimated_minutes} {t.minute}</p>}
         </div>}
         {form.fulfillmentType === 'dine_in' && <label className="block text-sm font-medium">{t.table}<select required value={form.tableId} onChange={(event) => setForm({ ...form, tableId: event.target.value })} className="mt-1 w-full rounded-lg border px-3 py-2 dark:border-gray-700 dark:bg-gray-800"><option value="">{t.selectTable}</option>{tables.map((table) => <option key={table.id} value={table.id}>{table.name}{table.zone ? ` · ${table.zone}` : ''}</option>)}</select></label>}
-        <label className="block text-sm font-medium"><span className="flex items-center gap-2"><Ticket className="h-4 w-4" />{t.promo}</span><input value={form.promoCode} onChange={(event) => setForm({ ...form, promoCode: event.target.value })} className="mt-1 w-full rounded-lg border px-3 py-2 dark:border-gray-700 dark:bg-gray-800" /></label>
+        <div className="block text-sm font-medium"><label htmlFor="promo-code" className="flex items-center gap-2"><Ticket className="h-4 w-4" />{t.promo}</label><div className="mt-1 flex gap-2"><input id="promo-code" value={form.promoCode} onChange={(event) => { setForm({ ...form, promoCode: event.target.value }); setPromotion(null); }} className="min-w-0 flex-1 rounded-lg border px-3 py-2 dark:border-gray-700 dark:bg-gray-800" /><button type="button" onClick={() => void validatePromotion()} disabled={isCheckingPromotion || !form.promoCode.trim()} className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg border border-[#d06b3c] px-3 text-sm font-semibold text-[#9e4a25] disabled:cursor-not-allowed disabled:opacity-50 dark:text-amber-300">{isCheckingPromotion ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}{t.applyPromo}</button></div>{promotion && <p role="status" className="mt-2 text-sm text-emerald-700 dark:text-emerald-300">{t.promoApplied}: -{money(promotion.discount, items[0]?.product.currency)}</p>}</div>
         <label className="block text-sm font-medium">{t.comment}<textarea value={form.comment} onChange={(event) => setForm({ ...form, comment: event.target.value })} rows={2} className="mt-1 w-full rounded-lg border px-3 py-2 dark:border-gray-700 dark:bg-gray-800" /></label>
-        <div className="space-y-1 border-t border-gray-200 pt-3 text-sm dark:border-gray-700"><div className="flex justify-between"><span>{t.deliveryFee}</span><span>{selectedZone ? money(selectedZone.delivery_fee) : money(0)}</span></div><div className="flex justify-between text-lg font-black"><span>{t.total}</span><span>{money(estimatedTotal, items[0]?.product.currency)}</span></div></div>
+        <div className="space-y-1 border-t border-gray-200 pt-3 text-sm dark:border-gray-700"><div className="flex justify-between"><span>{t.deliveryFee}</span><span>{money(deliveryFee)}</span></div>{promotion && <div className="flex justify-between text-emerald-700 dark:text-emerald-300"><span>{t.discount}</span><span>-{money(promotion.discount)}</span></div>}<div className="flex justify-between text-lg font-black"><span>{t.total}</span><span>{money(estimatedTotal, items[0]?.product.currency)}</span></div></div>
         <button type="button" disabled={isSubmitting || !items.length} onClick={() => void submit()} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#17332f] px-4 font-bold text-white disabled:cursor-not-allowed disabled:opacity-50 dark:bg-amber-500 dark:text-gray-950">{isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}{t.placeOrder}</button>
         {message && <p role="status" className="rounded-lg bg-[#fff1e9] p-3 text-sm text-[#9e4a25] dark:bg-amber-900/20 dark:text-amber-200">{message}</p>}
       </section>
