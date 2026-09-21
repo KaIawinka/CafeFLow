@@ -5,8 +5,8 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { startTransition, useState, useEffect, useRef } from 'react';
 import { locales, localeNames, type Locale } from '@/app/i18n/config';
+import { getLocaleTranslations } from '@/app/i18n/catalog';
 import { useTheme } from '@/components/ThemeProvider';
-import { getUiTranslations } from '@/lib/ui-translations';
 import { 
   User, 
   Settings, 
@@ -51,7 +51,7 @@ interface UnifiedHeaderProps {
   siteLogo?: string;
 }
 
-type SearchItem = { label: string; description: string; href: string; keywords: string[] };
+type SearchItem = { label: string; description: string; href: string; keywords: readonly string[] };
 
 function savePreferredLanguage(locale: Locale) {
   document.cookie = `preferredLanguage=${locale}; path=/; max-age=31536000`;
@@ -88,32 +88,36 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
   const router = useRouter();
 
   const currentLocale = getPreferredLocale(pathname);
-  const ui = getUiTranslations(currentLocale);
+  const translations = getLocaleTranslations(currentLocale);
+  const header = translations.ui.header;
+  const roleLabels = translations.ui.profile.roles;
   const isStaff = Boolean(user && ['employee', 'kitchen', 'manager', 'admin'].includes(user.role));
   const canSearchAdmin = user?.role === 'admin' || user?.role === 'manager';
 
-  const searchItems: SearchItem[] = [
-    { label: currentLocale === 'en' ? 'Home' : currentLocale === 'kg' ? 'Башкы бет' : 'Главная', description: currentLocale === 'en' ? 'CafeFlow home page, food, atmosphere and welcome' : 'Главная страница CaféFlow, вкусная еда и уютная атмосфера', href: `/${currentLocale}`, keywords: ['главная', 'home', 'башкы', 'добро пожаловать', 'атмосфера', 'еда'] },
-    { label: currentLocale === 'en' ? 'Menu' : 'Меню', description: currentLocale === 'en' ? 'Browse dishes, drinks, coffee, breakfast and chef specials' : 'Блюда, напитки, кофе, завтраки и выбор шефа', href: `/${currentLocale}/menu`, keywords: ['меню', 'блюда', 'menu', 'еда', 'напитки', 'кофе', 'завтрак', 'шеф', 'десерт'] },
-    { label: currentLocale === 'en' ? 'Booking' : currentLocale === 'kg' ? 'Брондоо' : 'Бронирование', description: currentLocale === 'en' ? 'Reserve a table for breakfast, dinner or a special evening' : 'Забронировать столик для завтрака, ужина или встречи', href: `/${currentLocale}/booking`, keywords: ['бронь', 'бронирование', 'столик', 'booking', 'брондо', 'ужин', 'встреча'] },
-    { label: currentLocale === 'en' ? 'My orders' : currentLocale === 'kg' ? 'Буйрутмаларым' : 'Мои заказы', description: currentLocale === 'en' ? 'View order history and delivery status' : 'История заказов и статус доставки', href: `/${currentLocale}/orders`, keywords: ['заказы', 'заказ', 'orders', 'буйрутма', 'доставка', 'статус'] },
-    ...(!isStaff ? [{ label: currentLocale === 'en' ? 'Cart' : currentLocale === 'kg' ? 'Себет' : 'Корзина', description: currentLocale === 'en' ? 'Open your cart' : 'Товары для оформления', href: `/${currentLocale}/cart`, keywords: ['корзина', 'cart', 'себет'] }] : []),
-    { label: currentLocale === 'en' ? 'Promotions' : currentLocale === 'kg' ? 'Акциялар' : 'Акции', description: currentLocale === 'en' ? 'Current CafeFlow offers, breakfast for two and seasonal specials' : 'Скидки, специальные предложения, новинки и завтрак для двоих', href: `/${currentLocale}#promotions`, keywords: ['акции', 'скидки', 'промо', 'promo', 'sale', 'акция', 'новинка', 'сезон'] },
-    { label: currentLocale === 'en' ? 'About us' : currentLocale === 'kg' ? 'Биз жөнүндө' : 'О нас', description: currentLocale === 'en' ? 'Learn more about CafeFlow' : 'История и атмосфера CaféFlow', href: `/${currentLocale}#about`, keywords: ['о нас', 'about', 'биз жөнүндө'] },
-    { label: currentLocale === 'en' ? 'Address' : currentLocale === 'kg' ? 'Дарек' : 'Адрес', description: currentLocale === 'en' ? 'Find our cafe' : 'Где находится CaféFlow', href: `/${currentLocale}#address`, keywords: ['адрес', 'address', 'дарек'] },
-    { label: currentLocale === 'en' ? 'Contact us' : currentLocale === 'kg' ? 'Байланышуу' : 'Связаться с нами', description: currentLocale === 'en' ? 'Phone and email' : 'Телефон и электронная почта', href: `/${currentLocale}#contact`, keywords: ['связаться', 'контакты', 'contact', 'телефон'] },
-    { label: currentLocale === 'en' ? 'Profile' : currentLocale === 'kg' ? 'Профиль' : 'Профиль', description: currentLocale === 'en' ? 'Your profile and personal data' : 'Профиль и личные данные пользователя', href: `/${currentLocale}/profile`, keywords: ['профиль', 'profile', 'профиль', 'личные данные'] },
-    { label: currentLocale === 'en' ? 'Settings' : currentLocale === 'kg' ? 'Жөндөөлөр' : 'Настройки', description: currentLocale === 'en' ? 'Account and notification settings' : 'Настройки аккаунта и уведомлений', href: `/${currentLocale}/settings`, keywords: ['настройки', 'settings', 'жөндөөлөр', 'аккаунт', 'уведомления'] },
-    { label: currentLocale === 'en' ? 'Registration' : currentLocale === 'kg' ? 'Катталуу' : 'Регистрация', description: currentLocale === 'en' ? 'Create a new account' : 'Создать новый аккаунт', href: `/${currentLocale}/register`, keywords: ['регистрация', 'register', 'sign up', 'катталуу', 'аккаунт'] },
-    { label: currentLocale === 'en' ? 'Log in' : currentLocale === 'kg' ? 'Кирүү' : 'Войти', description: currentLocale === 'en' ? 'Sign in to your account' : 'Вход в аккаунт', href: `/${currentLocale}/login`, keywords: ['войти', 'login', 'sign in', 'кирүү'] },
-    { label: currentLocale === 'en' ? 'Forgot password' : currentLocale === 'kg' ? 'Сырсөздү унуттум' : 'Забыли пароль', description: currentLocale === 'en' ? 'Recover access to your account' : 'Восстановить доступ к аккаунту', href: `/${currentLocale}/forgot-password`, keywords: ['пароль', 'password', 'забыли', 'forgot', 'сырсөз'] },
-    ...(canSearchAdmin ? [
-      { label: currentLocale === 'en' ? 'Admin panel' : currentLocale === 'kg' ? 'Админ панели' : 'Админ-панель', description: currentLocale === 'en' ? 'Users, orders, reservations and settings' : 'Пользователи, заказы, брони и настройки', href: `/${currentLocale}/admin`, keywords: ['админ', 'admin', 'панель', 'башкаруу'] },
-      { label: currentLocale === 'en' ? 'Admin menu' : currentLocale === 'kg' ? 'Админ менюсу' : 'Меню админки', description: currentLocale === 'en' ? 'Manage dishes and categories' : 'Управление блюдами и категориями', href: `/${currentLocale}/admin/menu`, keywords: ['админ меню', 'admin menu', 'категории', 'блюда'] },
-      { label: currentLocale === 'en' ? 'Deliveries' : currentLocale === 'kg' ? 'Жеткирүү' : 'Доставка', description: currentLocale === 'en' ? 'Manage delivery operations' : 'Управление доставками', href: `/${currentLocale}/admin/deliveries`, keywords: ['доставка', 'deliveries', 'жеткирүү'] },
-      { label: currentLocale === 'en' ? 'Admin dashboard' : currentLocale === 'kg' ? 'Башкаруу панели' : 'Панель управления', description: currentLocale === 'en' ? 'Business metrics and operations' : 'Показатели и рабочие процессы заведения', href: `/${currentLocale}/admin/dashboard`, keywords: ['dashboard', 'статистика', 'показатели', 'башкаруу'] },
-    ] : []),
-  ];
+  const searchItemMeta = [
+    { key: 'home', href: `/${currentLocale}`, keywords: ['главная', 'home', 'башкы', 'добро пожаловать', 'атмосфера', 'еда'] },
+    { key: 'menu', href: `/${currentLocale}/menu`, keywords: ['меню', 'блюда', 'menu', 'еда', 'напитки', 'кофе', 'завтрак', 'шеф', 'десерт'] },
+    { key: 'booking', href: `/${currentLocale}/booking`, keywords: ['бронь', 'бронирование', 'столик', 'booking', 'брондо', 'ужин', 'встреча'] },
+    { key: 'orders', href: `/${currentLocale}/orders`, keywords: ['заказы', 'заказ', 'orders', 'буйрутма', 'доставка', 'статус'] },
+    { key: 'cart', href: `/${currentLocale}/cart`, keywords: ['корзина', 'cart', 'себет'] },
+    { key: 'promotions', href: `/${currentLocale}#promotions`, keywords: ['акции', 'скидки', 'промо', 'promo', 'sale', 'акция', 'новинка', 'сезон'] },
+    { key: 'about', href: `/${currentLocale}#about`, keywords: ['о нас', 'about', 'биз жөнүндө'] },
+    { key: 'address', href: `/${currentLocale}#address`, keywords: ['адрес', 'address', 'дарек'] },
+    { key: 'contact', href: `/${currentLocale}#contact`, keywords: ['связаться', 'контакты', 'contact', 'телефон'] },
+    { key: 'profile', href: `/${currentLocale}/profile`, keywords: ['профиль', 'profile', 'личные данные'] },
+    { key: 'settings', href: `/${currentLocale}/settings`, keywords: ['настройки', 'settings', 'жөндөөлөр', 'аккаунт', 'уведомления'] },
+    { key: 'registration', href: `/${currentLocale}/register`, keywords: ['регистрация', 'register', 'sign up', 'катталуу', 'аккаунт'] },
+    { key: 'login', href: `/${currentLocale}/login`, keywords: ['войти', 'login', 'sign in', 'кирүү'] },
+    { key: 'forgotPassword', href: `/${currentLocale}/forgot-password`, keywords: ['пароль', 'password', 'забыли', 'forgot', 'сырсөз'] },
+    { key: 'adminPanel', href: `/${currentLocale}/admin`, keywords: ['админ', 'admin', 'панель', 'башкаруу'], staffOnly: true },
+    { key: 'adminMenu', href: `/${currentLocale}/admin/menu`, keywords: ['админ меню', 'admin menu', 'категории', 'блюда'], staffOnly: true },
+    { key: 'deliveries', href: `/${currentLocale}/admin/deliveries`, keywords: ['доставка', 'deliveries', 'жеткирүү'], staffOnly: true },
+    { key: 'adminDashboard', href: `/${currentLocale}/admin/dashboard`, keywords: ['dashboard', 'статистика', 'показатели', 'башкаруу'], staffOnly: true },
+  ] as const;
+  const searchItems: SearchItem[] = searchItemMeta
+    .filter((item) => !('staffOnly' in item) || canSearchAdmin)
+    .filter((item) => item.key !== 'cart' || !isStaff)
+    .map(({ key, href, keywords }) => ({ ...header.searchItems[key], href, keywords }));
 
   const searchResults = searchQuery.trim()
     ? searchItems.filter((item) => `${item.label} ${item.description} ${item.keywords.join(' ')}`.toLowerCase().includes(searchQuery.trim().toLowerCase()))
@@ -283,32 +287,32 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
 
   const roleConfig: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
     admin: { 
-      label: ui.profile.roleLabels.admin, 
+      label: roleLabels.admin,
       color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
       icon: <ShieldCheck className="w-3 h-3" />
     },
     manager: { 
-      label: ui.profile.roleLabels.manager, 
+      label: roleLabels.manager,
       color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
       icon: <LayoutDashboard className="w-3 h-3" />
     },
     kitchen: { 
-      label: ui.header.kitchen, 
+      label: roleLabels.kitchen,
       color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
       icon: <User className="w-3 h-3" />
     },
     employee: { 
-      label: ui.profile.roleLabels.employee, 
+      label: roleLabels.employee,
       color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
       icon: <User className="w-3 h-3" />
     },
     customer: { 
-      label: ui.profile.roleLabels.customer, 
+      label: roleLabels.customer,
       color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
       icon: <UserCircle className="w-3 h-3" />
     },
     guest: { 
-      label: ui.profile.roleLabels.guest, 
+      label: roleLabels.guest,
       color: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',
       icon: <UserCircle className="w-3 h-3" />
     },
@@ -318,20 +322,16 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
   const isAdmin = user?.role === 'admin';
 
   const getNavLinks = () => {
-    const labels = {
-      ru: { menu: 'Меню', booking: 'Бронь', orders: 'Мои заказы' },
-      en: { menu: 'Menu', booking: 'Booking', orders: 'My orders' },
-      kg: { menu: 'Меню', booking: 'Брондоо', orders: 'Менин заказдарым' },
-    }[currentLocale];
+    const labels = header.nav;
     if (isStaff) {
       const staffLinks = [] as Array<{ href: string; label: string }>;
       if (user?.role === 'admin' || user?.role === 'manager') {
-        staffLinks.push({ href: `/${currentLocale}/admin`, label: ui.header.admin });
+        staffLinks.push({ href: `/${currentLocale}/admin`, label: header.adminPanel });
         if (user.role !== 'admin') {
-          staffLinks.push({ href: `/${currentLocale}/admin/deliveries`, label: currentLocale === 'en' ? 'Deliveries' : currentLocale === 'kg' ? 'Жеткирүү' : 'Доставка' });
+          staffLinks.push({ href: `/${currentLocale}/admin/deliveries`, label: header.nav.deliveries });
         }
       }
-      if (user?.role === 'kitchen') staffLinks.push({ href: '/kitchen', label: ui.header.kitchen });
+      if (user?.role === 'kitchen') staffLinks.push({ href: '/kitchen', label: header.kitchen });
       return staffLinks;
     }
 
@@ -352,10 +352,10 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
     && !pathname.includes('/forgot-password')
     && !isStaff;
   const mobileNavLinks = [
-    { href: `/${currentLocale}/menu`, label: currentLocale === 'en' ? 'Menu' : 'Меню', icon: Utensils },
-    { href: `/${currentLocale}/booking`, label: currentLocale === 'en' ? 'Booking' : 'Бронь', icon: CalendarDays },
-    { href: `/${currentLocale}/orders`, label: currentLocale === 'en' ? 'Orders' : 'Заказы', icon: ClipboardList },
-    { href: `/${currentLocale}/cart`, label: currentLocale === 'en' ? 'Cart' : 'Корзина', icon: ShoppingCart },
+    { href: `/${currentLocale}/menu`, label: header.nav.menu, icon: Utensils },
+    { href: `/${currentLocale}/booking`, label: header.nav.booking, icon: CalendarDays },
+    { href: `/${currentLocale}/orders`, label: header.nav.orders, icon: ClipboardList },
+    { href: `/${currentLocale}/cart`, label: header.nav.cart, icon: ShoppingCart },
   ];
 
   const getNavIcon = (href: string) => {
@@ -367,14 +367,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
   };
 
   // Get localized language names
-  const getLocalizedLanguageName = (locale: Locale, inLocale: Locale): string => {
-    const names: Record<Locale, Record<Locale, string>> = {
-      ru: { ru: 'Русский', en: 'Английский', kg: 'Кыргызский' },
-      en: { ru: 'Russian', en: 'English', kg: 'Kyrgyz' },
-      kg: { ru: 'Орусча', en: 'Англисче', kg: 'Кыргызча' },
-    };
-    return names[inLocale]?.[locale] || localeNames[locale];
-  };
+  const getLocalizedLanguageName = (locale: Locale): string => header.languageNames[locale] || localeNames[locale];
 
   return (
     <>
@@ -385,7 +378,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
             type="button"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-white/80 transition-colors hover:bg-orange-500 hover:text-white md:hidden"
-            aria-label={isMobileMenuOpen ? ui.header.closeMenu : ui.header.openMenu}
+            aria-label={isMobileMenuOpen ? header.closeMenu : header.openMenu}
             aria-expanded={isMobileMenuOpen}
           >
             {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -410,11 +403,11 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
               <input
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder={currentLocale === 'en' ? 'Search the site' : currentLocale === 'kg' ? 'Сайттан издөө' : 'Поиск по сайту'}
+                placeholder={header.search.placeholder}
                 className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/50"
-                aria-label={currentLocale === 'en' ? 'Search the site' : 'Поиск по сайту'}
+                aria-label={header.search.placeholder}
               />
-              <button type="submit" className="header-search-submit flex h-7 w-7 items-center justify-center rounded-md text-white/70 transition-colors hover:bg-orange-500 hover:text-white" aria-label="Поиск">
+              <button type="submit" className="header-search-submit flex h-7 w-7 items-center justify-center rounded-md text-white/70 transition-colors hover:bg-orange-500 hover:text-white" aria-label={header.search.submit}>
                 <Search className="h-4 w-4" />
               </button>
             </label>
@@ -422,14 +415,14 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
               <div className="header-search-results absolute left-0 right-0 top-[calc(100%+0.6rem)] z-[60] overflow-hidden rounded-xl border border-white/10 bg-[#20272c] p-2 shadow-2xl">
                 {searchResults.length > 0 ? (
                   <>
-                    <p className="px-3 pb-2 pt-1 text-[11px] font-bold uppercase tracking-[0.16em] text-orange-300">{currentLocale === 'en' ? 'Found on the site' : currentLocale === 'kg' ? 'Сайттан табылды' : 'Найдено на сайте'}</p>
+                    <p className="px-3 pb-2 pt-1 text-[11px] font-bold uppercase tracking-[0.16em] text-orange-300">{header.search.found}</p>
                     {searchResults.slice(0, 5).map((item) => <button type="button" key={item.href} onClick={() => navigateToSearchResult(item.href)} className="flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left text-white transition hover:bg-orange-500/15"><Search className="mt-0.5 h-4 w-4 shrink-0 text-orange-300" /><span><strong className="block text-sm">{item.label}</strong><span className="block text-xs text-white/55">{item.description}</span></span></button>)}
                   </>
                 ) : (
                   <>
-                    <p className="px-3 pb-2 pt-1 text-sm font-semibold text-white">{currentLocale === 'en' ? 'Nothing found' : currentLocale === 'kg' ? 'Эч нерсе табылган жок' : 'Ничего не найдено'}</p>
-                    <p className="px-3 pb-2 text-xs text-white/55">{currentLocale === 'en' ? 'Similar sections' : currentLocale === 'kg' ? 'Окшош бөлүмдөр' : 'Похожие разделы'}</p>
-                    {similarResults.length > 0 ? similarResults.map((item) => <button type="button" key={item.href} onClick={() => navigateToSearchResult(item.href)} className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-white/75 transition hover:bg-orange-500/15 hover:text-white"><Search className="h-4 w-4 text-orange-300" />{item.label}</button>) : <p className="px-3 pb-2 text-xs text-white/45">{currentLocale === 'en' ? 'Try: menu, booking, orders or promotions.' : currentLocale === 'kg' ? 'Меню, брондоо, буйрутмалар же акцияларды издеп көрүңүз.' : 'Попробуйте: меню, бронь, заказы или акции.'}</p>}
+                    <p className="px-3 pb-2 pt-1 text-sm font-semibold text-white">{header.search.nothingFound}</p>
+                    <p className="px-3 pb-2 text-xs text-white/55">{header.search.similar}</p>
+                    {similarResults.length > 0 ? similarResults.map((item) => <button type="button" key={item.href} onClick={() => navigateToSearchResult(item.href)} className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-white/75 transition hover:bg-orange-500/15 hover:text-white"><Search className="h-4 w-4 text-orange-300" />{item.label}</button>) : <p className="px-3 pb-2 text-xs text-white/45">{header.search.suggestions}</p>}
                   </>
                 )}
               </div>
@@ -443,8 +436,8 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
                 type="button"
                 onClick={() => void markNotificationsRead()}
                 className="relative flex h-10 w-10 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-orange-500 hover:text-white"
-                aria-label="Уведомления"
-                title="Уведомления"
+                aria-label={header.notifications}
+                title={header.notifications}
                 >
                 <Bell className="h-4 w-4" />
                 {unreadNotifications > 0 && <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-red-600 px-1 text-center text-[10px] font-bold leading-5 text-white">{unreadNotifications > 99 ? '99+' : unreadNotifications}</span>}
@@ -456,8 +449,8 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
               <button
                 onClick={toggleTheme}
                   className="flex h-10 w-10 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-orange-500 hover:text-white"
-                aria-label={theme === 'light' ? ui.header.darkTheme : ui.header.lightTheme}
-                title={theme === 'light' ? ui.header.darkTheme : ui.header.lightTheme}
+                aria-label={theme === 'light' ? header.themeDark : header.themeLight}
+                title={theme === 'light' ? header.themeDark : header.themeLight}
               >
                 {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
               </button>
@@ -465,11 +458,11 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
 
             {!isStaff && (
               <>
-                <Link href={`/${currentLocale}/cart`} className="hidden h-10 w-10 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-orange-500 hover:text-white md:flex" aria-label="Корзина" title="Корзина">
+                <Link href={`/${currentLocale}/cart`} className="hidden h-10 w-10 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-orange-500 hover:text-white md:flex" aria-label={header.nav.cart} title={header.nav.cart}>
                   <ShoppingCart className="h-4 w-4" />
                 </Link>
 
-                <Link href={`/${currentLocale}/menu?view=favorites`} className="hidden h-10 w-10 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-orange-500 hover:text-white md:flex" aria-label="Избранное" title="Избранное">
+                <Link href={`/${currentLocale}/menu?view=favorites`} className="hidden h-10 w-10 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-orange-500 hover:text-white md:flex" aria-label={header.nav.favorites} title={header.nav.favorites}>
                   <Heart className="h-4 w-4" />
                 </Link>
               </>
@@ -482,7 +475,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
                   className="flex items-center gap-1.5 rounded-lg px-2 py-2 text-white/70 transition-colors hover:bg-orange-500 hover:text-white sm:gap-2 sm:px-3"
               >
                 <Globe className="w-4 h-4" />
-                <span className="text-xs sm:text-sm font-medium hidden sm:inline">{localeNames[currentLocale]}</span>
+                <span className="text-xs sm:text-sm font-medium hidden sm:inline">{getLocalizedLanguageName(currentLocale)}</span>
                 <ChevronDown className={`w-4 h-4 transition-transform ${isLangDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
@@ -498,7 +491,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
                           : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                       }`}
                     >
-                      {getLocalizedLanguageName(locale, currentLocale)}
+                      {getLocalizedLanguageName(locale)}
                     </button>
                   ))}
                 </div>
@@ -514,7 +507,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
                     className="header-profile flex items-center gap-3 rounded-lg px-3 py-2 text-white transition-colors hover:bg-white/10"
                   >
                     {user.avatarUrl ? (
-                      <Image src={user.avatarUrl} alt="Аватар" width={32} height={32} className="h-8 w-8 rounded-full object-cover" />
+                      <Image src={user.avatarUrl} alt={header.avatar} width={32} height={32} className="h-8 w-8 rounded-full object-cover" />
                     ) : (
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white text-sm font-semibold">
                         {user.firstName?.[0]?.toUpperCase() || 'U'}
@@ -553,7 +546,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
                         onClick={() => setIsDropdownOpen(false)}
                       >
                         <User className="w-4 h-4" />
-                        {ui.header.profile}
+                        {header.profile}
                       </Link>
 
                       <Link
@@ -562,7 +555,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
                         onClick={() => setIsDropdownOpen(false)}
                       >
                         <Settings className="w-4 h-4" />
-                        {ui.header.settings}
+                        {header.settings}
                       </Link>
 
                       <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
@@ -577,7 +570,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
                         } disabled:opacity-50`}
                       >
                         <LogOut className="w-4 h-4" />
-                        {isLoggingOut ? ui.header.loggingOut : logoutConfirm ? `${ui.header.confirmLogout}${logoutCountdown > 0 ? ` (${logoutCountdown})` : ''}` : ui.header.logout}
+                        {isLoggingOut ? header.loggingOut : logoutConfirm ? `${header.logoutConfirm}${logoutCountdown > 0 ? ` (${logoutCountdown})` : ''}` : header.logout}
                       </button>
                     </div>
                   )}
@@ -590,13 +583,13 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
                   href={`/${currentLocale}/login`}
                   className="header-auth-login inline-flex min-h-10 items-center justify-center rounded-lg border border-orange-400/70 px-4 text-sm font-semibold text-orange-200 transition-colors hover:border-orange-400 hover:bg-orange-500 hover:text-white"
                 >
-                  {ui.header.login}
+                  {header.login}
                 </Link>
                 <Link
                   href={`/${currentLocale}/register`}
                   className="inline-flex min-h-10 items-center justify-center rounded-lg bg-orange-500 px-4 text-sm font-semibold text-white shadow-lg shadow-orange-950/20 transition hover:-translate-y-0.5 hover:bg-orange-600"
                 >
-                  {ui.header.register}
+                  {header.register}
                 </Link>
               </div>
             )}
@@ -604,16 +597,16 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
           </div>
         </div>
 
-        <nav className="header-secondary-nav hidden min-h-12 items-center justify-center gap-2 border-t border-white/10 md:flex" aria-label={currentLocale === 'en' ? 'Main navigation' : currentLocale === 'kg' ? 'Негизги навигация' : 'Основная навигация'}>
-          <Link href={`/${currentLocale}`} className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors ${pathname === `/${currentLocale}` ? 'bg-orange-500 text-white' : 'text-white/75 hover:bg-orange-500/15 hover:text-orange-300'}`}><Home className="h-4 w-4" />{ui.header.home}</Link>
+        <nav className="header-secondary-nav hidden min-h-12 items-center justify-center gap-2 border-t border-white/10 md:flex" aria-label={header.mainNavigation}>
+          <Link href={`/${currentLocale}`} className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors ${pathname === `/${currentLocale}` ? 'bg-orange-500 text-white' : 'text-white/75 hover:bg-orange-500/15 hover:text-orange-300'}`}><Home className="h-4 w-4" />{header.home}</Link>
           {navLinks.map((link) => {
             const Icon = getNavIcon(link.href);
             return <Link key={link.href} href={link.href} className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors ${pathname === link.href ? 'bg-orange-500 text-white' : 'text-white/75 hover:bg-orange-500/15 hover:text-orange-300'}`}><Icon className="h-4 w-4" />{link.label}</Link>;
           })}
           {!isAdmin && <>
-            <Link href={`/${currentLocale}#about`} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium text-white/75 transition-colors hover:bg-orange-500/15 hover:text-orange-300"><Info className="h-4 w-4" />{currentLocale === 'en' ? 'About us' : currentLocale === 'kg' ? 'Биз жөнүндө' : 'О нас'}</Link>
-            <Link href={`/${currentLocale}#address`} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium text-white/75 transition-colors hover:bg-orange-500/15 hover:text-orange-300"><MapPin className="h-4 w-4" />{currentLocale === 'en' ? 'Address' : currentLocale === 'kg' ? 'Дарек' : 'Адрес'}</Link>
-            <Link href={`/${currentLocale}#contact`} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium text-white/75 transition-colors hover:bg-orange-500/15 hover:text-orange-300"><Phone className="h-4 w-4" />{currentLocale === 'en' ? 'Contact us' : currentLocale === 'kg' ? 'Байланышуу' : 'Связаться с нами'}</Link>
+            <Link href={`/${currentLocale}#about`} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium text-white/75 transition-colors hover:bg-orange-500/15 hover:text-orange-300"><Info className="h-4 w-4" />{header.nav.about}</Link>
+            <Link href={`/${currentLocale}#address`} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium text-white/75 transition-colors hover:bg-orange-500/15 hover:text-orange-300"><MapPin className="h-4 w-4" />{header.nav.address}</Link>
+            <Link href={`/${currentLocale}#contact`} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium text-white/75 transition-colors hover:bg-orange-500/15 hover:text-orange-300"><Phone className="h-4 w-4" />{header.nav.contact}</Link>
           </>}
         </nav>
 
@@ -622,7 +615,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
           <div className="header-mobile-menu absolute left-0 right-0 top-full border-t border-white/10 bg-[#151a1e] py-4 shadow-xl md:hidden md:max-w-md md:rounded-b-lg">
             {user && <div className="flex items-center gap-3 px-4 py-3 mb-4">
               {user.avatarUrl ? (
-                <Image src={user.avatarUrl} alt="Аватар" width={40} height={40} className="h-10 w-10 rounded-full object-cover" />
+                <Image src={user.avatarUrl} alt={header.avatar} width={40} height={40} className="h-10 w-10 rounded-full object-cover" />
               ) : (
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white text-sm font-semibold">
                   {user.firstName?.[0]?.toUpperCase() || 'U'}
@@ -656,13 +649,13 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
               {!user && (
                 <div className="space-y-1">
                   <Link href={`/${currentLocale}`} className="flex min-h-[44px] items-center px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
-                    {ui.header.home}
+                    {header.home}
                   </Link>
                   <Link href={`/${currentLocale}/login`} className="flex min-h-[44px] items-center px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
-                    {ui.header.login}
+                    {header.login}
                   </Link>
                   <Link href={`/${currentLocale}/register`} className="mx-4 flex min-h-[44px] items-center justify-center rounded-lg bg-amber-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-amber-700">
-                    {ui.header.register}
+                    {header.register}
                   </Link>
                 </div>
               )}
@@ -671,10 +664,10 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
                 <button
                   onClick={toggleTheme}
                   className="flex min-h-[44px] w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-                  aria-label={theme === 'light' ? ui.header.darkTheme : ui.header.lightTheme}
+                  aria-label={theme === 'light' ? header.themeDark : header.themeLight}
                 >
                   {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-                  <span>{theme === 'light' ? ui.header.darkTheme : ui.header.lightTheme}</span>
+                  <span>{theme === 'light' ? header.themeDark : header.themeLight}</span>
                 </button>
               </div>
 
@@ -683,7 +676,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
                 <div className="px-4 py-2">
                   <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2">
                     <Globe className="w-4 h-4" />
-                    <span className="font-medium">{ui.header.language}</span>
+                    <span className="font-medium">{header.language}</span>
                   </div>
                   <div className="space-y-1">
                     {locales.map((locale) => (
@@ -696,7 +689,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
                             : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                         }`}
                       >
-                        {getLocalizedLanguageName(locale, currentLocale)}
+                        {getLocalizedLanguageName(locale)}
                       </button>
                     ))}
                   </div>
@@ -709,7 +702,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
                   className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 min-h-[44px] transition-colors"
                 >
                   <User className="w-4 h-4" />
-                  {ui.header.profile}
+                  {header.profile}
                 </Link>
 
                 <Link
@@ -717,7 +710,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
                   className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 min-h-[44px] transition-colors"
                 >
                   <Settings className="w-4 h-4" />
-                  {ui.header.settings}
+                  {header.settings}
                 </Link>
 
                 <button
@@ -730,7 +723,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
                   } disabled:opacity-50`}
                 >
                   <LogOut className="w-4 h-4" />
-                  {isLoggingOut ? ui.header.loggingOut : logoutConfirm ? `${ui.header.confirmLogout}${logoutCountdown > 0 ? ` (${logoutCountdown})` : ''}` : ui.header.logout}
+                  {isLoggingOut ? header.loggingOut : logoutConfirm ? `${header.logoutConfirm}${logoutCountdown > 0 ? ` (${logoutCountdown})` : ''}` : header.logout}
                 </button>
               </div>
             </div>
@@ -740,10 +733,10 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
     </header>
 
       {isCustomerSurface && (
-        <nav className="mobile-bottom-nav md:hidden" aria-label={currentLocale === 'en' ? 'Main navigation' : 'Основная навигация'}>
+        <nav className="mobile-bottom-nav md:hidden" aria-label={header.mainNavigation}>
         <Link href={`/${currentLocale}`} className={`mobile-bottom-nav__item ${pathname === `/${currentLocale}` ? 'mobile-bottom-nav__item--active' : ''}`}>
           <Home className="h-5 w-5" aria-hidden="true" />
-          <span>{currentLocale === 'en' ? 'Home' : 'Главная'}</span>
+          <span>{header.home}</span>
         </Link>
         {mobileNavLinks.map(({ href, label, icon: Icon }) => {
           const active = pathname === href;

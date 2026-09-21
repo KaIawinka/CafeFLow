@@ -18,7 +18,54 @@
     "themeAuto": "Авто",
     "openMenu": "Открыть меню",
     "closeMenu": "Закрыть меню",
-    "avatar": "Аватар"
+    "avatar": "Аватар",
+    "notifications": "Уведомления",
+    "mainNavigation": "Основная навигация",
+    "nav": {
+      "menu": "Меню",
+      "booking": "Бронь",
+      "orders": "Мои заказы",
+      "cart": "Корзина",
+      "favorites": "Избранное",
+      "deliveries": "Доставка",
+      "about": "О нас",
+      "address": "Адрес",
+      "contact": "Связаться с нами",
+      "promotions": "Акции"
+    },
+    "search": {
+      "placeholder": "Поиск по сайту",
+      "submit": "Поиск",
+      "found": "Найдено на сайте",
+      "nothingFound": "Ничего не найдено",
+      "similar": "Похожие разделы",
+      "suggestions": "Попробуйте: меню, бронь, заказы или акции."
+    },
+    "languageNames": {
+      "ru": "Русский",
+      "en": "Английский",
+      "kg": "Кыргызский"
+    },
+    "searchItems": {
+      "home": { "label": "Главная", "description": "Главная страница CaféFlow, вкусная еда и уютная атмосфера" },
+      "menu": { "label": "Меню", "description": "Блюда, напитки, кофе, завтраки и выбор шефа" },
+      "booking": { "label": "Бронирование", "description": "Забронировать столик для завтрака, ужина или встречи" },
+      "orders": { "label": "Мои заказы", "description": "История заказов и статус доставки" },
+      "cart": { "label": "Корзина", "description": "Товары для оформления" },
+      "promotions": { "label": "Акции", "description": "Скидки, специальные предложения, новинки и завтрак для двоих" },
+      "about": { "label": "О нас", "description": "История и атмосфера CaféFlow" },
+      "address": { "label": "Адрес", "description": "Где находится CaféFlow" },
+      "contact": { "label": "Связаться с нами", "description": "Телефон и электронная почта" },
+      "profile": { "label": "Профиль", "description": "Профиль и личные данные пользователя" },
+      "settings": { "label": "Настройки", "description": "Настройки аккаунта и уведомлений" },
+      "registration": { "label": "Регистрация", "description": "Создать новый аккаунт" },
+      "login": { "label": "Войти", "description": "Вход в аккаунт" },
+      "forgotPassword": { "label": "Забыли пароль", "description": "Восстановить доступ к аккаунту" },
+      "adminPanel": { "label": "Админ-панель", "description": "Пользователи, заказы, брони и настройки" },
+      "adminMenu": { "label": "Меню админки", "description": "Управление блюдами и категориями" },
+      "deliveries": { "label": "Доставка", "description": "Управление доставками" },
+      "adminDashboard": { "label": "Панель управления", "description": "Показатели и рабочие процессы заведения" }
+    }
   },
   "profile": {
     "title": "Профиль",

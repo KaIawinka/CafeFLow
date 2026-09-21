@@ -18,7 +18,54 @@
     "themeAuto": "Auto",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
-    "avatar": "Avatar"
+    "avatar": "Avatar",
+    "notifications": "Notifications",
+    "mainNavigation": "Main navigation",
+    "nav": {
+      "menu": "Menu",
+      "booking": "Booking",
+      "orders": "My orders",
+      "cart": "Cart",
+      "favorites": "Favorites",
+      "deliveries": "Deliveries",
+      "about": "About us",
+      "address": "Address",
+      "contact": "Contact us",
+      "promotions": "Promotions"
+    },
+    "search": {
+      "placeholder": "Search the site",
+      "submit": "Search",
+      "found": "Found on the site",
+      "nothingFound": "Nothing found",
+      "similar": "Similar sections",
+      "suggestions": "Try: menu, booking, orders or promotions."
+    },
+    "languageNames": {
+      "ru": "Russian",
+      "en": "English",
+      "kg": "Kyrgyz"
+    },
+    "searchItems": {
+      "home": { "label": "Home", "description": "CafeFlow home page, food, atmosphere and welcome" },
+      "menu": { "label": "Menu", "description": "Browse dishes, drinks, coffee, breakfast and chef specials" },
+      "booking": { "label": "Booking", "description": "Reserve a table for breakfast, dinner or a special evening" },
+      "orders": { "label": "My orders", "description": "View order history and delivery status" },
+      "cart": { "label": "Cart", "description": "Open your cart" },
+      "promotions": { "label": "Promotions", "description": "Current CafeFlow offers, breakfast for two and seasonal specials" },
+      "about": { "label": "About us", "description": "Learn more about CafeFlow" },
+      "address": { "label": "Address", "description": "Find our cafe" },
+      "contact": { "label": "Contact us", "description": "Phone and email" },
+      "profile": { "label": "Profile", "description": "Your profile and personal data" },
+      "settings": { "label": "Settings", "description": "Account and notification settings" },
+      "registration": { "label": "Registration", "description": "Create a new account" },
+      "login": { "label": "Log in", "description": "Sign in to your account" },
+      "forgotPassword": { "label": "Forgot password", "description": "Recover access to your account" },
+      "adminPanel": { "label": "Admin panel", "description": "Users, orders, reservations and settings" },
+      "adminMenu": { "label": "Admin menu", "description": "Manage dishes and categories" },
+      "deliveries": { "label": "Deliveries", "description": "Manage delivery operations" },
+      "adminDashboard": { "label": "Admin dashboard", "description": "Business metrics and operations" }
+    }
   },
   "profile": {
     "title": "Profile",
