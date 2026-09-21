@@ -7,12 +7,6 @@ interface FooterProps {
   locale: Locale;
 }
 
-const footerCopy = {
-  ru: { contacts: 'Контакты', hours: 'Часы работы', address: 'Бишкек, ул. Примерная 123', weekdays: 'Пн — Пт · 10:00–23:00', weekends: 'Сб — Вс · 09:00–23:00', open: 'Мы открыты каждый день' },
-  en: { contacts: 'Contact us', hours: 'Opening hours', address: 'Bishkek, Example Street 123', weekdays: 'Mon — Fri · 10:00–23:00', weekends: 'Sat — Sun · 09:00–23:00', open: 'We are open every day' },
-  kg: { contacts: 'Байланыштар', hours: 'Иш убактысы', address: 'Бишкек, Мисал көчөсү 123', weekdays: 'Дш — Жм · 10:00–23:00', weekends: 'Иш — Жек · 09:00–23:00', open: 'Биз күн сайын ачыкпыз' },
-} as const;
-
 function WhatsAppMark() {
   return <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 fill-current"><path d="M12 2a9.9 9.9 0 0 0-8.56 14.87L2 22l5.3-1.39A9.9 9.9 0 1 0 12 2Zm0 18a8.1 8.1 0 0 1-4.13-1.13l-.3-.18-3.15.83.84-3.07-.2-.32A8.1 8.1 0 1 1 12 20Zm4.43-6.06c-.24-.12-1.43-.7-1.65-.78-.22-.08-.38-.12-.54.12-.16.24-.62.78-.76.94-.14.16-.28.18-.52.06-.24-.12-1-.37-1.91-1.18-.71-.63-1.19-1.41-1.33-1.65-.14-.24-.01-.37.1-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.31-.74-1.79-.2-.47-.4-.41-.54-.42h-.46c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.69 2.58 4.09 3.62.57.25 1.01.4 1.36.51.57.18 1.09.15 1.5.09.46-.07 1.43-.58 1.63-1.14.2-.56.2-1.04.14-1.14-.06-.1-.22-.16-.46-.28Z" /></svg>;
 }
@@ -45,8 +39,8 @@ function YouTubeMark() {
   return <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 fill-current"><path d="M21.6 7.2a2.8 2.8 0 0 0-2-2C17.8 4.7 12 4.7 12 4.7s-5.8 0-7.6.5a2.8 2.8 0 0 0-2 2A29 29 0 0 0 2 12a29 29 0 0 0 .4 4.8 2.8 2.8 0 0 0 2 2c1.8.5 7.6.5 7.6.5s5.8 0 7.6-.5a2.8 2.8 0 0 0 2-2A29 29 0 0 0 22 12a29 29 0 0 0-.4-4.8ZM10 15.5v-7l6 3.5-6 3.5Z" /></svg>;
 }
 
-export function Footer({ t, locale }: FooterProps) {
-  const copy = footerCopy[locale];
+export function Footer({ t }: FooterProps) {
+  const copy = t.footer;
   return (
     <footer id="contact" className="footer-surface relative bg-[#151a1e] py-10 text-white sm:py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

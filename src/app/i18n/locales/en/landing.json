@@ -16,10 +16,43 @@
     "title": "About us",
     "description": "We create memorable experiences with every visit"
   },
+  "features": {
+    "menuEyebrow": "From our kitchen",
+    "story": {
+      "eyebrow": "Our story",
+      "text": "We bring people together around one table and turn an ordinary day into a small occasion. Local ingredients, an open kitchen, and a team that remembers your favorites.",
+      "fresh": "Fresh ingredients",
+      "daily": "Every morning",
+      "chefs": "Skilled chefs",
+      "experience": "10+ years of craft",
+      "ambience": "Warm ambience",
+      "meetings": "For important moments",
+      "service": "Fast service",
+      "wait": "No long waits",
+      "years": "Years of experience"
+    },
+    "dishes": [
+      { "name": "Flat white", "description": "Double espresso and silky milk", "label": "Morning ritual" },
+      { "name": "Avocado toast", "description": "Sourdough, avocado, and poached egg", "label": "Best seller" },
+      { "name": "Salmon bowl", "description": "Rice, edamame, salmon, and sesame sauce", "label": "Chef pick" },
+      { "name": "Berry cheesecake", "description": "Creamy cheesecake with seasonal berries", "label": "Sweet finish" }
+    ]
+  },
+  "promotions": {
+    "items": [
+      { "eyebrow": "Weekly favorite", "title": "Breakfast for two with 20% off", "detail": "Fresh pastries, coffee, and an easy morning every day until noon.", "action": "Open menu", "tag": "20% OFF" },
+      { "eyebrow": "Seasonal new", "title": "A flavor worth remembering", "detail": "Local ingredients and new dishes from our chef team.", "action": "Try it", "tag": "NEW MENU" },
+      { "eyebrow": "Special evenings", "title": "Your table is waiting", "detail": "Pick a time and receive a small treat from the house.", "action": "Book a table", "tag": "BOOK NOW" }
+    ],
+    "previous": "Previous promotion",
+    "next": "Next promotion",
+    "slide": "Slide"
+  },
   "reservation": {
     "title": "Book a table",
     "subtitle": "We will reserve the best seat for you",
-    "button": "Reserve now"
+    "button": "Reserve now",
+    "eyebrow": "Make it memorable"
   },
   "contact": {
     "title": "Contact",
@@ -32,6 +65,12 @@
     "reservation": "Reservations",
     "about": "About us",
     "contact": "Contact",
-    "rights": "All rights reserved"
+    "rights": "All rights reserved",
+    "contacts": "Contact us",
+    "hours": "Opening hours",
+    "address": "Bishkek, Example Street 123",
+    "weekdays": "Mon — Fri · 10:00–23:00",
+    "weekends": "Sat — Sun · 09:00–23:00",
+    "open": "We are open every day"
   }
 }
