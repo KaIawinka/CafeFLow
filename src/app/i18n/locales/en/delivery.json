@@ -1,0 +1,30 @@
+{
+  "title": "Deliveries",
+  "subtitle": "Courier queue and delivery issues",
+  "operations": "operations",
+  "all": "All statuses",
+  "refresh": "Refresh",
+  "empty": "No deliveries found",
+  "courier": "Courier",
+  "selectCourier": "Assign courier",
+  "promisedAt": "Promised time",
+  "tracking": "Tracking code",
+  "reason": "Issue reason",
+  "save": "Save",
+  "retry": "Retry delivery",
+  "address": "Address",
+  "order": "Order",
+  "customer": "Customer",
+  "attempts": "Attempts",
+  "loading": "Loading deliveries...",
+  "error": "Unable to update delivery",
+  "status": "Status",
+  "success": "OK",
+  "statusLabels": {
+    "pending": "Pending",
+    "assigned": "Assigned",
+    "delivering": "In transit",
+    "delivered": "Delivered",
+    "failed": "Issue"
+  }
+}
