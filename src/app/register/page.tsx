@@ -7,7 +7,8 @@ import Image from 'next/image';
 import { Eye, EyeOff, UserPlus, Mail, Lock, User, AlertCircle, Loader2, CheckCircle, Phone } from 'lucide-react';
 import { RecaptchaProvider } from '@/components/RecaptchaProvider';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
-import { getTranslation, type Locale } from '@/lib/translations';
+import { getLocaleTranslations } from '@/app/i18n/catalog';
+import type { Locale } from '@/app/i18n/config';
 
 function RegisterForm() {
   const router = useRouter();
@@ -22,7 +23,7 @@ function RegisterForm() {
   };
 
   const currentLocale = getCurrentLocale();
-  const t = getTranslation(currentLocale);
+  const { auth, common } = getLocaleTranslations(currentLocale);
 
   const [formData, setFormData] = useState({
     email: '',
@@ -60,12 +61,12 @@ function RegisterForm() {
 
     // Validation
     if (formData.password !== formData.confirmPassword) {
-      setError(t.register.errors.passwordMismatch);
+      setError(auth.register.errors.passwordMismatch);
       return;
     }
 
     if (formData.password.length < 8) {
-      setError(t.register.errors.passwordTooShort);
+      setError(auth.register.errors.passwordTooShort);
       return;
     }
 
@@ -99,22 +100,22 @@ function RegisterForm() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || t.register.errors.serverError);
+        setError(data.error || auth.register.errors.serverError);
         setIsLoading(false);
         return;
       }
 
       router.push(`/verify-email?userId=${data.user.id}&email=${encodeURIComponent(data.user.email)}`);
     } catch {
-      setError(t.register.errors.serverError);
+      setError(auth.register.errors.serverError);
       setIsLoading(false);
     }
   };
 
   const strengthConfig = {
-    weak: { color: 'bg-red-500', text: t.register.weak, width: 'w-1/3' },
-    medium: { color: 'bg-yellow-500', text: t.register.medium, width: 'w-2/3' },
-    strong: { color: 'bg-green-500', text: t.register.strong, width: 'w-full' },
+    weak: { color: 'bg-red-500', text: auth.register.weak, width: 'w-1/3' },
+    medium: { color: 'bg-yellow-500', text: auth.register.medium, width: 'w-2/3' },
+    strong: { color: 'bg-green-500', text: auth.register.strong, width: 'w-full' },
   };
 
   return (
@@ -122,18 +123,18 @@ function RegisterForm() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <Image src="/cafeflow-logo.svg" alt="CafeFlow" width={64} height={64} className="mx-auto mb-4 h-16 w-16 rounded-2xl object-cover shadow-lg" />
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t.common.cafeflow}</h1>
-          <p className="text-gray-600 mt-2">{t.common.createAccount}</p>
+          <Image src="/cafeflow-logo.svg" alt={common.auth.brand} width={64} height={64} className="mx-auto mb-4 h-16 w-16 rounded-2xl object-cover shadow-lg" />
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{common.auth.brand}</h1>
+          <p className="text-gray-600 mt-2">{common.auth.createAccount}</p>
         </div>
 
         {/* Registration Form */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 ring-1 ring-black/5">
           <form onSubmit={handleRegister} className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">{t.register.title}</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{auth.register.title}</h2>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {t.register.subtitle}
+                {auth.register.subtitle}
               </p>
             </div>
 
@@ -147,7 +148,7 @@ function RegisterForm() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t.register.firstName} *
+                  {auth.register.firstName} *
                 </label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
@@ -159,14 +160,14 @@ function RegisterForm() {
                     onChange={handleChange}
                     required
                     className="w-full pl-11 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    placeholder={t.register.firstNamePlaceholder}
+                    placeholder={auth.register.firstNamePlaceholder}
                   />
                 </div>
               </div>
 
               <div>
                 <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t.register.lastName}
+                  {auth.register.lastName}
                 </label>
                 <input
                   id="lastName"
@@ -175,14 +176,14 @@ function RegisterForm() {
                   value={formData.lastName}
                   onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder={t.register.lastNamePlaceholder}
+                  placeholder={auth.register.lastNamePlaceholder}
                 />
               </div>
             </div>
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t.register.email} *
+                {auth.register.email} *
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
@@ -194,14 +195,14 @@ function RegisterForm() {
                   onChange={handleChange}
                   required
                   className="w-full pl-11 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder={t.register.emailPlaceholder}
+                  placeholder={auth.register.emailPlaceholder}
                 />
               </div>
             </div>
 
             <div>
               <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t.register.phone}
+                {auth.register.phone}
               </label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
@@ -212,14 +213,14 @@ function RegisterForm() {
                   value={formData.phone}
                   onChange={handleChange}
                   className="w-full pl-11 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder={t.register.phonePlaceholder}
+                  placeholder={auth.register.phonePlaceholder}
                 />
               </div>
             </div>
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t.register.password} *
+                {auth.register.password} *
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
@@ -231,9 +232,9 @@ function RegisterForm() {
                   onChange={handleChange}
                   required
                   className="w-full pl-11 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder={t.register.passwordPlaceholder}
+                  placeholder={auth.register.passwordPlaceholder}
                 />
-                <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900 dark:text-white">
+                <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? auth.passwordVisibility.hide : auth.passwordVisibility.show} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900 dark:text-white">
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
@@ -242,7 +243,7 @@ function RegisterForm() {
               {formData.password && passwordStrength && (
                 <div className="mt-2">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-gray-600 dark:text-gray-400">{t.register.passwordStrength}</span>
+                    <span className="text-xs text-gray-600 dark:text-gray-400">{auth.register.passwordStrength}</span>
                     <span className="text-xs font-medium text-gray-700">
                       {strengthConfig[passwordStrength].text}
                     </span>
@@ -258,7 +259,7 @@ function RegisterForm() {
 
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t.register.confirmPassword} *
+                {auth.register.confirmPassword} *
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
@@ -270,9 +271,9 @@ function RegisterForm() {
                   onChange={handleChange}
                   required
                   className="w-full pl-11 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder={t.register.confirmPasswordPlaceholder}
+                  placeholder={auth.register.confirmPasswordPlaceholder}
                 />
-                <button type="button" onClick={() => setShowConfirmPassword((visible) => !visible)} aria-label={showConfirmPassword ? 'Hide password' : 'Show password'} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900 dark:text-white">
+                <button type="button" onClick={() => setShowConfirmPassword((visible) => !visible)} aria-label={showConfirmPassword ? auth.passwordVisibility.hide : auth.passwordVisibility.show} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900 dark:text-white">
                   {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
                 {formData.confirmPassword && formData.password === formData.confirmPassword && (
@@ -289,20 +290,20 @@ function RegisterForm() {
               {isLoading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  {t.register.registering}
+                  {auth.register.registering}
                 </>
               ) : (
                 <>
                   <UserPlus className="w-5 h-5" />
-                  {t.register.registerButton}
+                  {auth.register.registerButton}
                 </>
               )}
             </button>
 
             <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-              {t.register.haveAccount}{' '}
+              {auth.register.haveAccount}{' '}
               <Link href={`/${currentLocale}/login`} className="text-amber-600 hover:text-amber-700 font-medium">
-                {t.register.login}
+                {auth.register.login}
               </Link>
             </div>
           </form>
@@ -310,7 +311,7 @@ function RegisterForm() {
 
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-gray-600 dark:text-gray-400">
-          <p>© {new Date().getFullYear()} {t.common.cafeflow}. {t.common.footerRights}.</p>
+          <p>© {new Date().getFullYear()} {common.auth.brand}. {common.footer.rights}.</p>
         </div>
       </div>
     </div>

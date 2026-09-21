@@ -7,7 +7,8 @@ import Image from 'next/image';
 import { Eye, EyeOff, LogIn, Mail, Lock, AlertCircle, Loader2, ShieldCheck } from 'lucide-react';
 import { RecaptchaProvider } from '@/components/RecaptchaProvider';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
-import { getTranslation, type Locale } from '@/lib/translations';
+import { getLocaleTranslations } from '@/app/i18n/catalog';
+import type { Locale } from '@/app/i18n/config';
 
 export default function LoginPage() {
   return (
@@ -33,7 +34,7 @@ function LoginContent() {
   };
 
   const currentLocale = getCurrentLocale();
-  const t = getTranslation(currentLocale);
+  const { auth, common } = getLocaleTranslations(currentLocale);
 
   const navigateAfterLogin = (target: string) => {
     const localizedTarget = target.startsWith(`/${currentLocale}`)
@@ -79,7 +80,7 @@ function LoginContent() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || t.login.errors.serverError);
+        setError(data.error || auth.login.errors.serverError);
         setIsLoading(false);
         return;
       }
@@ -107,7 +108,7 @@ function LoginContent() {
         }
       }
     } catch {
-      setError(t.login.errors.serverError);
+      setError(auth.login.errors.serverError);
       setIsLoading(false);
     }
   };
@@ -131,7 +132,7 @@ function LoginContent() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || t.login.errors.invalidCode);
+        setError(data.error || auth.login.errors.invalidCode);
         setIsLoading(false);
         return;
       }
@@ -148,7 +149,7 @@ function LoginContent() {
         }
       }
     } catch {
-      setError(t.login.errors.serverError);
+      setError(auth.login.errors.serverError);
       setIsLoading(false);
     }
   };
@@ -158,10 +159,10 @@ function LoginContent() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <Image src="/cafeflow-logo.svg" alt="CafeFlow" width={64} height={64} className="mx-auto mb-4 h-16 w-16 rounded-2xl object-cover shadow-lg" />
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent">{t.common.cafeflow}</h1>
+          <Image src="/cafeflow-logo.svg" alt={common.auth.brand} width={64} height={64} className="mx-auto mb-4 h-16 w-16 rounded-2xl object-cover shadow-lg" />
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent">{common.auth.brand}</h1>
           <p className="text-gray-700 dark:text-gray-300 mt-2">
-            {requires2FA ? t.common.twoFaConfirmation : t.common.welcome}
+            {requires2FA ? common.auth.twoFaConfirmation : common.auth.welcome}
           </p>
         </div>
 
@@ -170,9 +171,9 @@ function LoginContent() {
           {!requires2FA ? (
             <form onSubmit={handleLogin} className="space-y-6">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{t.login.title}</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{auth.login.title}</h2>
                 <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500">
-                  {t.login.subtitle}
+                  {auth.login.subtitle}
                 </p>
               </div>
 
@@ -185,7 +186,7 @@ function LoginContent() {
 
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t.login.email}
+                  {auth.login.email}
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
@@ -196,14 +197,14 @@ function LoginContent() {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     className="w-full pl-11 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    placeholder={t.login.emailPlaceholder}
+                    placeholder={auth.login.emailPlaceholder}
                   />
                 </div>
               </div>
 
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t.login.password}
+                  {auth.login.password}
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
@@ -214,15 +215,15 @@ function LoginContent() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     className="w-full pl-11 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    placeholder={t.login.passwordPlaceholder}
+                    placeholder={auth.login.passwordPlaceholder}
                   />
-                  <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900 dark:text-white">
+                  <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? auth.passwordVisibility.hide : auth.passwordVisibility.show} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900 dark:text-white">
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
                 <div className="mt-2 text-right">
                   <Link href={`/${currentLocale}/forgot-password`} className="text-sm font-medium text-amber-600 hover:text-amber-700 dark:text-amber-400">
-                    {t.login.forgotPassword}
+                    {auth.login.forgotPassword}
                   </Link>
                 </div>
               </div>
@@ -235,20 +236,20 @@ function LoginContent() {
                 {isLoading ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    {t.login.loggingIn}
+                    {auth.login.loggingIn}
                   </>
                 ) : (
                   <>
                     <LogIn className="w-5 h-5" />
-                    {t.login.loginButton}
+                    {auth.login.loginButton}
                   </>
                 )}
               </button>
 
               <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-                {t.login.noAccount}{' '}
+                {auth.login.noAccount}{' '}
                 <Link href={`/${currentLocale}/register`} className="text-amber-600 hover:text-amber-700 font-medium">
-                  {t.login.register}
+                  {auth.login.register}
                 </Link>
               </div>
             </form>
@@ -260,10 +261,10 @@ function LoginContent() {
                   <ShieldCheck className="w-8 h-8 text-amber-600" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  {t.login.twoFa.title}
+                  {auth.login.twoFa.title}
                 </h2>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {t.login.twoFa.subtitle}
+                  {auth.login.twoFa.subtitle}
                 </p>
               </div>
 
@@ -276,7 +277,7 @@ function LoginContent() {
 
               <div>
                 <label htmlFor="code" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t.login.twoFa.codeLabel}
+                  {auth.login.twoFa.codeLabel}
                 </label>
                 <input
                   id="code"
@@ -286,11 +287,11 @@ function LoginContent() {
                   required
                   maxLength={6}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all text-center text-2xl font-mono tracking-widest"
-                  placeholder={t.login.twoFa.codePlaceholder}
+                  placeholder={auth.login.twoFa.codePlaceholder}
                   autoComplete="off"
                 />
                 <p className="text-xs text-gray-500 mt-2">
-                  {t.login.twoFa.codeHint}
+                  {auth.login.twoFa.codeHint}
                 </p>
               </div>
 
@@ -302,12 +303,12 @@ function LoginContent() {
                 {isLoading ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    {t.login.twoFa.verifying}
+                    {auth.login.twoFa.verifying}
                   </>
                 ) : (
                   <>
                     <ShieldCheck className="w-5 h-5" />
-                    {t.login.twoFa.verifyButton}
+                    {auth.login.twoFa.verifyButton}
                   </>
                 )}
               </button>
@@ -321,7 +322,7 @@ function LoginContent() {
                 }}
                 className="w-full text-sm text-gray-600 hover:text-gray-900 transition-colors"
               >
-                {t.login.twoFa.back}
+                {auth.login.twoFa.back}
               </button>
             </form>
           )}
@@ -329,7 +330,7 @@ function LoginContent() {
 
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-gray-600 dark:text-gray-400">
-          <p>© {new Date().getFullYear()} {t.common.cafeflow}. {t.common.footerRights}.</p>
+          <p>© {new Date().getFullYear()} {common.auth.brand}. {common.footer.rights}.</p>
         </div>
       </div>
     </div>
