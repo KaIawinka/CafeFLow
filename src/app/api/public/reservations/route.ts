@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { getPublicCafeContext } from '@/lib/public-context';
 import { isWithinBusinessHours } from '@/lib/reservations/hours';
 import { apiPublicMessage } from '@/lib/api-response';
+import { parseLocalDateTime } from '@/lib/reservations/time';
 
 function token() { return randomBytes(48).toString('base64url'); }
 function serialize<T>(value: T): T { return JSON.parse(JSON.stringify(value, (_, item) => typeof item === 'bigint' ? item.toString() : item)); }
@@ -19,9 +20,10 @@ export async function GET(request: NextRequest) {
     if (!context?.branch) return NextResponse.json({ error: apiPublicMessage(request, 'branchNotConfigured') }, { status: 503 });
     const tables = await prisma.restaurant_tables.findMany({ where: { tenant_id: context.tenant.id, branch_id: context.branch.id, status: 'active', capacity: { gte: guests } }, select: { id: true, name: true, zone: true, capacity: true, position: true }, orderBy: { name: 'asc' } });
     if (!time || !/^\d{2}:\d{2}$/.test(time)) return NextResponse.json(serialize({ tables }));
-    const startAt = new Date(`${date}T${time}:00`);
-    const endAt = new Date(startAt.getTime() + 90 * 60 * 1000);
     const branchInfo = await prisma.branches.findUnique({ where: { id: context.branch.id }, select: { timezone: true } });
+    const startAt = time ? parseLocalDateTime(date, time, branchInfo?.timezone || 'UTC') : null;
+    if (!startAt) return NextResponse.json(serialize({ tables: [] }));
+    const endAt = new Date(startAt.getTime() + 90 * 60 * 1000);
     if (!branchInfo || !(await isWithinBusinessHours(context.tenant.id, context.branch.id, startAt, endAt, branchInfo.timezone || 'UTC'))) return NextResponse.json({ tables: [] });
     const conflicts = await prisma.reservations.findMany({ where: { tenant_id: context.tenant.id, branch_id: context.branch.id, status: { in: ['pending', 'confirmed', 'seated'] }, start_at: { lt: endAt }, end_at: { gt: startAt } }, select: { table_ids: true } });
     const blocks = await prisma.table_blocks.findMany({
@@ -44,13 +46,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json() as { date?: string; time?: string; guests?: number; name?: string; phone?: string; tableId?: string; comment?: string };
     const guests = Number(body.guests);
     if (!body.date || !/^\d{2}:\d{2}$/.test(body.time || '') || !body.name?.trim() || !body.phone?.trim() || !body.tableId || !Number.isInteger(guests) || guests < 1 || guests > 50) return NextResponse.json({ error: apiPublicMessage(request, 'reservationFieldsRequired') }, { status: 400 });
-    const startAt = new Date(`${body.date}T${body.time}:00`);
-    if (Number.isNaN(startAt.getTime()) || startAt < new Date()) return NextResponse.json({ error: apiPublicMessage(request, 'reservationDateTimeInvalid') }, { status: 400 });
-    const endAt = new Date(startAt.getTime() + 90 * 60 * 1000);
     const context = await getPublicCafeContext(request);
     if (!context?.branch) return NextResponse.json({ error: apiPublicMessage(request, 'branchNotConfigured') }, { status: 503 });
     const branch = context.branch;
     const branchInfo = await prisma.branches.findUnique({ where: { id: branch.id }, select: { timezone: true } });
+    const startAt = parseLocalDateTime(body.date, body.time, branchInfo?.timezone || 'UTC');
+    if (!startAt || startAt < new Date()) return NextResponse.json({ error: apiPublicMessage(request, 'reservationDateTimeInvalid') }, { status: 400 });
+    const endAt = new Date(startAt.getTime() + 90 * 60 * 1000);
     if (!branchInfo || !(await isWithinBusinessHours(context.tenant.id, branch.id, startAt, endAt, branchInfo.timezone || 'UTC'))) return NextResponse.json({ error: apiPublicMessage(request, 'branchClosed') }, { status: 409 });
     const guestName = body.name.trim();
     const guestPhone = body.phone.trim();
