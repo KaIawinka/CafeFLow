@@ -5,19 +5,15 @@ import Link from 'next/link';
 import { ArrowLeft, Archive, Plus, Save } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import type { Locale } from '@/app/i18n/config';
+import { getLocaleTranslations } from '@/app/i18n/catalog';
 
 type Category = { id: string; name: string; slug: string; is_active: boolean };
 type Product = { id: string; name: string; slug: string; price: string | number; currency: string; is_available: boolean; category?: { id: string; name: string } | null };
-const copy = {
-  ru: { back: 'Админ-панель', title: 'Меню и категории', subtitle: 'Управление каталогом заведения', loadError: 'Не удалось загрузить меню', category: 'Новая категория', product: 'Новое блюдо', name: 'Название', productName: 'Название блюда', price: 'Цена', create: 'Создать', save: 'Сохранить', archive: 'Архивировать', createdCategory: 'Категория создана', createdProduct: 'Блюдо создано', archived: 'Блюдо архивировано', dishes: 'Блюда', uncategorized: 'Без категории' },
-  en: { back: 'Admin panel', title: 'Menu and categories', subtitle: 'Manage the restaurant catalog', loadError: 'Could not load menu', category: 'New category', product: 'New dish', name: 'Name', productName: 'Dish name', price: 'Price', create: 'Create', save: 'Save', archive: 'Archive', createdCategory: 'Category created', createdProduct: 'Dish created', archived: 'Dish archived', dishes: 'Dishes', uncategorized: 'Uncategorized' },
-  kg: { back: 'Админ панели', title: 'Меню жана категориялар', subtitle: 'Заводдун каталогун башкаруу', loadError: 'Меню жүктөлгөн жок', category: 'Жаңы категория', product: 'Жаңы тамак', name: 'Аталышы', productName: 'Тамактын аталышы', price: 'Баасы', create: 'Түзүү', save: 'Сактоо', archive: 'Архивдөө', createdCategory: 'Категория түзүлдү', createdProduct: 'Тамак түзүлдү', archived: 'Тамак архивделди', dishes: 'Тамактар', uncategorized: 'Категориясыз' },
-} as const;
 
 export default function AdminMenuPage() {
   const params = useParams<{ locale: string }>();
   const locale = params.locale || 'ru';
-  const t = copy[(locale in copy ? locale : 'ru') as Locale];
+  const t = getLocaleTranslations(locale as Locale).admin.menu;
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [categoryName, setCategoryName] = useState('');

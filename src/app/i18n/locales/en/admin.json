@@ -212,5 +212,24 @@
       "deliveryStatus": "Delivery and pickup",
       "savedState": "Save status"
     }
+  },
+  "menu": {
+    "back": "Admin panel",
+    "title": "Menu and categories",
+    "subtitle": "Manage the restaurant catalog",
+    "loadError": "Could not load menu",
+    "category": "New category",
+    "product": "New dish",
+    "name": "Name",
+    "productName": "Dish name",
+    "price": "Price",
+    "create": "Create",
+    "save": "Save",
+    "archive": "Archive",
+    "createdCategory": "Category created",
+    "createdProduct": "Dish created",
+    "archived": "Dish archived",
+    "dishes": "Dishes",
+    "uncategorized": "Uncategorized"
   }
 }
