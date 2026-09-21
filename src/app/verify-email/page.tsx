@@ -166,7 +166,7 @@ function VerifyEmailContent() {
       <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 max-w-md w-full text-center border border-gray-100 dark:border-gray-700">
           <AlertCircle className="w-16 h-16 text-red-500 dark:text-red-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">{auth.verify.errors.serverError}</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">{auth.verify.errorTitle}</h2>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
             {auth.verify.errors.missingParams}
           </p>
