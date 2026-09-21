@@ -7,20 +7,25 @@ import { apiError, apiMessage } from '@/lib/api-response';
 
 export async function POST(request: NextRequest) {
   try {
-    const genericMessage = apiMessage(request, 'forgotPasswordGeneric');
-    const body = await request.json() as { email?: string };
+    const body = await request.json() as { email?: string; recover2fa?: boolean };
     const email = body.email?.trim().toLowerCase();
+    const recover2fa = body.recover2fa === true;
+    const genericMessage = apiMessage(request, recover2fa ? 'recoveryGeneric' : 'forgotPasswordGeneric');
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json({ error: apiMessage(request, 'invalidEmail') }, { status: 400 });
     }
 
     const user = await prisma.users.findUnique({
       where: { email },
-      select: { id: true, email: true, first_name: true },
+      select: { id: true, email: true, first_name: true, email_verified_at: true },
     });
 
     // Do not reveal whether the email is registered.
     if (!user) return NextResponse.json({ message: genericMessage });
+
+    if (recover2fa && !user.email_verified_at) {
+      return NextResponse.json({ error: apiMessage(request, 'recoveryEmailNotVerified') }, { status: 400 });
+    }
 
     const ipAddress = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
     const code = await createVerificationCode(user.id, 'password_reset', ipAddress);

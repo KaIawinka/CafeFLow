@@ -197,10 +197,27 @@ curl -X POST https://your-domain.vercel.app/api/telegram/setup \
 
 ### Привязка Telegram
 
-1. Войдите в админку
-2. GET `/api/auth/telegram/link-code` (с JWT token)
-3. Откройте полученную ссылку
-4. Нажмите START в боте
+1. Войдите в аккаунт и откройте «Настройки» → «Безопасность».
+2. Нажмите «Подключить Telegram».
+3. Откройте одноразовую ссылку и нажмите START в боте.
+4. Вернитесь в настройки и нажмите «Проверить подключение».
+
+После привязки 2FA включается автоматически. Вход по email и паролю запрашивает шестизначный код из Telegram. Отключить 2FA можно там же после подтверждения текущего пароля; Telegram при этом остаётся привязанным для повторного включения.
+
+Если доступ к Telegram потерян, на экране ввода 2FA откройте ссылку восстановления. После подтверждения ранее верифицированного email и смены пароля система отключит 2FA, отвяжет старый Telegram и завершит все активные сессии.
+
+### Webhook
+
+`TELEGRAM_BOT_TOKEN` сам по себе не принимает входящие сообщения. Для production задайте публичный `NEXT_PUBLIC_APP_URL` по HTTPS, `TELEGRAM_WEBHOOK_SECRET` и `ADMIN_SETUP_TOKEN`, затем после деплоя выполните:
+
+```bash
+curl -X POST https://your-domain.vercel.app/api/telegram/setup \
+  -H "Authorization: Bearer YOUR_ADMIN_SETUP_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"action":"set"}'
+```
+
+Для локальной проверки используйте HTTPS-туннель (например, ngrok) и передайте его URL в `url` запроса setup. `http://localhost:3000` Telegram недоступен.
 
 ## 🚢 Деплой на Vercel
 

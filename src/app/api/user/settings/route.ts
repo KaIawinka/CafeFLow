@@ -32,6 +32,8 @@ export async function GET(request: NextRequest) {
       select: {
         language: true,
         two_fa_enabled: true,
+        telegram_chat_id: true,
+        telegram_username: true,
         email_verified_at: true,
         phone_verified_at: true,
       },
@@ -60,6 +62,8 @@ export async function GET(request: NextRequest) {
         language: user.language,
         language_ui: user.language,
         twoFAEnabled: user.two_fa_enabled,
+        telegramLinked: Boolean(user.telegram_chat_id),
+        telegramUsername: user.telegram_username,
         emailVerified: Boolean(user.email_verified_at),
         phoneVerified: Boolean(user.phone_verified_at),
         emailNotifications: settings.email_notifications,

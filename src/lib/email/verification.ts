@@ -66,11 +66,10 @@ export async function verifyCode(
   error?: string;
   errorKey?: 'verificationCodeInvalid' | 'verificationCodeExpired' | 'verificationAttemptsExceeded';
 }> {
-  // Find the code
+  // Find the latest active code so incorrect submissions still count as attempts.
   const verificationCode = await prisma.verification_codes.findFirst({
     where: {
       user_id: userId,
-      code,
       type,
       used_at: null,
     },
@@ -104,7 +103,7 @@ export async function verifyCode(
     },
   });
 
-  // Validate code
+  // Validate code after incrementing attempts.
   if (verificationCode.code !== code) {
     logger.warn('Invalid verification code', { userId, type, attempts: verificationCode.attempts + 1 });
     return { success: false, error: 'Неверный код подтверждения', errorKey: 'verificationCodeInvalid' };

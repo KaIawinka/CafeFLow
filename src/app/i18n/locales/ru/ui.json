@@ -100,7 +100,10 @@
     "telegram": {
       "connected": "Telegram подключён",
       "username": "Имя пользователя",
-      "key": "Ключ"
+      "key": "Ключ",
+      "twoFactor": "Двухфакторная аутентификация",
+      "twoFactorEnabled": "Включена",
+      "twoFactorDisabled": "Выключена"
     },
     "notifications": {
       "title": "Уведомления",
@@ -174,6 +177,19 @@
       "phone": "Номер телефона",
       "verified": "Подтверждён",
       "verify": "Подтвердить",
+      "telegramConnected": "Telegram подключён",
+      "telegramNotConnected": "Telegram не подключён",
+      "connectTelegram": "Подключить Telegram",
+      "openTelegram": "Открыть Telegram",
+      "checkTelegram": "Проверить подключение",
+      "telegramLinkReady": "Откройте ссылку в Telegram и нажмите START в боте",
+      "telegramLinkExpires": "Ссылка действует 10 минут",
+      "twoFactorEnabled": "Включена",
+      "twoFactorDisabled": "Выключена",
+      "enableTwoFactor": "Включить 2FA",
+      "disableTwoFactor": "Отключить 2FA",
+      "twoFactorPassword": "Текущий пароль для изменения 2FA",
+      "twoFactorActionDescription": "Для изменения настройки подтвердите текущий пароль.",
       "changePassword": "Изменить пароль",
       "changePasswordDescription": "После изменения потребуется войти заново на устройствах.",
       "currentPassword": "Текущий пароль",

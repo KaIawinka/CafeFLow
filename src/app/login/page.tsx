@@ -324,6 +324,13 @@ function LoginContent() {
               >
                 {auth.login.twoFa.back}
               </button>
+
+              <Link
+                href={`/${currentLocale}/forgot-password?recover2fa=1`}
+                className="block text-center text-sm font-medium text-amber-600 hover:text-amber-700 dark:text-amber-400"
+              >
+                {auth.login.twoFa.recoverAccess}
+              </Link>
             </form>
           )}
         </div>

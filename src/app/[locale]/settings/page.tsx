@@ -23,6 +23,10 @@ import {
   Sun,
   Smartphone,
   Key,
+  ExternalLink,
+  RefreshCw,
+  ShieldCheck,
+  ShieldOff,
 } from 'lucide-react';
 
 type SettingsTab = 'profile' | 'security' | 'notifications' | 'privacy' | 'appearance';
@@ -33,6 +37,8 @@ interface UserSettings {
   
   // Security
   twoFAEnabled: boolean;
+  telegramLinked: boolean;
+  telegramUsername: string | null;
   emailVerified: boolean;
   phoneVerified: boolean;
   
@@ -69,10 +75,18 @@ export default function SettingsPage() {
     newPassword: '',
     confirmPassword: '',
   });
+  const [twoFactorPassword, setTwoFactorPassword] = useState('');
+  const [telegramLinkUrl, setTelegramLinkUrl] = useState('');
+  const [telegramLinkInstructions, setTelegramLinkInstructions] = useState<string[]>([]);
+  const [isLinkingTelegram, setIsLinkingTelegram] = useState(false);
+  const [isCheckingTelegram, setIsCheckingTelegram] = useState(false);
+  const [isUpdatingTwoFA, setIsUpdatingTwoFA] = useState(false);
 
   const [settings, setSettings] = useState<UserSettings>({
     language: 'ru',
     twoFAEnabled: false,
+    telegramLinked: false,
+    telegramUsername: null,
     emailVerified: false,
     phoneVerified: false,
     emailNotifications: true,
@@ -108,6 +122,91 @@ export default function SettingsPage() {
 
     void loadSettings();
   }, []);
+
+  const handleLinkTelegram = async () => {
+    setError('');
+    setSuccess('');
+    setIsLinkingTelegram(true);
+
+    try {
+      const response = await fetch('/api/auth/telegram/link-code');
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || copy.security.telegramNotConnected);
+        return;
+      }
+
+      setTelegramLinkUrl(data.linkUrl || '');
+      setTelegramLinkInstructions(Array.isArray(data.instructions) ? data.instructions : []);
+      setSuccess(copy.security.telegramLinkReady);
+    } catch {
+      setError(copy.security.telegramNotConnected);
+    } finally {
+      setIsLinkingTelegram(false);
+    }
+  };
+
+  const handleCheckTelegram = async () => {
+    setError('');
+    setSuccess('');
+    setIsCheckingTelegram(true);
+
+    try {
+      const response = await fetch('/api/user/settings');
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || copy.messages.saveGenericError);
+        return;
+      }
+
+      if (data.settings) {
+        setSettings((currentSettings) => ({ ...currentSettings, ...data.settings }));
+        if (data.settings.telegramLinked) {
+          setTelegramLinkUrl('');
+          setTelegramLinkInstructions([]);
+          setSuccess(copy.security.telegramConnected);
+        } else {
+          setError(copy.security.telegramNotConnected);
+        }
+      }
+    } catch {
+      setError(copy.messages.saveGenericError);
+    } finally {
+      setIsCheckingTelegram(false);
+    }
+  };
+
+  const handleTwoFactorChange = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError('');
+    setSuccess('');
+    setIsUpdatingTwoFA(true);
+
+    try {
+      const enabled = !settings.twoFAEnabled;
+      const response = await fetch('/api/auth/telegram/2fa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled, currentPassword: twoFactorPassword }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || copy.messages.saveError);
+        return;
+      }
+
+      setSettings((currentSettings) => ({ ...currentSettings, twoFAEnabled: enabled }));
+      setTwoFactorPassword('');
+      setSuccess(data.message || (enabled ? copy.security.twoFactorEnabled : copy.security.twoFactorDisabled));
+    } catch {
+      setError(copy.messages.saveGenericError);
+    } finally {
+      setIsUpdatingTwoFA(false);
+    }
+  };
 
   const handleSave = async () => {
     setError('');
@@ -302,32 +401,105 @@ export default function SettingsPage() {
                     </h2>
                   </div>
 
-                  {/* 2FA */}
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 sm:p-6">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-start justify-between gap-4 mb-4">
-                      <div className="flex items-start gap-3 flex-1">
-                        <div className="bg-blue-500 p-2 sm:p-3 rounded-xl flex-shrink-0">
-                          <Key className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  {/* Telegram and 2FA */}
+                  <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-4 dark:border-blue-800 dark:from-blue-900/20 dark:to-indigo-900/20 sm:p-6">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="flex items-start gap-3">
+                        <div className="rounded-xl bg-blue-500 p-2 sm:p-3">
+                          <Key className="h-5 w-5 text-white sm:h-6 sm:w-6" />
                         </div>
                         <div>
-                          <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+                          <h3 className="text-base font-semibold text-gray-900 dark:text-white sm:text-lg">
                             {copy.security.twoFactor}
                           </h3>
-                          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          <p className="mt-1 text-xs text-gray-600 dark:text-gray-400 sm:text-sm">
                             {copy.security.twoFactorDescription}
                           </p>
                         </div>
                       </div>
-                      <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
-                        <input
-                          type="checkbox"
-                          checked={settings.twoFAEnabled}
-                          onChange={(e) => setSettings({ ...settings, twoFAEnabled: e.target.checked })}
-                          className="sr-only peer"
-                        />
-                        <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 dark:peer-focus:ring-amber-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-amber-600"></div>
-                      </label>
+                      <div className={`inline-flex items-center gap-2 self-start rounded-full px-3 py-1 text-xs font-semibold ${settings.twoFAEnabled ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'}`}>
+                        {settings.twoFAEnabled ? <ShieldCheck className="h-4 w-4" /> : <ShieldOff className="h-4 w-4" />}
+                        {settings.twoFAEnabled ? copy.security.twoFactorEnabled : copy.security.twoFactorDisabled}
+                      </div>
                     </div>
+
+                    <div className="mt-5 rounded-lg bg-white/70 p-4 dark:bg-gray-900/30">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-center gap-2 text-sm font-medium text-gray-800 dark:text-gray-200">
+                          <MessageSquare className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                          {settings.telegramLinked ? copy.security.telegramConnected : copy.security.telegramNotConnected}
+                          {settings.telegramUsername && <span className="font-normal text-gray-500">@{settings.telegramUsername}</span>}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {!settings.telegramLinked && (
+                            <button
+                              type="button"
+                              onClick={handleLinkTelegram}
+                              disabled={isLinkingTelegram}
+                              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              {isLinkingTelegram ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageSquare className="h-4 w-4" />}
+                              {copy.security.connectTelegram}
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={handleCheckTelegram}
+                            disabled={isCheckingTelegram}
+                            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800"
+                          >
+                            {isCheckingTelegram ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                            {copy.security.checkTelegram}
+                          </button>
+                        </div>
+                      </div>
+
+                      {telegramLinkUrl && (
+                        <div className="mt-4 border-t border-blue-100 pt-4 dark:border-blue-900">
+                          <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{copy.security.telegramLinkReady}</p>
+                          <a
+                            href={telegramLinkUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                            {copy.security.openTelegram}
+                          </a>
+                          {telegramLinkInstructions.length > 0 && (
+                            <ol className="mt-3 list-inside list-decimal space-y-1 text-xs text-gray-600 dark:text-gray-400">
+                              {telegramLinkInstructions.map((instruction) => <li key={instruction}>{instruction}</li>)}
+                            </ol>
+                          )}
+                          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{copy.security.telegramLinkExpires}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {(settings.telegramLinked || settings.twoFAEnabled) && (
+                      <form onSubmit={handleTwoFactorChange} className="mt-4 border-t border-blue-200 pt-4 dark:border-blue-800">
+                        <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">{copy.security.twoFactorActionDescription}</p>
+                        <div className="flex flex-col gap-3 sm:flex-row">
+                          <input
+                            type="password"
+                            autoComplete="current-password"
+                            value={twoFactorPassword}
+                            onChange={(event) => setTwoFactorPassword(event.target.value)}
+                            placeholder={copy.security.twoFactorPassword}
+                            required
+                            className="min-h-11 flex-1 rounded-lg border border-gray-300 px-4 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                          />
+                          <button
+                            type="submit"
+                            disabled={isUpdatingTwoFA}
+                            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-amber-600 px-5 font-semibold text-white transition-colors hover:bg-amber-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+                          >
+                            {isUpdatingTwoFA ? <Loader2 className="h-5 w-5 animate-spin" /> : settings.twoFAEnabled ? <ShieldOff className="h-5 w-5" /> : <ShieldCheck className="h-5 w-5" />}
+                            {settings.twoFAEnabled ? copy.security.disableTwoFactor : copy.security.enableTwoFactor}
+                          </button>
+                        </div>
+                      </form>
+                    )}
                   </div>
 
                   {/* Verification Status */}

@@ -100,7 +100,10 @@
     "telegram": {
       "connected": "Telegram connected",
       "username": "Username",
-      "key": "Key"
+      "key": "Key",
+      "twoFactor": "Two-factor authentication",
+      "twoFactorEnabled": "Enabled",
+      "twoFactorDisabled": "Disabled"
     },
     "notifications": {
       "title": "Notifications",
@@ -174,6 +177,19 @@
       "phone": "Phone number",
       "verified": "Verified",
       "verify": "Verify",
+      "telegramConnected": "Telegram connected",
+      "telegramNotConnected": "Telegram not connected",
+      "connectTelegram": "Connect Telegram",
+      "openTelegram": "Open Telegram",
+      "checkTelegram": "Check connection",
+      "telegramLinkReady": "Open the link in Telegram and press START in the bot",
+      "telegramLinkExpires": "The link is valid for 10 minutes",
+      "twoFactorEnabled": "Enabled",
+      "twoFactorDisabled": "Disabled",
+      "enableTwoFactor": "Enable 2FA",
+      "disableTwoFactor": "Disable 2FA",
+      "twoFactorPassword": "Current password to change 2FA",
+      "twoFactorActionDescription": "Confirm your current password to change this setting.",
       "changePassword": "Change password",
       "changePasswordDescription": "You will need to sign in again on your devices after changing it.",
       "currentPassword": "Current password",

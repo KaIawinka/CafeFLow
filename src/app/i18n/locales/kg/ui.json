@@ -100,7 +100,10 @@
     "telegram": {
       "connected": "Telegram туташтырылган",
       "username": "Колдонуучу аты",
-      "key": "Ачкыч"
+      "key": "Ачкыч",
+      "twoFactor": "Эки факторлуу аутентификация",
+      "twoFactorEnabled": "Күйгүзүлгөн",
+      "twoFactorDisabled": "Өчүрүлгөн"
     },
     "notifications": {
       "title": "Билдирүүлөр",
@@ -174,6 +177,19 @@
       "phone": "Телефон номери",
       "verified": "Ырасталды",
       "verify": "Ырастоо",
+      "telegramConnected": "Telegram туташтырылган",
+      "telegramNotConnected": "Telegram туташтырылган эмес",
+      "connectTelegram": "Telegram'ды туташтыруу",
+      "openTelegram": "Telegram'ды ачуу",
+      "checkTelegram": "Туташуу текшерүү",
+      "telegramLinkReady": "Шилтемени Telegram'да ачып, ботто START баскычын басыңыз",
+      "telegramLinkExpires": "Шилтеме 10 мүнөткө жарактуу",
+      "twoFactorEnabled": "Күйгүзүлгөн",
+      "twoFactorDisabled": "Өчүрүлгөн",
+      "enableTwoFactor": "2FA күйгүзүү",
+      "disableTwoFactor": "2FA өчүрүү",
+      "twoFactorPassword": "2FA өзгөртүү үчүн учурдагы сырсөз",
+      "twoFactorActionDescription": "Бул жөндөөнү өзгөртүү үчүн учурдагы сырсөздү ырастаңыз.",
       "changePassword": "Сырсөздү өзгөртүү",
       "changePasswordDescription": "Өзгөрткөндөн кийин түзмөктөрүңүзгө кайра киришиңиз керек.",
       "currentPassword": "Учурдагы сырсөз",

@@ -17,6 +17,8 @@ import {
   AlertCircle,
   MessageSquare,
   Calendar,
+  ShieldCheck,
+  ShieldOff,
 } from 'lucide-react';
 import { locales, type Locale } from '@/app/i18n/config';
 import { getLocaleTranslations } from '@/app/i18n/catalog';
@@ -303,6 +305,16 @@ function ProfileContent() {
                     </p>
                   </div>
                 )}
+
+                <div className={`mt-4 flex items-center gap-3 rounded-lg border p-3 ${profile.two_fa_enabled ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20' : 'border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-700/50'}`}>
+                  {profile.two_fa_enabled ? <ShieldCheck className="h-5 w-5 text-green-600 dark:text-green-400" /> : <ShieldOff className="h-5 w-5 text-gray-500 dark:text-gray-400" />}
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{copy.telegram.twoFactor}</p>
+                    <p className={`text-xs ${profile.two_fa_enabled ? 'text-green-700 dark:text-green-300' : 'text-gray-500 dark:text-gray-400'}`}>
+                      {profile.two_fa_enabled ? copy.telegram.twoFactorEnabled : copy.telegram.twoFactorDisabled}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

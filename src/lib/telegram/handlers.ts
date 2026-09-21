@@ -7,6 +7,7 @@ import { bot, type BotContext } from './bot';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { verifyPassword } from '@/lib/auth/password';
+import { consumeTelegramLinkCode } from './utils';
 
 // User state management (in-memory for simplicity)
 interface UserState {
@@ -257,6 +258,23 @@ bot?.command('start', async (ctx: BotContext) => {
   
   if (!chatId) {
     await ctx.reply('❌ Не удалось определить ваш чат. Попробуйте ещё раз.');
+    return;
+  }
+
+  const linkCode = getCommandArguments(ctx);
+  if (linkCode) {
+    const result = await consumeTelegramLinkCode(linkCode, chatId, ctx.from?.username);
+    if (!result.success) {
+      await ctx.reply(`❌ ${result.error || 'Не удалось привязать аккаунт.'}`);
+      return;
+    }
+
+    await ctx.reply(
+      `✅ Аккаунт успешно привязан к Telegram, ${firstName}!\n\n` +
+      `🔐 Двухфакторная аутентификация включена.\n` +
+      `Теперь коды для входа будут приходить в этот бот.`,
+    );
+    logger.info('User linked Telegram through authenticated deep link', { userId: result.userId, chatId });
     return;
   }
 

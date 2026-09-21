@@ -7,10 +7,11 @@ import { apiError, apiMessage } from '@/lib/api-response';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json() as { email?: string; code?: string; password?: string };
+    const body = await request.json() as { email?: string; code?: string; password?: string; disableTwoFactor?: boolean };
     const email = body.email?.trim().toLowerCase();
     const code = body.code?.trim();
     const password = body.password || '';
+    const disableTwoFactor = body.disableTwoFactor === true;
 
     if (!email || !code || !password) {
       return NextResponse.json({ error: apiMessage(request, 'resetRequired') }, { status: 400 });
@@ -23,23 +24,44 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: apiMessage(request, passwordErrors[0]) }, { status: 400 });
     }
 
-    const user = await prisma.users.findUnique({ where: { email }, select: { id: true } });
+    const user = await prisma.users.findUnique({
+      where: { email },
+      select: { id: true, email_verified_at: true },
+    });
     if (!user) return NextResponse.json({ error: apiMessage(request, 'invalidCodeOrEmail') }, { status: 400 });
+
+    if (disableTwoFactor && !user.email_verified_at) {
+      return NextResponse.json({ error: apiMessage(request, 'recoveryEmailNotVerified') }, { status: 400 });
+    }
 
     const verification = await verifyCode(user.id, code, 'password_reset');
     if (!verification.success) {
       return NextResponse.json({ error: verification.errorKey ? apiMessage(request, verification.errorKey) : verification.error }, { status: 400 });
     }
 
-    await prisma.users.update({
-      where: { id: user.id },
-      data: { password_hash: await hashPassword(password) },
+    await prisma.$transaction(async (tx) => {
+      await tx.users.update({
+        where: { id: user.id },
+        data: {
+          password_hash: await hashPassword(password),
+          ...(disableTwoFactor && {
+            two_fa_enabled: false,
+            telegram_chat_id: null,
+            telegram_username: null,
+            telegram_activated_with_key: null,
+            two_fa_secret: null,
+          }),
+        },
+      });
+
+      await tx.auth_sessions.deleteMany({ where: { user_id: user.id } });
     });
 
-    // Revoke active sessions after a password change.
-    await prisma.auth_sessions.deleteMany({ where: { user_id: user.id } });
-    logger.info('Password reset completed', { userId: user.id });
-    return NextResponse.json({ success: true, message: apiMessage(request, 'passwordChanged') });
+    logger.info('Password reset completed', { userId: user.id, disableTwoFactor });
+    return NextResponse.json({
+      success: true,
+      message: apiMessage(request, disableTwoFactor ? 'twoFaRecoveryCompleted' : 'passwordChanged'),
+    });
   } catch (error) {
     logger.error('Reset password error', error);
     return apiError(request, 'server', 500);

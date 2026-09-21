@@ -10,20 +10,21 @@ import { logger } from '@/lib/logger';
  * Generate unique link code for Telegram account linking
  */
 export async function generateTelegramLinkCode(userId: string): Promise<string> {
-  // Generate unique code
   const code = crypto.randomUUID().replace(/-/g, '');
-  
-  // Set expiry to 10 minutes
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-  // Save to database
-  await prisma.telegram_link_codes.create({
-    data: {
-      user_id: userId,
-      code,
-      expires_at: expiresAt,
-    },
-  });
+  await prisma.$transaction([
+    prisma.telegram_link_codes.deleteMany({
+      where: { user_id: userId, used_at: null },
+    }),
+    prisma.telegram_link_codes.create({
+      data: {
+        user_id: userId,
+        code,
+        expires_at: expiresAt,
+      },
+    }),
+  ]);
 
   return code;
 }
@@ -143,14 +144,14 @@ export async function isUserTelegramLinked(userId: string): Promise<boolean> {
 /**
  * Get Telegram link URL for bot
  */
-export function getTelegramLinkUrl(code: string): string {
-  const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
+export function getTelegramLinkUrl(code: string, botUsername?: string): string {
+  const username = (botUsername || process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME)?.replace(/^@/, '').trim();
   
-  if (!botUsername) {
+  if (!username) {
     throw new Error('NEXT_PUBLIC_TELEGRAM_BOT_USERNAME is not defined');
   }
 
-  return `https://t.me/${botUsername}?start=${code}`;
+  return `https://t.me/${username}?start=${encodeURIComponent(code)}`;
 }
 
 /**
@@ -178,6 +179,84 @@ export async function validateTelegramLinkCode(
     valid: true,
     userId: linkCode.user_id,
   };
+}
+
+export async function consumeTelegramLinkCode(
+  code: string,
+  telegramChatId: string,
+  telegramUsername?: string,
+): Promise<{ success: boolean; userId?: string; error?: string }> {
+  const now = new Date();
+
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const linkCode = await tx.telegram_link_codes.findFirst({
+        where: {
+          code,
+          used_at: null,
+          expires_at: { gt: now },
+        },
+        select: { id: true, user_id: true },
+      });
+
+      if (!linkCode) {
+        return { success: false, error: 'Код привязки недействителен или истёк.' };
+      }
+
+      const user = await tx.users.findUnique({
+        where: { id: linkCode.user_id },
+        select: { id: true, telegram_chat_id: true, two_fa_enabled: true },
+      });
+
+      if (!user) {
+        return { success: false, error: 'Пользователь не найден.' };
+      }
+
+      if (user.telegram_chat_id && user.telegram_chat_id !== telegramChatId && user.two_fa_enabled) {
+        return { success: false, error: 'Сначала отключите 2FA в аккаунте перед заменой Telegram.' };
+      }
+
+      const existingTelegram = await tx.users.findFirst({
+        where: {
+          telegram_chat_id: telegramChatId,
+          id: { not: user.id },
+        },
+        select: { id: true },
+      });
+
+      if (existingTelegram) {
+        return { success: false, error: 'Этот Telegram уже привязан к другому аккаунту.' };
+      }
+
+      const claimed = await tx.telegram_link_codes.updateMany({
+        where: {
+          id: linkCode.id,
+          used_at: null,
+          expires_at: { gt: now },
+        },
+        data: { used_at: now },
+      });
+
+      if (claimed.count !== 1) {
+        return { success: false, error: 'Код привязки уже использован.' };
+      }
+
+      await tx.users.update({
+        where: { id: user.id },
+        data: {
+          telegram_chat_id: telegramChatId,
+          telegram_username: telegramUsername || null,
+          telegram_activated_with_key: null,
+          two_fa_enabled: true,
+        },
+      });
+
+      return { success: true, userId: user.id };
+    });
+  } catch (error) {
+    logger.error('Telegram link code consumption failed', error);
+    return { success: false, error: 'Не удалось привязать Telegram. Попробуйте ещё раз.' };
+  }
 }
 
 /**

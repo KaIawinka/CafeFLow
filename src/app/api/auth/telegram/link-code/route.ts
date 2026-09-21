@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAccessToken, extractTokenFromHeader } from '@/lib/auth/jwt';
+import { getBotInfo } from '@/lib/telegram/bot';
 import { generateTelegramLinkCode, getTelegramLinkUrl } from '@/lib/telegram/utils';
 import { logger } from '@/lib/logger';
 import { apiError, apiList, apiMessage } from '@/lib/api-response';
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if Telegram is already linked
-    if (user.telegram_chat_id) {
+    if (user.telegram_chat_id && user.two_fa_enabled) {
       return NextResponse.json(
         { 
           error: apiMessage(request, 'telegramAlreadyLinked'),
@@ -62,9 +63,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Generate link code
+    const botInfo = await getBotInfo();
+    const botUsername = botInfo?.username || process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
+    if (!botUsername) {
+      return NextResponse.json(
+        { error: apiMessage(request, 'telegramNotConfigured') },
+        { status: 503 },
+      );
+    }
+
     const code = await generateTelegramLinkCode(user.id);
-    const linkUrl = getTelegramLinkUrl(code);
+    const linkUrl = getTelegramLinkUrl(code, botUsername);
 
     logger.info('Generated Telegram link code', { email: user.email });
 
