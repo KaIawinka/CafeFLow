@@ -59,10 +59,13 @@ ADMIN_SETUP_TOKEN="your-admin-token"
 # App URL
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 
-# Resend: API key from resend.com
+# Resend: бесплатный API key из resend.com
 RESEND_API_KEY="re_your_api_key"
-# Адрес отправителя на подтверждённом в Resend домене
-EMAIL_FROM="CaféFlow <noreply@your-domain.com>"
+# Для теста без своего домена эту строку можно не указывать:
+# приложение использует CaféFlow <onboarding@resend.dev>
+# и Resend разрешает отправку только на email владельца Resend-аккаунта.
+# Для отправки другим пользователям нужен подтверждённый домен:
+# EMAIL_FROM="CaféFlow <noreply@your-domain.com>"
 
 # Public tenant used when requests do not include ?tenant=slug or x-cafeflow-tenant
 CAFEFLOW_DEFAULT_TENANT_SLUG="cafeflow-demo"

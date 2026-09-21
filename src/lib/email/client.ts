@@ -12,7 +12,7 @@ const resend = process.env.RESEND_API_KEY
   : null;
 
 // Default sender email
-const FROM_EMAIL = process.env.EMAIL_FROM || 'CaféFlow <noreply@cafeflow.app>';
+const FROM_EMAIL = process.env.EMAIL_FROM || 'CaféFlow <onboarding@resend.dev>';
 const APP_NAME = 'CaféFlow';
 
 interface EmailOptions {
