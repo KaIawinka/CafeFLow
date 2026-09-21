@@ -1,7 +1,19 @@
 {
   "hero": {
+    "location": "CaféFlow · Bishkek",
     "title": "Welcome",
     "subtitle": "Enjoy delicious food and a warm atmosphere",
+    "ratingValue": "4.9 / 5",
+    "ratingLabel": "Guest rating",
+    "hoursValue": "10:00–23:00",
+    "city": "Bishkek",
+    "featuredDishLabel": "Chef's choice",
+    "featuredDishName": "Grilled chicken steak",
+    "featuredDishPrice": "680 som",
+    "localsBadge": "Loved by locals",
+    "freshBadge": "Fresh every day",
+    "discover": "Discover",
+    "scrollToStory": "Scroll to story",
     "cta": {
       "menu": "View menu",
       "reserve": "Book a table"

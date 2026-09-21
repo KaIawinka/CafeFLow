@@ -1,7 +1,19 @@
 export interface LandingTranslations {
   hero: {
+    location: string;
     title: string;
     subtitle: string;
+    ratingValue: string;
+    ratingLabel: string;
+    hoursValue: string;
+    city: string;
+    featuredDishLabel: string;
+    featuredDishName: string;
+    featuredDishPrice: string;
+    localsBadge: string;
+    freshBadge: string;
+    discover: string;
+    scrollToStory: string;
     cta: {
       menu: string;
       reserve: string;

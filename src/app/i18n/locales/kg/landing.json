@@ -1,7 +1,19 @@
 {
   "hero": {
+    "location": "CaféFlow · Бишкек",
     "title": "Кош келиңиздер",
     "subtitle": "Даамдуу тамактардан жана жайлуу атмосферадан ырахат алыңыз",
+    "ratingValue": "4.9 / 5",
+    "ratingLabel": "Коноктордун баасы",
+    "hoursValue": "10:00–23:00",
+    "city": "Бишкек",
+    "featuredDishLabel": "Ашпозчунун тандоосу",
+    "featuredDishName": "Грильде бышкан тоок стейги",
+    "featuredDishPrice": "680 сом",
+    "localsBadge": "Жергиликтүүлөрдүн сүйүктүү жери",
+    "freshBadge": "Күн сайын жаңы",
+    "discover": "Таанышуу",
+    "scrollToStory": "Тарыхка өтүү",
     "cta": {
       "menu": "Менюну көрүү",
       "reserve": "Стол брондоо"

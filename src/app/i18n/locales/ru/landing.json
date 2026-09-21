@@ -1,7 +1,19 @@
 {
   "hero": {
+    "location": "CaféFlow · Бишкек",
     "title": "Добро пожаловать",
     "subtitle": "Наслаждайтесь вкусной едой и уютной атмосферой",
+    "ratingValue": "4.9 / 5",
+    "ratingLabel": "Оценка гостей",
+    "hoursValue": "10:00–23:00",
+    "city": "Бишкек",
+    "featuredDishLabel": "Выбор шефа",
+    "featuredDishName": "Стейк из курицы на гриле",
+    "featuredDishPrice": "680 сом",
+    "localsBadge": "Любимое место жителей",
+    "freshBadge": "Свежие блюда каждый день",
+    "discover": "Открыть",
+    "scrollToStory": "Прокрутить к истории",
     "cta": {
       "menu": "Посмотреть меню",
       "reserve": "Забронировать стол"
