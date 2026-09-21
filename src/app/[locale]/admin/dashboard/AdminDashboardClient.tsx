@@ -30,6 +30,7 @@ import {
   Zap,
 } from 'lucide-react';
 import type { Locale } from '@/app/i18n/config';
+import { getLocaleTranslations } from '@/app/i18n/catalog';
 import { getUiTranslations } from '@/lib/ui-translations';
 
 type UserRecord = {
@@ -92,77 +93,8 @@ type AnalyticsData = {
   roleDistribution: Array<{ role: string; count: number }>;
 };
 
-type Copy = {
-  title: string;
-  overview: string;
-  period: string;
-  refresh: string;
-  export: string;
-  live: string;
-  totalUsers: string;
-  activeUsers: string;
-  orders: string;
-  revenue: string;
-  products: string;
-  vsLastPeriod: string;
-  visitors: string;
-  ordersTrend: string;
-  lastSevenDays: string;
-  trafficByHour: string;
-  userRoles: string;
-  systemStatus: string;
-  allSystems: string;
-  api: string;
-  database: string;
-  notifications: string;
-  online: string;
-  menuAvailability: string;
-  storage: string;
-  used: string;
-  recentUsers: string;
-  searchUsers: string;
-  allRoles: string;
-  viewAll: string;
-  quickActions: string;
-  manageUsers: string;
-  siteSettings: string;
-  moderation: string;
-  open: string;
-  recentOrders: string;
-  customer: string;
-  status: string;
-  noData: string;
-  roleNames: Record<string, string>;
-  orderStatuses: Record<string, string>;
-};
-
-const copy: Record<Locale, Copy> = {
-  ru: {
-    title: 'Панель управления', overview: 'Обзор заведения', period: 'Последние 7 дней', refresh: 'Обновить', export: 'Экспорт', live: 'Данные обновлены только что', totalUsers: 'Всего пользователей', activeUsers: 'Активные пользователи', orders: 'Заказы', revenue: 'Выручка', products: 'Позиции меню', vsLastPeriod: 'к предыдущему периоду', visitors: 'Посещаемость', ordersTrend: 'Динамика заказов', lastSevenDays: 'Последние 7 дней', trafficByHour: 'Активность по часам', userRoles: 'Распределение ролей', systemStatus: 'Состояние системы', allSystems: 'Все системы работают', api: 'API сервисы', database: 'База данных', notifications: 'Уведомления', online: 'Онлайн', menuAvailability: 'Доступность меню', storage: 'Использование данных', used: 'использовано', recentUsers: 'Новые пользователи', searchUsers: 'Поиск по имени, email или телефону', allRoles: 'Все роли', viewAll: 'Все пользователи', quickActions: 'Быстрые действия', manageUsers: 'Пользователи и роли', siteSettings: 'Настройки сайта', moderation: 'Модерация и блокировки', open: 'Открыть', recentOrders: 'Последние заказы', customer: 'Клиент', status: 'Статус', noData: 'Нет данных за выбранный период', roleNames: { admin: 'Администраторы', manager: 'Менеджеры', kitchen: 'Кухня', employee: 'Сотрудники', customer: 'Клиенты', guest: 'Гости' }, orderStatuses: { new: 'Новый', confirmed: 'Подтверждён', cooking: 'Готовится', ready: 'Готов', delivering: 'Доставка', completed: 'Завершён', cancelled: 'Отменён' },
-  },
-  en: {
-    title: 'Admin dashboard', overview: 'Venue overview', period: 'Last 7 days', refresh: 'Refresh', export: 'Export', live: 'Data updated just now', totalUsers: 'Total users', activeUsers: 'Active users', orders: 'Orders', revenue: 'Revenue', products: 'Menu items', vsLastPeriod: 'vs previous period', visitors: 'Visitors', ordersTrend: 'Orders trend', lastSevenDays: 'Last 7 days', trafficByHour: 'Activity by hour', userRoles: 'User roles', systemStatus: 'System status', allSystems: 'All systems operational', api: 'API services', database: 'Database', notifications: 'Notifications', online: 'Online', menuAvailability: 'Menu availability', storage: 'Data utilization', used: 'used', recentUsers: 'Recent users', searchUsers: 'Search by name, email or phone', allRoles: 'All roles', viewAll: 'All users', quickActions: 'Quick actions', manageUsers: 'Users and roles', siteSettings: 'Site settings', moderation: 'Moderation and blocks', open: 'Open', recentOrders: 'Recent orders', customer: 'Customer', status: 'Status', noData: 'No data for this period', roleNames: { admin: 'Administrators', manager: 'Managers', kitchen: 'Kitchen', employee: 'Employees', customer: 'Customers', guest: 'Guests' }, orderStatuses: { new: 'New', confirmed: 'Confirmed', cooking: 'Cooking', ready: 'Ready', delivering: 'Delivery', completed: 'Completed', cancelled: 'Cancelled' },
-  },
-  kg: {
-    title: 'Башкаруу панели', overview: 'Мекеме боюнча сереп', period: 'Акыркы 7 күн', refresh: 'Жаңыртуу', export: 'Экспорт', live: 'Маалымат жаңы эле жаңыртылды', totalUsers: 'Жалпы колдонуучулар', activeUsers: 'Активдүү колдонуучулар', orders: 'Буйрутмалар', revenue: 'Киреше', products: 'Меню позициялары', vsLastPeriod: 'мурунку мезгилге карата', visitors: 'Келүүчүлөр', ordersTrend: 'Буйрутмалардын динамикасы', lastSevenDays: 'Акыркы 7 күн', trafficByHour: 'Саат боюнча активдүүлүк', userRoles: 'Колдонуучунун ролдору', systemStatus: 'Системанын абалы', allSystems: 'Бардык системалар иштеп жатат', api: 'API кызматтары', database: 'Маалымат базасы', notifications: 'Билдирмелер', online: 'Онлайн', menuAvailability: 'Менюнун жеткиликтүүлүгү', storage: 'Маалымат колдонуу', used: 'колдонулду', recentUsers: 'Жаңы колдонуучулар', searchUsers: 'Аты, email же телефон боюнча издөө', allRoles: 'Бардык ролдор', viewAll: 'Бардык колдонуучулар', quickActions: 'Ыкчам аракеттер', manageUsers: 'Колдонуучулар жана ролдор', siteSettings: 'Сайт жөндөөлөрү', moderation: 'Модерация жана бөгөттөө', open: 'Ачуу', recentOrders: 'Акыркы буйрутмалар', customer: 'Кардар', status: 'Статус', noData: 'Бул мезгилде маалымат жок', roleNames: { admin: 'Администраторлор', manager: 'Менеджерлер', kitchen: 'Ашкана', employee: 'Кызматкерлер', customer: 'Кардарлар', guest: 'Коноктор' }, orderStatuses: { new: 'Жаңы', confirmed: 'Ырасталды', cooking: 'Даярдалууда', ready: 'Даяр', delivering: 'Жеткирүү', completed: 'Аяктады', cancelled: 'Жокко чыгарылды' },
-  },
-};
-
 const roleKeys = ['admin', 'manager', 'kitchen', 'employee', 'customer', 'guest'];
 const roleColors = ['#f97316', '#3b82f6', '#10b981', '#8b5cf6', '#94a3b8', '#f43f5e'];
-const analyticsCopy: Record<Locale, {
-  revenueToday: string; revenueWeek: string; averageOrder: string; guestsOccupancy: string; registered: string; orders: string;
-  today: string; week: string; month: string; paymentMethods: string; operations: string; noPayments: string; menuAnalytics: string;
-  menuSubtitle: string; units: string; noSales: string; categorySales: string; menuOutsiders: string; trafficPeak: string; trafficSubtitle: string;
-  guests: string; serviceAverage: string; tableTurnover: string; staffPerformance: string; staffSubtitle: string; onTeam: string; noStaff: string;
-  customerAnalytics: string; newCustomers: string; returningCustomers: string; loyalty: string; members: string; issued: string; spent: string;
-  reviews: string; publishedReviews: string; healthy: string; uptime: string; users: string; share: string; redemption: string; rating: string;
-  noTeamData: string; emptyChart: string;
-}> = {
-  ru: { revenueToday: 'Выручка сегодня', revenueWeek: 'Выручка за неделю', averageOrder: 'Средний чек', guestsOccupancy: 'Гости / загрузка', registered: 'зарегистрировано', orders: 'заказов', today: 'Сегодня', week: 'Неделя', month: 'Месяц', paymentMethods: 'Методы оплаты', operations: 'операций', noPayments: 'Нет данных по оплатам', menuAnalytics: 'Аналитика меню', menuSubtitle: 'Топ продаж и позиции-кандидаты на удаление', units: 'шт.', noSales: 'Нет продаж за месяц', categorySales: 'Продажи по категориям', menuOutsiders: 'Аутсайдеры меню', trafficPeak: 'Посещаемость и пиковые часы', trafficSubtitle: 'Тепловая карта бронирований по дням и часам', guests: 'гостей', serviceAverage: 'Среднее обслуживание', tableTurnover: 'Оборот стола', staffPerformance: 'Персонал и эффективность', staffSubtitle: 'Продажи по сотрудникам появятся после привязки официанта к чеку.', onTeam: 'в команде', noStaff: 'Нет сотрудников', customerAnalytics: 'Клиентская аналитика', newCustomers: 'Новые', returningCustomers: 'Постоянные', loyalty: 'Программа лояльности', members: 'Участники', issued: 'Начислено', spent: 'Списано', reviews: 'Отзывы и UGC', publishedReviews: 'опубликованных отзывов', healthy: 'Система работает', uptime: 'аптайм', users: 'пользователей', share: 'Доля', redemption: 'Использовано', rating: 'Рейтинг', noTeamData: 'Продажи появятся после привязки сотрудника к заказу', emptyChart: 'Пока нет данных для расчёта' },
-  en: { revenueToday: 'Revenue today', revenueWeek: 'Revenue this week', averageOrder: 'Average order value', guestsOccupancy: 'Guests / occupancy', registered: 'registered', orders: 'orders', today: 'Today', week: 'This week', month: 'This month', paymentMethods: 'Payment methods', operations: 'operations', noPayments: 'No payment data', menuAnalytics: 'Menu analytics', menuSubtitle: 'Top sellers and menu outsiders', units: 'items', noSales: 'No sales this month', categorySales: 'Sales by category', menuOutsiders: 'Menu outsiders', trafficPeak: 'Traffic & peak hours', trafficSubtitle: 'Reservation heatmap by day and hour', guests: 'guests', serviceAverage: 'Average service time', tableTurnover: 'Table turnover', staffPerformance: 'Staff performance', staffSubtitle: 'Staff sales will appear after a server is linked to an order.', onTeam: 'on team', noStaff: 'No staff', customerAnalytics: 'Customer analytics', newCustomers: 'New', returningCustomers: 'Returning', loyalty: 'Loyalty program', members: 'Members', issued: 'Issued', spent: 'Spent', reviews: 'Reviews & UGC', publishedReviews: 'published reviews', healthy: 'Healthy', uptime: 'uptime', users: 'users', share: 'Share', redemption: 'Redeemed', rating: 'Rating', noTeamData: 'Sales will appear after a staff member is linked to an order', emptyChart: 'No data to calculate this yet' },
-  kg: { revenueToday: 'Бүгүнкү киреше', revenueWeek: 'Бул жумадагы киреше', averageOrder: 'Орточо чек', guestsOccupancy: 'Коноктор / толушу', registered: 'катталган', orders: 'буйрутма', today: 'Бүгүн', week: 'Жума', month: 'Ай', paymentMethods: 'Төлөм ыкмалары', operations: 'операция', noPayments: 'Төлөмдөр боюнча маалымат жок', menuAnalytics: 'Меню аналитикасы', menuSubtitle: 'Көп сатылган жана алып салынуучу позициялар', units: 'даана', noSales: 'Бул айда сатуу жок', categorySales: 'Категориялар боюнча сатуу', menuOutsiders: 'Менюдагы начар позициялар', trafficPeak: 'Келүүчүлөр жана жогорку сааттар', trafficSubtitle: 'Күндөр жана сааттар боюнча брондоолор картасы', guests: 'конок', serviceAverage: 'Орточо тейлөө', tableTurnover: 'Столдун айлануусу', staffPerformance: 'Кызматкерлер жана натыйжалуулук', staffSubtitle: 'Официант буйрутмага байланышкандан кийин кызматкерлердин сатуусу чыгат.', onTeam: 'командада', noStaff: 'Кызматкерлер жок', customerAnalytics: 'Кардарлар аналитикасы', newCustomers: 'Жаңы', returningCustomers: 'Туруктуу', loyalty: 'Лоялдуулук программасы', members: 'Катышуучулар', issued: 'Чегерилди', spent: 'Сарпталды', reviews: 'Сын-пикирлер жана UGC', publishedReviews: 'жарыяланган сын-пикир', healthy: 'Система иштеп жатат', uptime: 'үзгүлтүксүз иштөө', users: 'колдонуучу', share: 'Үлүшү', redemption: 'Сарпталды', rating: 'Рейтинг', noTeamData: 'Кызматкер буйрутмага байланышкандан кийин сатуулар чыгат', emptyChart: 'Эсептөө үчүн маалымат жок' },
-};
 const chartBars = [42, 58, 49, 72, 61, 84, 76, 91, 68, 79, 88, 74];
 const heatmap = [2, 1, 3, 4, 2, 5, 6, 3, 1, 2, 5, 7, 4, 3, 5, 6, 8, 5, 4, 6, 7, 8, 6, 4, 2, 3, 5, 7, 8, 6, 4, 3, 2, 4, 6, 7, 8, 6, 5, 3, 2, 4, 6, 8, 7, 5, 4, 2, 1, 3, 5, 7, 8, 6, 4, 3, 2, 4, 6, 7, 5, 3, 2, 1, 3, 5, 6, 4, 2, 1, 2, 4, 5, 3, 2, 1, 3, 4, 2, 1, 2, 3];
 
@@ -209,9 +141,15 @@ function percentage(value: number, total: number) {
 
 export default function AdminDashboardClient({ locale, embedded = false }: { locale: Locale; embedded?: boolean }) {
   const ui = getUiTranslations(locale);
-  const text = copy[locale];
-  const labels = analyticsCopy[locale];
-  const dashboardTitle = ui.admin.stats;
+  const dashboardTranslations = getLocaleTranslations(locale).dashboard;
+  const text = {
+    ...dashboardTranslations.copy,
+    roleNames: dashboardTranslations.copy.roleNames as Record<string, string>,
+    orderStatuses: dashboardTranslations.copy.orderStatuses as Record<string, string>,
+  };
+  const labels = dashboardTranslations.analytics;
+  const finance = dashboardTranslations.finance;
+  const dashboardTitle = text.title;
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -246,7 +184,7 @@ export default function AdminDashboardClient({ locale, embedded = false }: { loc
     }).slice(0, 6);
   }, [data, query, roleFilter]);
 
-  const currency = data?.tenant?.currency || (locale === 'en' ? 'KGS' : 'сом');
+  const currency = data?.tenant?.currency || ui.admin.currency;
   const metrics = data?.metrics || { users: 0, activeUsers: 0, admins: 0, orders: 0, revenue: 0, products: 0, activeProducts: 0 };
   const utilization = metrics.products ? Math.round((metrics.activeProducts / metrics.products) * 100) : 0;
   const orderStatuses = Object.entries(text.orderStatuses).map(([status, label]) => ({ status, label, count: data?.recentOrders.filter((order) => order.status === status).length || 0 }));
@@ -292,12 +230,12 @@ export default function AdminDashboardClient({ locale, embedded = false }: { loc
 
         <div className="mb-6 grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(320px,0.8fr)]">
           <Card className="p-5 sm:p-6">
-            <SectionHeading icon={WalletCards} title={locale === 'en' ? 'Finance' : locale === 'kg' ? 'Каржы аналитикасы' : 'Финансовая аналитика'} subtitle={locale === 'en' ? 'Revenue and margin overview' : 'Выручка, себестоимость и возвраты'} />
+            <SectionHeading icon={WalletCards} title={finance.title} subtitle={finance.subtitle} />
             <div className="grid gap-4 sm:grid-cols-3">
               {(['today', 'week', 'month'] as const).map((period) => <div key={period} className="rounded-xl bg-[var(--muted)]/60 p-4"><p className="text-xs font-semibold uppercase text-[var(--muted-foreground)]">{labels[period]}</p><p className="mt-2 text-xl font-black">{formatCurrency(analytics?.periods[period].revenue || 0, locale, currency)}</p><p className="mt-1 text-xs text-[var(--muted-foreground)]">{analytics?.periods[period].orders || 0} {labels.orders}</p></div>)}
             </div>
             <div className="mt-5 flex h-32 items-end gap-2 border-b border-[var(--border)] pb-2">{(analytics?.dailyRevenue || []).map((item) => <div key={item.date} className="group flex h-full flex-1 flex-col items-center justify-end gap-2"><div className="w-full rounded-t-md bg-orange-500/80" style={{ height: `${Math.max(8, Math.min(100, (item.revenue / Math.max(1, ...((analytics?.dailyRevenue || []).map((entry) => entry.revenue)))) * 100))}%` }} /><span className="text-[10px] text-[var(--muted-foreground)]">{item.date.slice(8)}</span></div>)}</div>
-            <div className="mt-5 grid gap-3 sm:grid-cols-3"><div><p className="text-xs text-[var(--muted-foreground)]">{locale === 'en' ? 'Food cost' : 'Себестоимость'}</p><p className="mt-1 font-bold">{formatCurrency(analytics?.foodCost || 0, locale, currency)} <span className="text-xs text-amber-500">32% оценка</span></p></div><div><p className="text-xs text-[var(--muted-foreground)]">{locale === 'en' ? 'Margin' : 'Чистая маржа'}</p><p className="mt-1 font-bold text-emerald-500">{formatCurrency((analytics?.periods.month.revenue || 0) - (analytics?.foodCost || 0), locale, currency)}</p></div><div><p className="text-xs text-[var(--muted-foreground)]">{locale === 'en' ? 'Refunds / cancellations' : 'Возвраты / отмены'}</p><p className="mt-1 font-bold">{formatCurrency(analytics?.refunds.amount || 0, locale, currency)} · {analytics?.cancelled || 0}</p></div></div>
+            <div className="mt-5 grid gap-3 sm:grid-cols-3"><div><p className="text-xs text-[var(--muted-foreground)]">{finance.foodCost}</p><p className="mt-1 font-bold">{formatCurrency(analytics?.foodCost || 0, locale, currency)} <span className="text-xs text-amber-500">{finance.foodCostEstimate}</span></p></div><div><p className="text-xs text-[var(--muted-foreground)]">{finance.margin}</p><p className="mt-1 font-bold text-emerald-500">{formatCurrency((analytics?.periods.month.revenue || 0) - (analytics?.foodCost || 0), locale, currency)}</p></div><div><p className="text-xs text-[var(--muted-foreground)]">{finance.refunds}</p><p className="mt-1 font-bold">{formatCurrency(analytics?.refunds.amount || 0, locale, currency)} · {analytics?.cancelled || 0}</p></div></div>
           </Card>
           <Card className="p-5 sm:p-6"><SectionHeading icon={CreditCard} title={labels.paymentMethods} /><div className="flex flex-col gap-5 sm:flex-row sm:items-center"><DonutChart segments={(analytics?.paymentMix || []).map((payment, index) => ({ value: payment.amount, color: roleColors[index % roleColors.length] }))} centerValue={`${percentage(paymentTotal, paymentTotal)}%`} centerLabel={labels.share} /><div className="min-w-0 flex-1 space-y-3">{(analytics?.paymentMix || []).map((payment, index) => { const share = percentage(payment.amount, paymentTotal); return <div key={payment.method} className="rounded-xl bg-[var(--muted)]/60 px-3 py-2.5"><div className="flex items-center justify-between gap-3 text-sm font-semibold"><span className="flex min-w-0 items-center gap-2 truncate"><span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: roleColors[index % roleColors.length] }} />{payment.method}</span><strong>{share}%</strong></div><MetricBar value={payment.amount} max={paymentTotal} /><p className="mt-1 text-right text-xs text-[var(--muted-foreground)]">{formatCurrency(payment.amount, locale, currency)} · {payment.count} {labels.operations}</p></div>; })}{!analytics?.paymentMix.length && <div className="rounded-xl bg-[var(--muted)]/60 px-3 py-4"><p className="text-sm text-[var(--muted-foreground)]">{labels.noPayments}</p><p className="mt-1 text-xs font-bold">0% {labels.share}</p></div>}</div></div></Card>
         </div>
@@ -308,7 +246,7 @@ export default function AdminDashboardClient({ locale, embedded = false }: { loc
         </div>
 
         <div className="mb-6 grid gap-6 lg:grid-cols-3">
-          <Card className="p-5 sm:p-6 lg:col-span-2"><SectionHeading icon={Activity} title={labels.trafficPeak} subtitle={labels.trafficSubtitle} /><div className="grid grid-cols-7 gap-1">{Array.from({ length: 7 }, (_, day) => <div key={day} className="space-y-1">{Array.from({ length: 12 }, (_, offset) => { const hour = offset + 10; const value = analytics?.trafficHeatmap.filter((point) => point.day === day && point.hour === hour).reduce((sum, point) => sum + point.guests, 0) || 0; return <div key={hour} title={`${hour}:00 · ${value} ${labels.guests}`} className={`h-5 rounded-sm ${value > 4 ? 'bg-orange-500' : value > 0 ? 'bg-orange-500/50' : 'bg-[var(--muted)]'}`} />; })}</div>)}</div><div className="mt-4 grid gap-3 sm:grid-cols-2"><div className="rounded-xl bg-[var(--muted)]/60 p-3"><Timer className="h-4 w-4 text-[var(--primary)]" /><p className="mt-2 text-xs text-[var(--muted-foreground)]">{labels.serviceAverage}</p><strong>{analytics?.averageServiceMinutes || 0} {locale === 'en' ? 'min.' : locale === 'kg' ? 'мүн.' : 'мин.'}</strong></div><div className="rounded-xl bg-[var(--muted)]/60 p-3"><Timer className="h-4 w-4 text-[var(--primary)]" /><p className="mt-2 text-xs text-[var(--muted-foreground)]">{labels.tableTurnover}</p><strong>{analytics?.averageTableMinutes || 0} {locale === 'en' ? 'min.' : locale === 'kg' ? 'мүн.' : 'мин.'}</strong></div></div></Card>
+          <Card className="p-5 sm:p-6 lg:col-span-2"><SectionHeading icon={Activity} title={labels.trafficPeak} subtitle={labels.trafficSubtitle} /><div className="grid grid-cols-7 gap-1">{Array.from({ length: 7 }, (_, day) => <div key={day} className="space-y-1">{Array.from({ length: 12 }, (_, offset) => { const hour = offset + 10; const value = analytics?.trafficHeatmap.filter((point) => point.day === day && point.hour === hour).reduce((sum, point) => sum + point.guests, 0) || 0; return <div key={hour} title={`${hour}:00 · ${value} ${labels.guests}`} className={`h-5 rounded-sm ${value > 4 ? 'bg-orange-500' : value > 0 ? 'bg-orange-500/50' : 'bg-[var(--muted)]'}`} />; })}</div>)}</div><div className="mt-4 grid gap-3 sm:grid-cols-2"><div className="rounded-xl bg-[var(--muted)]/60 p-3"><Timer className="h-4 w-4 text-[var(--primary)]" /><p className="mt-2 text-xs text-[var(--muted-foreground)]">{labels.serviceAverage}</p><strong>{analytics?.averageServiceMinutes || 0} {dashboardTranslations.minutes}</strong></div><div className="rounded-xl bg-[var(--muted)]/60 p-3"><Timer className="h-4 w-4 text-[var(--primary)]" /><p className="mt-2 text-xs text-[var(--muted-foreground)]">{labels.tableTurnover}</p><strong>{analytics?.averageTableMinutes || 0} {dashboardTranslations.minutes}</strong></div></div></Card>
           <Card className="p-5 sm:p-6"><SectionHeading icon={Users} title={labels.staffPerformance} /><p className="mb-4 text-xs text-[var(--muted-foreground)]">{labels.staffSubtitle}</p><div className="flex items-start gap-4"><DonutChart segments={staffRoleDistribution.map((member, index) => ({ value: member.count, color: roleColors[index % roleColors.length] }))} centerValue={formatNumber(analytics?.staff.length || 0, locale)} centerLabel={labels.onTeam} size="h-24 w-24" /><div className="min-w-0 flex-1 space-y-2">{staffRoleDistribution.map((member, index) => { const share = percentage(member.count, analytics?.staff.length || 0); return <div key={member.role} className="flex items-center justify-between gap-2 text-xs"><span className="flex min-w-0 items-center gap-2 truncate"><span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: roleColors[index % roleColors.length] }} />{text.roleNames[member.role] || member.role}</span><strong>{share}%</strong></div>; })}{!staffRoleDistribution.length && <p className="text-sm text-[var(--muted-foreground)]">{labels.noStaff}</p>}</div></div>{!staffRoleDistribution.length && <p className="mt-4 text-xs text-[var(--muted-foreground)]">{labels.noTeamData}</p>}</Card>
         </div>
 
@@ -321,14 +259,14 @@ export default function AdminDashboardClient({ locale, embedded = false }: { loc
         <div className="mb-6 grid gap-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.8fr)]">
           <Card className="p-5 sm:p-6">
             <SectionHeading icon={BarChart3} title={text.visitors} subtitle={text.lastSevenDays} action={<button type="button" className="rounded-lg p-2 text-[var(--muted-foreground)] transition hover:bg-[var(--muted)]"><MoreHorizontal className="h-5 w-5" /></button>} />
-            <div className="flex items-end justify-between gap-3 border-b border-[var(--border)] pb-2 pt-5 sm:gap-5"><div className="text-3xl font-black">{formatNumber(metrics.activeUsers * 14 + metrics.orders * 3, locale)}<span className="ml-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400">+18.4%</span></div><div className="hidden text-right text-xs text-[var(--muted-foreground)] sm:block">{text.ordersTrend}<br /><span className="font-bold text-[var(--foreground)]">{formatNumber(metrics.orders, locale)} total</span></div></div>
-            <div className="mt-6 grid h-48 grid-cols-12 items-end gap-1.5 sm:gap-3">{chartBars.map((height, index) => <div key={`${height}-${index}`} className="group flex h-full flex-col items-center justify-end gap-2"><div className="relative h-full w-full max-w-8 rounded-t-md bg-orange-500/20 transition group-hover:bg-orange-500/35 dark:bg-orange-400/15"><div className="absolute bottom-0 w-full rounded-t-md bg-gradient-to-t from-orange-600 to-orange-400 transition-all group-hover:from-orange-500" style={{ height: `${height}%` }} /></div><span className="text-[10px] text-[var(--muted-foreground)]">{(locale === 'en' ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'] : locale === 'kg' ? ['Дш', 'Шш', 'Шр', 'Бш', 'Жм', 'Иш', 'Жк', 'Дш', 'Шш', 'Шр', 'Бш', 'Жм'] : ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт'])[index]}</span></div>)}</div>
+            <div className="flex items-end justify-between gap-3 border-b border-[var(--border)] pb-2 pt-5 sm:gap-5"><div className="text-3xl font-black">{formatNumber(metrics.activeUsers * 14 + metrics.orders * 3, locale)}<span className="ml-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400">+18.4%</span></div><div className="hidden text-right text-xs text-[var(--muted-foreground)] sm:block">{text.ordersTrend}<br /><span className="font-bold text-[var(--foreground)]">{formatNumber(metrics.orders, locale)} {dashboardTranslations.total}</span></div></div>
+            <div className="mt-6 grid h-48 grid-cols-12 items-end gap-1.5 sm:gap-3">{chartBars.map((height, index) => <div key={`${height}-${index}`} className="group flex h-full flex-col items-center justify-end gap-2"><div className="relative h-full w-full max-w-8 rounded-t-md bg-orange-500/20 transition group-hover:bg-orange-500/35 dark:bg-orange-400/15"><div className="absolute bottom-0 w-full rounded-t-md bg-gradient-to-t from-orange-600 to-orange-400 transition-all group-hover:from-orange-500" style={{ height: `${height}%` }} /></div><span className="text-[10px] text-[var(--muted-foreground)]">{dashboardTranslations.weekdays[index]}</span></div>)}</div>
           </Card>
 
           <Card className="p-5 sm:p-6">
             <SectionHeading icon={Activity} title={text.systemStatus} subtitle={text.allSystems} />
             <div className="mb-6 flex items-center gap-4"><div className="relative flex h-24 w-24 shrink-0 items-center justify-center rounded-full" style={{ background: 'conic-gradient(#10b981 0deg 356deg, var(--muted) 356deg 360deg)' }}><div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--card)] text-xl font-black">99<span className="text-xs">%</span></div></div><div><p className="text-2xl font-black">{labels.healthy}</p><p className="mt-1 text-xs text-[var(--muted-foreground)]">{text.online} · 99.98% {labels.uptime}</p></div></div>
-            <div className="space-y-3">{[{ label: text.api, value: '42 ms', icon: Zap }, { label: text.database, value: '18 ms', icon: Database }, { label: text.notifications, value: '0 queued', icon: Bell }].map(({ label, value, icon: Icon }) => <div key={label} className="flex items-center justify-between rounded-xl bg-[var(--muted)]/60 px-3 py-2.5"><span className="flex items-center gap-2 text-sm font-semibold"><Icon className="h-4 w-4 text-[var(--primary)]" />{label}</span><span className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />{value}</span></div>)}</div>
+            <div className="space-y-3">{[{ label: text.api, value: '42 ms', icon: Zap }, { label: text.database, value: '18 ms', icon: Database }, { label: text.notifications, value: `0 ${dashboardTranslations.queued}`, icon: Bell }].map(({ label, value, icon: Icon }) => <div key={label} className="flex items-center justify-between rounded-xl bg-[var(--muted)]/60 px-3 py-2.5"><span className="flex items-center gap-2 text-sm font-semibold"><Icon className="h-4 w-4 text-[var(--primary)]" />{label}</span><span className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />{value}</span></div>)}</div>
           </Card>
         </div>
 
