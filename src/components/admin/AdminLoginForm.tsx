@@ -70,7 +70,7 @@ export default function AdminLoginForm() {
         setStep('2fa');
       } else {
         // No 2FA - redirect to dashboard
-        router.push('/admin/dashboard');
+        router.push(`/${locale}/admin/dashboard`);
         router.refresh();
       }
     } catch {
@@ -102,7 +102,7 @@ export default function AdminLoginForm() {
       }
 
       // Success - redirect to dashboard
-      router.push('/admin/dashboard');
+      router.push(`/${locale}/admin/dashboard`);
       router.refresh();
     } catch {
       setError(copy.connectionError);

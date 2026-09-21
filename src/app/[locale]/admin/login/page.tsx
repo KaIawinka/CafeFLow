@@ -6,14 +6,16 @@
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import AdminLoginForm from '@/components/admin/AdminLoginForm';
+import type { Locale } from '@/app/i18n/config';
 
-export default async function AdminLoginPage() {
+export default async function AdminLoginPage({ params }: { params: Promise<{ locale: Locale }> }) {
+  const { locale } = await params;
   // Check if already logged in
   const cookieStore = await cookies();
   const token = cookieStore.get('accessToken');
   
   if (token) {
-    redirect('/admin/dashboard');
+    redirect(`/${locale}/admin/dashboard`);
   }
 
   return (

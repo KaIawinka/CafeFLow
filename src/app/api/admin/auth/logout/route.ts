@@ -8,7 +8,7 @@ import { cookies } from 'next/headers';
 import { logger } from '@/lib/logger';
 import { verifyAccessToken } from '@/lib/auth/jwt';
 import { prisma } from '@/lib/prisma';
-import { apiError } from '@/lib/api-response';
+import { apiError, getRequestLocale } from '@/lib/api-response';
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,7 +23,8 @@ export async function POST(request: NextRequest) {
 
     logger.info('Admin logged out');
 
-    return NextResponse.redirect(new URL('/admin/login', process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'));
+    const locale = getRequestLocale(request);
+    return NextResponse.redirect(new URL(`/${locale}/admin/login`, process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin));
   } catch (error) {
     logger.error('Logout error', error);
     
