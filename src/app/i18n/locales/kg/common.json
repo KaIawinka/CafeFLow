@@ -8,5 +8,14 @@
     "pricing": "Брондоо",
     "demo": "Биз жөнүндө",
     "contact": "Байланыштар"
+  },
+  "auth": {
+    "brand": "CaféFlow",
+    "createAccount": "Аккаунт түзүү",
+    "welcome": "Кош келиңиз",
+    "twoFaConfirmation": "Кирүүнү ырастоо"
+  },
+  "footer": {
+    "rights": "Бардык укуктар корголгон"
   }
 }

@@ -260,10 +260,10 @@ function LoginContent() {
                   <ShieldCheck className="w-8 h-8 text-amber-600" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Подтверждение входа
+                  {t.login.twoFa.title}
                 </h2>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Код отправлен в ваш Telegram бот
+                  {t.login.twoFa.subtitle}
                 </p>
               </div>
 
@@ -276,7 +276,7 @@ function LoginContent() {
 
               <div>
                 <label htmlFor="code" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Код подтверждения
+                  {t.login.twoFa.codeLabel}
                 </label>
                 <input
                   id="code"
@@ -286,11 +286,11 @@ function LoginContent() {
                   required
                   maxLength={6}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all text-center text-2xl font-mono tracking-widest"
-                  placeholder="000000"
+                  placeholder={t.login.twoFa.codePlaceholder}
                   autoComplete="off"
                 />
                 <p className="text-xs text-gray-500 mt-2">
-                  Код действителен 5 минут
+                  {t.login.twoFa.codeHint}
                 </p>
               </div>
 
@@ -302,12 +302,12 @@ function LoginContent() {
                 {isLoading ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Проверка...
+                    {t.login.twoFa.verifying}
                   </>
                 ) : (
                   <>
                     <ShieldCheck className="w-5 h-5" />
-                    Подтвердить
+                    {t.login.twoFa.verifyButton}
                   </>
                 )}
               </button>
@@ -321,7 +321,7 @@ function LoginContent() {
                 }}
                 className="w-full text-sm text-gray-600 hover:text-gray-900 transition-colors"
               >
-                ← Назад к входу
+                {t.login.twoFa.back}
               </button>
             </form>
           )}
@@ -329,7 +329,7 @@ function LoginContent() {
 
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-gray-600 dark:text-gray-400">
-          <p>© {new Date().getFullYear()} CaféFlow. Все права защищены.</p>
+          <p>© {new Date().getFullYear()} {t.common.cafeflow}. {t.common.footerRights}.</p>
         </div>
       </div>
     </div>

@@ -310,7 +310,7 @@ function RegisterForm() {
 
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-gray-600 dark:text-gray-400">
-          <p>© {new Date().getFullYear()} CaféFlow. Все права защищены.</p>
+          <p>© {new Date().getFullYear()} {t.common.cafeflow}. {t.common.footerRights}.</p>
         </div>
       </div>
     </div>

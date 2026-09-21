@@ -8,5 +8,14 @@
     "pricing": "Reservations",
     "demo": "About us",
     "contact": "Contact"
+  },
+  "auth": {
+    "brand": "CaféFlow",
+    "createAccount": "Create an account",
+    "welcome": "Welcome",
+    "twoFaConfirmation": "Login confirmation"
+  },
+  "footer": {
+    "rights": "All rights reserved"
   }
 }

@@ -8,5 +8,14 @@
     "pricing": "Бронирование",
     "demo": "О нас",
     "contact": "Контакты"
+  },
+  "auth": {
+    "brand": "CaféFlow",
+    "createAccount": "Создайте аккаунт",
+    "welcome": "Добро пожаловать",
+    "twoFaConfirmation": "Подтверждение входа"
+  },
+  "footer": {
+    "rights": "Все права защищены"
   }
 }
