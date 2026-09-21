@@ -1,28 +1,10 @@
 import type { Locale } from '@/app/i18n/config';
-import ruAuth from '@/app/i18n/locales/ru/auth.json';
-import enAuth from '@/app/i18n/locales/en/auth.json';
-import kgAuth from '@/app/i18n/locales/kg/auth.json';
-import ruCommon from '@/app/i18n/locales/ru/common.json';
-import enCommon from '@/app/i18n/locales/en/common.json';
-import kgCommon from '@/app/i18n/locales/kg/common.json';
+import { getLocaleTranslations } from '@/app/i18n/catalog';
 
 export type { Locale } from '@/app/i18n/config';
 
-const authTranslations = {
-  ru: ruAuth,
-  en: enAuth,
-  kg: kgAuth,
-} satisfies Record<Locale, typeof ruAuth>;
-
-const commonTranslations = {
-  ru: ruCommon,
-  en: enCommon,
-  kg: kgCommon,
-} satisfies Record<Locale, typeof ruCommon>;
-
 export function getTranslation(locale: Locale) {
-  const auth = authTranslations[locale] || authTranslations.ru;
-  const common = commonTranslations[locale] || commonTranslations.ru;
+  const { auth, common } = getLocaleTranslations(locale);
 
   return {
     login: {

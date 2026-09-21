@@ -1,18 +1,12 @@
 import { type Locale, defaultLocale, locales } from './config';
+import { getLocaleTranslations, type TranslationCatalog } from './catalog';
 
-type TranslationKey = 'landing' | 'common';
+export type TranslationKey = keyof TranslationCatalog;
 
 export const LOCALE_COOKIE = 'NEXT_LOCALE';
 
-export async function getTranslations(locale: Locale, key: TranslationKey) {
-  try {
-    const translations = await import(`./locales/${locale}/${key}.json`);
-    return translations.default;
-  } catch {
-    console.warn(`Translation file not found: ${locale}/${key}.json, falling back to ${defaultLocale}`);
-    const fallback = await import(`./locales/${defaultLocale}/${key}.json`);
-    return fallback.default;
-  }
+export async function getTranslations<Key extends TranslationKey>(locale: Locale, key: Key): Promise<TranslationCatalog[Key]> {
+  return getLocaleTranslations(locale)[key];
 }
 
 export function isValidLocale(locale: string): locale is Locale {

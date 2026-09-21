@@ -1,10 +1,5 @@
 import type { Locale } from '@/app/i18n/config';
-import ruUi from '@/app/i18n/locales/ru/ui.json';
-import enUi from '@/app/i18n/locales/en/ui.json';
-import kgUi from '@/app/i18n/locales/kg/ui.json';
-import ruAdmin from '@/app/i18n/locales/ru/admin.json';
-import enAdmin from '@/app/i18n/locales/en/admin.json';
-import kgAdmin from '@/app/i18n/locales/kg/admin.json';
+import { getLocaleTranslations, type TranslationCatalog } from '@/app/i18n/catalog';
 
 type UiTranslations = {
   header: {
@@ -61,7 +56,7 @@ type UiTranslations = {
     compactMode: string;
     saveSettings: string;
   };
-  admin: typeof ruAdmin.panel;
+  admin: TranslationCatalog['admin']['panel'];
   notFound: {
     title: string;
     description: string;
@@ -70,22 +65,13 @@ type UiTranslations = {
   };
 };
 
-const translationSources = {
-  ru: {
-    ui: ruUi,
-    admin: ruAdmin,
-  },
-  en: {
-    ui: enUi,
-    admin: enAdmin,
-  },
-  kg: {
-    ui: kgUi,
-    admin: kgAdmin,
-  },
-} satisfies Record<Locale, { ui: typeof ruUi; admin: typeof ruAdmin }>;
+const translationSources: Record<Locale, TranslationCatalog> = {
+  ru: getLocaleTranslations('ru'),
+  en: getLocaleTranslations('en'),
+  kg: getLocaleTranslations('kg'),
+};
 
-function buildUiTranslations(source: (typeof translationSources)[Locale]): UiTranslations {
+function buildUiTranslations(source: TranslationCatalog): UiTranslations {
   return {
     header: {
       kitchen: source.ui.header.kitchen,
