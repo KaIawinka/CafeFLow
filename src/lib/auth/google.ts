@@ -34,7 +34,9 @@ export function getGoogleClientSecret() {
 
 export function getGoogleRedirectUri(request: Request) {
   const configured = process.env.GOOGLE_REDIRECT_URI?.trim();
-  if (configured) return configured;
+  if (configured && !(process.env.NODE_ENV === 'production' && /^https?:\/\/(localhost|127\.0\.0\.1)(?::\d+)?\//i.test(configured))) {
+    return configured;
+  }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || new URL(request.url).origin;
   return `${appUrl.replace(/\/$/, '')}/api/auth/google/callback`;
