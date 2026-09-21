@@ -105,6 +105,7 @@ async function getAnalytics(tenantId: string | null, branchIds: string[] | null)
     customerMix: { newCustomers: users.filter((user) => user.created_at >= month).length, returningCustomers: new Set(monthOrders.map((order) => order.user_id).filter(Boolean)).size },
     loyalty: { issued: loyalty.filter((entry) => entry.operation === 'earn').reduce((total, entry) => total + Number(entry.amount || 0), 0), spent: loyalty.filter((entry) => entry.operation === 'spend').reduce((total, entry) => total + Number(entry.amount || 0), 0), members: loyalty.length },
     reviews: { average: reviews.length ? reviews.reduce((total, review) => total + review.rating, 0) / reviews.length : 0, count: reviews.length },
+    roleDistribution: Object.entries(users.reduce<Record<string, number>>((map, user) => { map[user.role] = (map[user.role] || 0) + 1; return map; }, {})).map(([role, count]) => ({ role, count })),
   };
 }
 

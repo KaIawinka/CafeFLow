@@ -22,6 +22,18 @@ import {
   CalendarClock,
   ArrowDownAZ,
   AtSign,
+  Bell,
+  CalendarCheck,
+  CheckCircle2,
+  Eye,
+  ExternalLink,
+  Globe2,
+  Link2,
+  Mail,
+  MapPin,
+  Palette,
+  Phone,
+  Power,
   ShieldCheck,
   CircleDot,
   RotateCcw,
@@ -76,6 +88,8 @@ interface SiteSettings {
   };
 }
 
+type SettingsOptionConfig = [keyof SiteSettings['siteOptions'], string, typeof SettingsIcon];
+
 interface RecentOrder {
   id: string;
   order_number: string;
@@ -107,6 +121,39 @@ interface Product {
   is_available: boolean;
   is_featured: boolean;
   category?: { name: string } | null;
+}
+
+function cloneSiteSettings(settings: SiteSettings): SiteSettings {
+  return { ...settings, siteOptions: { ...settings.siteOptions } };
+}
+
+function createDefaultSiteSettings(description: string): SiteSettings {
+  return {
+    siteName: 'CaféFlow',
+    siteDescription: description,
+    logoUrl: '/cafeflow-logo.svg',
+    logoData: '',
+    primaryColor: '#f59e0b',
+    maintenanceMode: false,
+    timezone: 'Asia/Bishkek',
+    contactPhone: '',
+    contactEmail: '',
+    addressText: '',
+    siteOptions: {
+      publicSiteEnabled: true,
+      acceptOnlineOrders: true,
+      showReservations: true,
+      allowGuestCheckout: true,
+      requirePhone: true,
+      autoConfirmOrders: false,
+      deliveryEnabled: true,
+      pickupEnabled: true,
+      emailOrderAlerts: true,
+      reservationAlerts: true,
+      showMenuPrices: true,
+      showOutOfStock: false,
+    },
+  };
 }
 
 type AdminTab = 'dashboard' | 'users' | 'orders' | 'reservations' | 'products' | 'settings';
@@ -143,6 +190,18 @@ function PaginationControls({ page, pageCount, onPageChange, copy }: { page: num
       <button type="button" onClick={() => onPageChange(Math.min(pageCount, page + 1))} disabled={page === pageCount} className="min-h-10 rounded-lg border border-gray-200 px-3 text-sm font-semibold text-gray-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-200">{copy.next}</button>
     </div>
   );
+}
+
+function AdminSettingsCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return <section className={`min-w-0 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-[0_12px_32px_rgba(21,26,30,0.06)] sm:p-6 ${className}`}>{children}</section>;
+}
+
+function AdminSettingsHeading({ icon: Icon, title, subtitle }: { icon: typeof SettingsIcon; title: string; subtitle?: string }) {
+  return <div className="mb-5 flex items-start gap-3"><div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--secondary)] text-[var(--primary)]"><Icon className="h-4 w-4" /></div><div><h2 className="text-sm font-bold text-[var(--foreground)] sm:text-base">{title}</h2>{subtitle && <p className="mt-1 text-xs text-[var(--muted-foreground)]">{subtitle}</p>}</div></div>;
+}
+
+function SettingsToggle({ checked, label, icon: Icon, onChange }: { checked: boolean; label: string; icon?: typeof SettingsIcon; onChange: (checked: boolean) => void }) {
+  return <label className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl bg-[var(--muted)]/60 px-4 py-3 transition hover:bg-[var(--muted)]"><span className="relative shrink-0"><input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} className="peer sr-only" /><span className="block h-6 w-11 rounded-full bg-[var(--border)] transition peer-checked:bg-[var(--primary)] peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--ring)] peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-[var(--card)] after:absolute after:left-1 after:top-1 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow-sm after:transition after:content-[''] peer-checked:after:translate-x-5" /></span><span className="flex min-w-0 items-center gap-2 text-sm font-semibold text-[var(--card-foreground)]">{Icon && <Icon className="h-4 w-4 shrink-0 text-[var(--primary)]" />}{label}</span></label>;
 }
 
 export default function AdminPage() {
@@ -196,32 +255,9 @@ export default function AdminPage() {
   };
   
   // Site settings
-  const [siteSettings, setSiteSettings] = useState<SiteSettings>({
-    siteName: 'CaféFlow',
-    siteDescription: ui.admin.description,
-    logoUrl: '/cafeflow-logo.svg',
-    logoData: '',
-    primaryColor: '#f59e0b',
-    maintenanceMode: false,
-    timezone: 'Asia/Bishkek',
-    contactPhone: '',
-    contactEmail: '',
-    addressText: '',
-    siteOptions: {
-      publicSiteEnabled: true,
-      acceptOnlineOrders: true,
-      showReservations: true,
-      allowGuestCheckout: true,
-      requirePhone: true,
-      autoConfirmOrders: false,
-      deliveryEnabled: true,
-      pickupEnabled: true,
-      emailOrderAlerts: true,
-      reservationAlerts: true,
-      showMenuPrices: true,
-      showOutOfStock: false,
-    },
-  });
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>(() => createDefaultSiteSettings(ui.admin.description));
+  const [savedSiteSettings, setSavedSiteSettings] = useState<SiteSettings | null>(() => createDefaultSiteSettings(ui.admin.description));
+  const [settingsFeedback, setSettingsFeedback] = useState<'saved' | 'copied' | ''>('');
 
   const loadDashboard = useEffectEvent(async (signal: AbortSignal) => {
     if (!hasLoadedDashboard) setIsLoading(true);
@@ -248,20 +284,22 @@ export default function AdminPage() {
       setOrdersTotal(data.pagination?.ordersTotal || 0);
       setProducts(data.products || []);
       if (data.tenant) {
-        setSiteSettings((current) => ({
-          ...current,
-          siteName: data.tenant.name || current.siteName,
-          primaryColor: data.tenant.primary_color || current.primaryColor,
-          timezone: data.tenant.timezone || current.timezone,
+        const nextSettings = {
+          ...siteSettings,
+          siteName: data.tenant.name || siteSettings.siteName,
+          primaryColor: data.tenant.primary_color || siteSettings.primaryColor,
+          timezone: data.tenant.timezone || siteSettings.timezone,
           contactPhone: data.tenant.contact_phone || '',
           contactEmail: data.tenant.contact_email || '',
           addressText: data.tenant.address_text || '',
-          siteDescription: typeof data.tenant.settings?.siteDescription === 'string' ? data.tenant.settings.siteDescription : current.siteDescription,
-          logoUrl: typeof data.tenant.settings?.logoUrl === 'string' ? data.tenant.settings.logoUrl : current.logoUrl,
-          logoData: typeof data.tenant.settings?.logoData === 'string' ? data.tenant.settings.logoData : current.logoData,
+          siteDescription: typeof data.tenant.settings?.siteDescription === 'string' ? data.tenant.settings.siteDescription : siteSettings.siteDescription,
+          logoUrl: typeof data.tenant.settings?.logoUrl === 'string' ? data.tenant.settings.logoUrl : siteSettings.logoUrl,
+          logoData: typeof data.tenant.settings?.logoData === 'string' ? data.tenant.settings.logoData : siteSettings.logoData,
           maintenanceMode: data.tenant.settings?.maintenanceMode === true,
-          siteOptions: { ...current.siteOptions, ...(data.tenant.settings?.siteOptions || {}) },
-        }));
+          siteOptions: { ...siteSettings.siteOptions, ...(data.tenant.settings?.siteOptions || {}) },
+        };
+        setSiteSettings(nextSettings);
+        setSavedSiteSettings(cloneSiteSettings(nextSettings));
       }
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return;
@@ -331,6 +369,7 @@ export default function AdminPage() {
   const saveTenantSettings = async () => {
     setSavingId('tenant');
     setError('');
+    setSettingsFeedback('');
     try {
       const response = await fetch('/api/admin/dashboard', {
         method: 'PATCH',
@@ -339,12 +378,45 @@ export default function AdminPage() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || ui.admin.errorSave);
-      setSiteSettings((current) => ({ ...current, siteName: data.tenant.name, timezone: data.tenant.timezone, primaryColor: data.tenant.primary_color || current.primaryColor, contactPhone: data.tenant.contact_phone || '', contactEmail: data.tenant.contact_email || '', addressText: data.tenant.address_text || '', siteDescription: data.tenant.settings?.siteDescription || current.siteDescription, logoUrl: data.tenant.settings?.logoUrl || current.logoUrl, logoData: data.tenant.settings?.logoData || current.logoData, maintenanceMode: data.tenant.settings?.maintenanceMode === true, siteOptions: { ...current.siteOptions, ...(data.tenant.settings?.siteOptions || {}) } }));
+      const nextSettings = {
+        ...siteSettings,
+        siteName: data.tenant.name,
+        timezone: data.tenant.timezone,
+        primaryColor: data.tenant.primary_color || siteSettings.primaryColor,
+        contactPhone: data.tenant.contact_phone || '',
+        contactEmail: data.tenant.contact_email || '',
+        addressText: data.tenant.address_text || '',
+        siteDescription: data.tenant.settings?.siteDescription || siteSettings.siteDescription,
+        logoUrl: data.tenant.settings?.logoUrl || siteSettings.logoUrl,
+        logoData: data.tenant.settings?.logoData || siteSettings.logoData,
+        maintenanceMode: data.tenant.settings?.maintenanceMode === true,
+        siteOptions: { ...siteSettings.siteOptions, ...(data.tenant.settings?.siteOptions || {}) },
+      };
+      setSiteSettings(nextSettings);
+      setSavedSiteSettings(cloneSiteSettings(nextSettings));
+      setSettingsFeedback('saved');
       router.refresh();
     } catch {
       setError(ui.admin.errorSave);
     } finally {
       setSavingId(null);
+    }
+  };
+
+  const resetSiteSettings = () => {
+    if (!savedSiteSettings) return;
+    setSiteSettings(cloneSiteSettings(savedSiteSettings));
+    setSettingsFeedback('');
+    setError('');
+  };
+
+  const copyPublicLink = async () => {
+    if (!navigator.clipboard) return;
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/${locale}`);
+      setSettingsFeedback('copied');
+    } catch {
+      setSettingsFeedback('');
     }
   };
 
@@ -428,14 +500,20 @@ export default function AdminPage() {
 
   const siteOptionLabels = locale === 'en' ? {
     operations: 'Operations', operationsHint: 'Control how guests can use the cafe website.', publicSite: 'Public website enabled', onlineOrders: 'Accept online orders', reservations: 'Show reservation form', guestCheckout: 'Allow checkout without an account', requirePhone: 'Require a phone number for orders', autoConfirm: 'Confirm new orders automatically',
-    fulfillment: 'Ordering and fulfillment', delivery: 'Offer delivery', pickup: 'Offer pickup', notifications: 'Staff notifications', emailOrders: 'Email alerts for new orders', emailReservations: 'Alerts for new reservations', menu: 'Menu visibility', prices: 'Show prices on the public menu', outOfStock: 'Show unavailable items',
+    fulfillment: 'Ordering and fulfillment', delivery: 'Offer delivery', pickup: 'Offer pickup', notifications: 'Staff notifications', emailOrders: 'Email alerts for new orders', emailReservations: 'Alerts for new reservations', menu: 'Menu visibility', prices: 'Show prices on the public menu', outOfStock: 'Show unavailable items', siteStatus: 'Site status', maintenanceMode: 'Maintenance mode', online: 'Published', enabled: 'Enabled', disabled: 'Disabled', configured: 'configured', activeChannels: 'active channels', quickActions: 'Quick actions', preview: 'Open public site', previewHint: 'Preview the current public experience', copyLink: 'Copy public link', copied: 'Public link copied', reset: 'Reset changes', saved: 'All changes saved', unsaved: 'Unsaved changes', identityHint: 'Brand, appearance and public identity', contactHint: 'How guests can reach the cafe', accessHint: 'Visibility and availability', fulfillmentHint: 'Ways guests can order and receive food', color: 'Brand color', description: 'Site description', timezone: 'Timezone', channels: 'Guest channels', deliveryStatus: 'Delivery and pickup', savedState: 'Save status',
   } : locale === 'kg' ? {
     operations: 'Иштөө жөндөөлөрү', operationsHint: 'Коноктор сайтты кандай колдонорун башкарыңыз.', publicSite: 'Ачык сайт иштетилди', onlineOrders: 'Онлайн буйрутмаларды кабыл алуу', reservations: 'Брондоо формасын көрсөтүү', guestCheckout: 'Каттоосуз буйрутма берүүгө уруксат', requirePhone: 'Буйрутмада телефонду талап кылуу', autoConfirm: 'Жаңы буйрутмаларды автоматтык ырастоо',
-    fulfillment: 'Буйрутма жана жеткирүү', delivery: 'Жеткирүүнү сунуштоо', pickup: 'Өзү алып кетүүнү сунуштоо', notifications: 'Кызматкерлердин билдирүүлөрү', emailOrders: 'Жаңы буйрутмалар тууралуу email', emailReservations: 'Жаңы брондоолор тууралуу билдирүү', menu: 'Менюну көрсөтүү', prices: 'Менюда бааларды көрсөтүү', outOfStock: 'Жок товарларды көрсөтүү',
+    fulfillment: 'Буйрутма жана жеткирүү', delivery: 'Жеткирүүнү сунуштоо', pickup: 'Өзү алып кетүүнү сунуштоо', notifications: 'Кызматкерлердин билдирүүлөрү', emailOrders: 'Жаңы буйрутмалар тууралуу email', emailReservations: 'Жаңы брондоолор тууралуу билдирүү', menu: 'Менюну көрсөтүү', prices: 'Менюда бааларды көрсөтүү', outOfStock: 'Жок товарларды көрсөтүү', siteStatus: 'Сайттын абалы', maintenanceMode: 'Тейлөө режими', online: 'Жарыяланды', enabled: 'Иштетилди', disabled: 'Өчүрүлдү', configured: 'жөндөлдү', activeChannels: 'активдүү канал', quickActions: 'Ыкчам аракеттер', preview: 'Ачык сайтты ачуу', previewHint: 'Учурдагы сайтты алдын ала көрүү', copyLink: 'Сайт шилтемесин көчүрүү', copied: 'Сайт шилтемеси көчүрүлдү', reset: 'Өзгөртүүлөрдү жокко чыгаруу', saved: 'Бардык өзгөртүү сакталды', unsaved: 'Сакталбаган өзгөртүүлөр', identityHint: 'Бренд, көрүнүш жана сайт маалыматы', contactHint: 'Коноктор сиз менен кантип байланышат', accessHint: 'Көрүнүү жана жеткиликтүүлүк', fulfillmentHint: 'Буйрутма жана алуу жолдору', color: 'Бренд түсү', description: 'Сайттын сүрөттөмөсү', timezone: 'Убакыт алкагы', channels: 'Конок каналдары', deliveryStatus: 'Жеткирүү жана алып кетүү', savedState: 'Сактоо абалы',
   } : {
     operations: 'Работа сайта', operationsHint: 'Управляйте тем, как гости используют сайт кафе.', publicSite: 'Публичный сайт включён', onlineOrders: 'Принимать онлайн-заказы', reservations: 'Показывать форму бронирования', guestCheckout: 'Разрешить заказ без регистрации', requirePhone: 'Требовать телефон при заказе', autoConfirm: 'Автоматически подтверждать новые заказы',
-    fulfillment: 'Заказы и получение', delivery: 'Предлагать доставку', pickup: 'Предлагать самовывоз', notifications: 'Уведомления персонала', emailOrders: 'Email о новых заказах', emailReservations: 'Уведомления о новых бронированиях', menu: 'Видимость меню', prices: 'Показывать цены в меню', outOfStock: 'Показывать недоступные позиции',
+    fulfillment: 'Заказы и получение', delivery: 'Предлагать доставку', pickup: 'Предлагать самовывоз', notifications: 'Уведомления персонала', emailOrders: 'Email о новых заказах', emailReservations: 'Уведомления о новых бронированиях', menu: 'Видимость меню', prices: 'Показывать цены в меню', outOfStock: 'Показывать недоступные позиции', siteStatus: 'Статус сайта', maintenanceMode: 'Режим обслуживания', online: 'Опубликован', enabled: 'Включено', disabled: 'Выключено', configured: 'настроено', activeChannels: 'активных каналов', quickActions: 'Быстрые действия', preview: 'Открыть сайт', previewHint: 'Посмотреть текущую публичную версию', copyLink: 'Копировать ссылку', copied: 'Ссылка на сайт скопирована', reset: 'Сбросить изменения', saved: 'Все изменения сохранены', unsaved: 'Есть несохранённые изменения', identityHint: 'Бренд, внешний вид и данные сайта', contactHint: 'Как гости могут связаться с кафе', accessHint: 'Публичность и доступность', fulfillmentHint: 'Способы заказа и получения', color: 'Цвет бренда', description: 'Описание сайта', timezone: 'Часовой пояс', channels: 'Каналы для гостей', deliveryStatus: 'Доставка и самовывоз', savedState: 'Статус сохранения',
   };
+
+  const hasUnsavedSettings = Boolean(savedSiteSettings && JSON.stringify(siteSettings) !== JSON.stringify(savedSiteSettings));
+  const enabledOptions = Object.values(siteSettings.siteOptions).filter(Boolean).length;
+  const totalOptions = Object.keys(siteSettings.siteOptions).length;
+  const channelKeys = ['publicSiteEnabled', 'acceptOnlineOrders', 'showReservations', 'deliveryEnabled', 'pickupEnabled'] as const;
+  const enabledChannels = channelKeys.filter((key) => siteSettings.siteOptions[key]).length;
 
   if (isLoading) {
     return (
@@ -867,67 +945,84 @@ export default function AdminPage() {
 
             {/* Settings Tab */}
             {activeTab === 'settings' && (
-              <div className="space-y-5">
-                <header className="flex flex-col gap-3 border-b border-[var(--border)] pb-4 sm:flex-row sm:items-end sm:justify-between">
-                  <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--primary)]">CaféFlow</p><h1 className="mt-1 text-2xl font-black tracking-tight text-[var(--foreground)]">{ui.admin.settings}</h1><p className="mt-1 text-sm text-[var(--muted-foreground)]">{siteOptionLabels.operationsHint}</p></div>
-                  <button type="button" onClick={() => void saveTenantSettings()} disabled={savingId === 'tenant'} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-[var(--primary)] px-5 text-sm font-bold text-[var(--primary-foreground)] shadow-sm transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60"><Save className="h-4 w-4" />{ui.admin.save}</button>
+              <div className="space-y-6">
+                <header className="flex flex-col gap-4 border-b border-[var(--border)] pb-5 lg:flex-row lg:items-end lg:justify-between">
+                  <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--primary)]">CaféFlow / control center</p><h1 className="mt-1 text-3xl font-black tracking-tight text-[var(--foreground)]">{ui.admin.settings}</h1><p className="mt-1 text-sm text-[var(--muted-foreground)]">{siteOptionLabels.operationsHint}</p></div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {hasUnsavedSettings && <span className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-amber-100 px-3 text-xs font-bold text-amber-800 dark:bg-amber-900/30 dark:text-amber-200"><span className="h-2 w-2 rounded-full bg-amber-500" />{siteOptionLabels.unsaved}</span>}
+                    <button type="button" onClick={() => void saveTenantSettings()} disabled={savingId === 'tenant'} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-4 text-sm font-bold text-[var(--primary-foreground)] shadow-sm transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60">{savingId === 'tenant' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}{ui.admin.save}</button>
+                  </div>
                 </header>
 
-                <div className="min-w-0 space-y-4">
-                  <section id="site-identity" className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-5">
-                    <div className="mb-4"><h2 className="text-lg font-bold text-[var(--card-foreground)]">{ui.admin.siteName}</h2><p className="mt-1 text-sm text-[var(--muted-foreground)]">{ui.admin.logoUrl}</p></div>
-                    <div className="grid gap-5 md:grid-cols-2">
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">{ui.admin.siteName}
-                        <input type="text" value={siteSettings.siteName} onChange={(e) => setSiteSettings({ ...siteSettings, siteName: e.target.value })} className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 font-normal text-gray-900 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
-                      </label>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">{ui.admin.logoUrl}
-                          <input type="text" value={siteSettings.logoUrl} onChange={(e) => setSiteSettings({ ...siteSettings, logoUrl: e.target.value })} className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 font-normal text-gray-900 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
-                        </label>
-                        <div className="mt-3 flex items-center gap-3">
-                          <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900"><Image unoptimized width={56} height={56} src={siteSettings.logoData || siteSettings.logoUrl || '/cafeflow-logo.svg'} alt={siteSettings.siteName} className="h-full w-full object-cover" /></div>
-                          <label className="inline-flex min-h-10 cursor-pointer items-center rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700">{ui.admin.logoUpload}<input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="sr-only" onChange={(event) => { const file = event.target.files?.[0]; if (!file || file.size > 1024 * 1024) { setError(ui.admin.logoSizeError); return; } const reader = new FileReader(); reader.onload = () => setSiteSettings((current) => ({ ...current, logoData: typeof reader.result === 'string' ? reader.result : '' })); reader.readAsDataURL(file); }} /></label>
-                        </div>
-                      </div>
-                    </div>
-                  </section>
+                {!hasUnsavedSettings && settingsFeedback && <div role="status" className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/25 dark:text-emerald-300"><CheckCircle2 className="h-4 w-4" />{settingsFeedback === 'saved' ? siteOptionLabels.saved : siteOptionLabels.copied}</div>}
 
-                  <section id="site-contact" className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-5">
-                    <div className="mb-4"><h2 className="text-lg font-bold text-[var(--card-foreground)]">{ui.admin.contactEmail}</h2><p className="mt-1 text-sm text-[var(--muted-foreground)]">{ui.admin.address}</p></div>
-                    <div className="grid gap-5 md:grid-cols-2">
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">{ui.admin.contactPhone}<input type="tel" value={siteSettings.contactPhone} onChange={(e) => setSiteSettings({ ...siteSettings, contactPhone: e.target.value })} className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 font-normal text-gray-900 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white" /></label>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">{ui.admin.contactEmail}<input type="email" value={siteSettings.contactEmail} onChange={(e) => setSiteSettings({ ...siteSettings, contactEmail: e.target.value })} className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 font-normal text-gray-900 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white" /></label>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 md:col-span-2">{ui.admin.address}<input type="text" value={siteSettings.addressText} onChange={(e) => setSiteSettings({ ...siteSettings, addressText: e.target.value })} className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 font-normal text-gray-900 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white" /></label>
-                    </div>
-                  </section>
-
-                  <section id="site-access" className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-5">
-                    <h2 className="text-lg font-bold text-[var(--card-foreground)]">{ui.admin.maintenance}</h2>
-                    <label className="mt-4 flex cursor-pointer items-center gap-3 rounded-xl bg-[var(--muted)]/60 p-4 transition hover:bg-[var(--muted)]">
-                      <span className="relative shrink-0"><input type="checkbox" checked={siteSettings.maintenanceMode} onChange={(e) => setSiteSettings({ ...siteSettings, maintenanceMode: e.target.checked })} className="peer sr-only" /><span className="block h-6 w-11 rounded-full bg-[var(--border)] transition peer-checked:bg-[var(--primary)] peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--ring)] peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-[var(--card)] after:absolute after:left-1 after:top-1 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow-sm after:transition after:content-[''] peer-checked:after:translate-x-5" /></span>
-                      <span><span className="block text-sm font-semibold text-[var(--card-foreground)]">{ui.admin.maintenance}</span><span className="mt-1 block text-xs text-[var(--muted-foreground)]">{ui.admin.maintenanceDescription}</span></span>
-                    </label>
-                  </section>
-
-                  <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-5">
-                    <div className="mb-4"><h2 className="text-lg font-bold text-[var(--card-foreground)]">{siteOptionLabels.operations}</h2><p className="mt-1 text-sm text-[var(--muted-foreground)]">{siteOptionLabels.operationsHint}</p></div>
-                    <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-3">
-                      {([
-                        ['publicSiteEnabled', siteOptionLabels.publicSite], ['acceptOnlineOrders', siteOptionLabels.onlineOrders], ['showReservations', siteOptionLabels.reservations], ['allowGuestCheckout', siteOptionLabels.guestCheckout], ['requirePhone', siteOptionLabels.requirePhone], ['autoConfirmOrders', siteOptionLabels.autoConfirm],
-                      ] as const).map(([key, label]) => <label key={key} className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl bg-[var(--muted)]/60 px-4 py-3 transition hover:bg-[var(--muted)]"><span className="relative shrink-0"><input type="checkbox" checked={siteSettings.siteOptions[key]} onChange={(event) => setSiteSettings((current) => ({ ...current, siteOptions: { ...current.siteOptions, [key]: event.target.checked } }))} className="peer sr-only" /><span className="block h-6 w-11 rounded-full bg-[var(--border)] transition peer-checked:bg-[var(--primary)] peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--ring)] peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-[var(--card)] after:absolute after:left-1 after:top-1 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow-sm after:transition after:content-[''] peer-checked:after:translate-x-5" /></span><span className="text-sm font-semibold text-[var(--card-foreground)]">{label}</span></label>)}
-                    </div>
-                  </section>
-
-                  <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-5">
-                    <div className="mb-4"><h2 className="text-lg font-bold text-[var(--card-foreground)]">{siteOptionLabels.fulfillment}</h2></div>
-                    <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-3">
-                      {([
-                        ['deliveryEnabled', siteOptionLabels.delivery], ['pickupEnabled', siteOptionLabels.pickup], ['emailOrderAlerts', siteOptionLabels.emailOrders], ['reservationAlerts', siteOptionLabels.emailReservations], ['showMenuPrices', siteOptionLabels.prices], ['showOutOfStock', siteOptionLabels.outOfStock],
-                      ] as const).map(([key, label]) => <label key={key} className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl bg-[var(--muted)]/60 px-4 py-3 transition hover:bg-[var(--muted)]"><span className="relative shrink-0"><input type="checkbox" checked={siteSettings.siteOptions[key]} onChange={(event) => setSiteSettings((current) => ({ ...current, siteOptions: { ...current.siteOptions, [key]: event.target.checked } }))} className="peer sr-only" /><span className="block h-6 w-11 rounded-full bg-[var(--border)] transition peer-checked:bg-[var(--primary)] peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--ring)] peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-[var(--card)] after:absolute after:left-1 after:top-1 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow-sm after:transition after:content-[''] peer-checked:after:translate-x-5" /></span><span className="text-sm font-semibold text-[var(--card-foreground)]">{label}</span></label>)}
-                    </div>
-                  </section>
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                  {[
+                    { label: siteOptionLabels.siteStatus, value: siteSettings.maintenanceMode ? siteOptionLabels.maintenanceMode : siteSettings.siteOptions.publicSiteEnabled ? siteOptionLabels.online : siteOptionLabels.disabled, detail: `${enabledOptions}/${totalOptions} ${siteOptionLabels.configured}`, icon: Globe2, iconClass: 'bg-orange-100 text-orange-600 dark:bg-orange-950/40 dark:text-orange-300' },
+                    { label: siteOptionLabels.channels, value: `${enabledChannels}/5`, detail: siteOptionLabels.activeChannels, icon: Eye, iconClass: 'bg-blue-100 text-blue-600 dark:bg-blue-950/40 dark:text-blue-300' },
+                    { label: siteOptionLabels.deliveryStatus, value: siteSettings.siteOptions.deliveryEnabled ? siteOptionLabels.enabled : siteOptionLabels.disabled, detail: `${siteOptionLabels.pickup}: ${siteSettings.siteOptions.pickupEnabled ? siteOptionLabels.enabled : siteOptionLabels.disabled}`, icon: Truck, iconClass: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300' },
+                    { label: siteOptionLabels.savedState, value: hasUnsavedSettings ? siteOptionLabels.unsaved : siteOptionLabels.saved, detail: siteSettings.timezone, icon: CheckCircle2, iconClass: 'bg-violet-100 text-violet-600 dark:bg-violet-950/40 dark:text-violet-300' },
+                  ].map(({ label, value, detail, icon: Icon, iconClass }) => <AdminSettingsCard key={label} className="p-5"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted-foreground)]">{label}</p><p className="mt-3 truncate text-xl font-black tracking-tight">{value}</p></div><div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${iconClass}`}><Icon className="h-5 w-5" /></div></div><p className="mt-4 text-xs font-semibold text-[var(--muted-foreground)]">{detail}</p></AdminSettingsCard>)}
                 </div>
 
+                <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(300px,0.6fr)]">
+                  <AdminSettingsCard>
+                    <AdminSettingsHeading icon={Palette} title={ui.admin.siteName} subtitle={siteOptionLabels.identityHint} />
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <label className="block text-xs font-bold uppercase tracking-[0.08em] text-[var(--muted-foreground)]">{ui.admin.siteName}<input type="text" value={siteSettings.siteName} onChange={(event) => setSiteSettings({ ...siteSettings, siteName: event.target.value })} className="mt-2 min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 text-sm font-semibold text-[var(--foreground)] outline-none transition focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--ring)]/20" /></label>
+                      <label className="block text-xs font-bold uppercase tracking-[0.08em] text-[var(--muted-foreground)]">{ui.admin.logoUrl}<input type="text" value={siteSettings.logoUrl} onChange={(event) => setSiteSettings({ ...siteSettings, logoUrl: event.target.value })} className="mt-2 min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 text-sm font-semibold text-[var(--foreground)] outline-none transition focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--ring)]/20" /><span className="mt-3 flex items-center gap-3 normal-case tracking-normal"><span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border border-[var(--border)] bg-white"><Image unoptimized width={48} height={48} src={siteSettings.logoData || siteSettings.logoUrl || '/cafeflow-logo.svg'} alt={siteSettings.siteName} className="h-full w-full object-cover" /></span><span className="flex flex-col gap-1"><span className="text-xs font-semibold text-[var(--muted-foreground)]">{ui.admin.logoUpload}</span><label className="inline-flex min-h-8 cursor-pointer items-center gap-2 text-xs font-bold text-[var(--primary)] hover:underline"><ExternalLink className="h-3.5 w-3.5" /><span>{ui.admin.logoUpload}</span><input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="sr-only" onChange={(event) => { const file = event.target.files?.[0]; if (!file || file.size > 1024 * 1024) { setError(ui.admin.logoSizeError); return; } const reader = new FileReader(); reader.onload = () => setSiteSettings((current) => ({ ...current, logoData: typeof reader.result === 'string' ? reader.result : '' })); reader.readAsDataURL(file); }} /></label></span></span></label>
+                      <label className="block text-xs font-bold uppercase tracking-[0.08em] text-[var(--muted-foreground)]">{siteOptionLabels.color}<span className="mt-2 flex min-h-11 items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--background)] px-3"><input type="color" value={siteSettings.primaryColor} onChange={(event) => setSiteSettings({ ...siteSettings, primaryColor: event.target.value })} className="h-7 w-9 cursor-pointer rounded border-0 bg-transparent p-0" /><span className="text-sm font-bold text-[var(--foreground)]">{siteSettings.primaryColor}</span></span></label>
+                      <label className="block text-xs font-bold uppercase tracking-[0.08em] text-[var(--muted-foreground)]">{siteOptionLabels.timezone}<select value={siteSettings.timezone} onChange={(event) => setSiteSettings({ ...siteSettings, timezone: event.target.value })} className="mt-2 min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 text-sm font-semibold text-[var(--foreground)] outline-none focus:border-[var(--primary)]"><option value="Asia/Bishkek">Asia/Bishkek</option><option value="Asia/Almaty">Asia/Almaty</option><option value="Asia/Tashkent">Asia/Tashkent</option><option value="UTC">UTC</option></select></label>
+                      <label className="block text-xs font-bold uppercase tracking-[0.08em] text-[var(--muted-foreground)] md:col-span-2">{siteOptionLabels.description}<textarea value={siteSettings.siteDescription} onChange={(event) => setSiteSettings({ ...siteSettings, siteDescription: event.target.value })} rows={3} className="mt-2 w-full resize-y rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-3 text-sm font-medium text-[var(--foreground)] outline-none transition focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--ring)]/20" /></label>
+                    </div>
+                  </AdminSettingsCard>
+
+                  <AdminSettingsCard>
+                    <AdminSettingsHeading icon={SlidersHorizontal} title={siteOptionLabels.quickActions} subtitle={siteOptionLabels.previewHint} />
+                    <div className="space-y-2">
+                      <a href={`/${locale}`} target="_blank" rel="noreferrer" className="group flex items-center justify-between rounded-xl border border-[var(--border)] px-3 py-3 transition hover:border-[var(--primary)] hover:bg-[var(--secondary)]"><span className="flex items-center gap-3 text-sm font-semibold"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--secondary)] text-[var(--primary)]"><Eye className="h-4 w-4" /></span>{siteOptionLabels.preview}</span><ExternalLink className="h-4 w-4 text-[var(--muted-foreground)] transition group-hover:translate-x-0.5" /></a>
+                      <button type="button" onClick={() => void copyPublicLink()} className="group flex w-full items-center justify-between rounded-xl border border-[var(--border)] px-3 py-3 text-left transition hover:border-[var(--primary)] hover:bg-[var(--secondary)]"><span className="flex items-center gap-3 text-sm font-semibold"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--secondary)] text-[var(--primary)]"><Link2 className="h-4 w-4" /></span>{siteOptionLabels.copyLink}</span><Link2 className="h-4 w-4 text-[var(--muted-foreground)]" /></button>
+                      <button type="button" onClick={resetSiteSettings} disabled={!hasUnsavedSettings} className="group flex w-full items-center justify-between rounded-xl border border-[var(--border)] px-3 py-3 text-left text-sm font-semibold transition hover:border-[var(--primary)] hover:bg-[var(--secondary)] disabled:cursor-not-allowed disabled:opacity-40"><span className="flex items-center gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--secondary)] text-[var(--primary)]"><RotateCcw className="h-4 w-4" /></span>{siteOptionLabels.reset}</span><RotateCcw className="h-4 w-4 text-[var(--muted-foreground)]" /></button>
+                    </div>
+                    <div className="mt-5 rounded-xl bg-[var(--secondary)] p-4"><div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--card)] text-[var(--primary)]"><Power className="h-4 w-4" /></span><div><p className="text-sm font-bold">{siteSettings.maintenanceMode ? siteOptionLabels.maintenanceMode : siteOptionLabels.online}</p><p className="mt-1 text-xs text-[var(--muted-foreground)]">{siteSettings.siteName}</p></div></div><div className="mt-4"><div className="mb-2 flex items-center justify-between text-xs"><span className="font-semibold text-[var(--muted-foreground)]">{siteOptionLabels.channels}</span><strong>{enabledChannels}/5</strong></div><div className="h-2 overflow-hidden rounded-full bg-[var(--card)]"><div className="h-full rounded-full bg-[var(--primary)] transition-all" style={{ width: `${(enabledChannels / 5) * 100}%` }} /></div></div></div>
+                  </AdminSettingsCard>
+                </div>
+
+                <div className="grid gap-6 xl:grid-cols-2">
+                  <AdminSettingsCard>
+                    <AdminSettingsHeading icon={Mail} title={ui.admin.contactEmail} subtitle={siteOptionLabels.contactHint} />
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <label className="block text-xs font-bold uppercase tracking-[0.08em] text-[var(--muted-foreground)]"><span className="flex items-center gap-2"><Phone className="h-4 w-4 text-[var(--primary)]" />{ui.admin.contactPhone}</span><input type="tel" value={siteSettings.contactPhone} onChange={(event) => setSiteSettings({ ...siteSettings, contactPhone: event.target.value })} className="mt-2 min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 text-sm font-semibold text-[var(--foreground)] outline-none focus:border-[var(--primary)]" /></label>
+                      <label className="block text-xs font-bold uppercase tracking-[0.08em] text-[var(--muted-foreground)]"><span className="flex items-center gap-2"><Mail className="h-4 w-4 text-[var(--primary)]" />{ui.admin.contactEmail}</span><input type="email" value={siteSettings.contactEmail} onChange={(event) => setSiteSettings({ ...siteSettings, contactEmail: event.target.value })} className="mt-2 min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 text-sm font-semibold text-[var(--foreground)] outline-none focus:border-[var(--primary)]" /></label>
+                      <label className="block text-xs font-bold uppercase tracking-[0.08em] text-[var(--muted-foreground)] md:col-span-2"><span className="flex items-center gap-2"><MapPin className="h-4 w-4 text-[var(--primary)]" />{ui.admin.address}</span><input type="text" value={siteSettings.addressText} onChange={(event) => setSiteSettings({ ...siteSettings, addressText: event.target.value })} className="mt-2 min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 text-sm font-semibold text-[var(--foreground)] outline-none focus:border-[var(--primary)]" /></label>
+                    </div>
+                  </AdminSettingsCard>
+
+                  <AdminSettingsCard>
+                    <AdminSettingsHeading icon={Power} title={ui.admin.maintenance} subtitle={siteOptionLabels.accessHint} />
+                    <SettingsToggle checked={siteSettings.maintenanceMode} label={ui.admin.maintenance} icon={Power} onChange={(checked) => setSiteSettings({ ...siteSettings, maintenanceMode: checked })} />
+                    <div className="mt-4 flex items-center justify-between rounded-xl border border-[var(--border)] px-4 py-3"><span className="flex items-center gap-2 text-sm font-semibold"><CheckCircle2 className="h-4 w-4 text-emerald-500" />{siteOptionLabels.siteStatus}</span><span className={`text-xs font-bold ${siteSettings.maintenanceMode ? 'text-amber-600' : 'text-emerald-600'}`}>{siteSettings.maintenanceMode ? siteOptionLabels.maintenanceMode : siteOptionLabels.online}</span></div>
+                    <p className="mt-3 text-xs leading-5 text-[var(--muted-foreground)]">{ui.admin.maintenanceDescription}</p>
+                  </AdminSettingsCard>
+                </div>
+
+                <AdminSettingsCard>
+                  <AdminSettingsHeading icon={Globe2} title={siteOptionLabels.operations} subtitle={siteOptionLabels.operationsHint} />
+                  <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-3">
+                    {([
+                      ['publicSiteEnabled', siteOptionLabels.publicSite, Globe2], ['acceptOnlineOrders', siteOptionLabels.onlineOrders, ShoppingCart], ['showReservations', siteOptionLabels.reservations, CalendarCheck], ['allowGuestCheckout', siteOptionLabels.guestCheckout, Users], ['requirePhone', siteOptionLabels.requirePhone, Phone], ['autoConfirmOrders', siteOptionLabels.autoConfirm, CheckCircle2],
+                    ] as SettingsOptionConfig[]).map(([key, label, Icon]) => <SettingsToggle key={key} checked={siteSettings.siteOptions[key]} label={label} icon={Icon} onChange={(checked) => setSiteSettings((current) => ({ ...current, siteOptions: { ...current.siteOptions, [key]: checked } }))} />)}
+                  </div>
+                </AdminSettingsCard>
+
+                <AdminSettingsCard>
+                  <AdminSettingsHeading icon={Truck} title={siteOptionLabels.fulfillment} subtitle={siteOptionLabels.fulfillmentHint} />
+                  <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-3">
+                    {([
+                      ['deliveryEnabled', siteOptionLabels.delivery, Truck], ['pickupEnabled', siteOptionLabels.pickup, Package], ['emailOrderAlerts', siteOptionLabels.emailOrders, Bell], ['reservationAlerts', siteOptionLabels.emailReservations, CalendarCheck], ['showMenuPrices', siteOptionLabels.prices, Palette], ['showOutOfStock', siteOptionLabels.outOfStock, Eye],
+                    ] as SettingsOptionConfig[]).map(([key, label, Icon]) => <SettingsToggle key={key} checked={siteSettings.siteOptions[key]} label={label} icon={Icon} onChange={(checked) => setSiteSettings((current) => ({ ...current, siteOptions: { ...current.siteOptions, [key]: checked } }))} />)}
+                  </div>
+                </AdminSettingsCard>
               </div>
             )}
 
