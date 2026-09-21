@@ -39,7 +39,7 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import { locales, type Locale } from '@/app/i18n/config';
-import { getUiTranslations } from '@/lib/ui-translations';
+import { getLocaleTranslations, type TranslationCatalog } from '@/app/i18n/catalog';
 import AdminDashboardClient from './dashboard/AdminDashboardClient';
 
 interface User {
@@ -152,7 +152,7 @@ function createDefaultSiteSettings(): SiteSettings {
 
 type AdminTab = 'dashboard' | 'users' | 'orders' | 'reservations' | 'products' | 'settings';
 
-type AdminCopy = ReturnType<typeof getUiTranslations>['admin'];
+type AdminCopy = TranslationCatalog['admin']['panel'];
 
 function PaginationControls({ page, pageCount, onPageChange, copy }: { page: number; pageCount: number; onPageChange: (page: number) => void; copy: AdminCopy['pagination'] }) {
   if (pageCount <= 1) return null;
@@ -182,7 +182,14 @@ export default function AdminPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const locale = (locales.find((item) => pathname.split('/')[1] === item) || 'ru') as Locale;
-  const ui = getUiTranslations(locale);
+  const translations = getLocaleTranslations(locale);
+  const ui = {
+    admin: translations.admin.panel,
+    profile: {
+      roleLabels: translations.ui.profile.roles as Record<string, string>,
+      lastLogin: `${translations.ui.profile.fields.lastLogin}:`,
+    },
+  };
   const copy = ui.admin.pagination;
   const orderStatusLabels: Record<string, string> = ui.admin.orderStatuses;
   const reservationStatusLabels: Record<string, string> = ui.admin.reservationStatuses;

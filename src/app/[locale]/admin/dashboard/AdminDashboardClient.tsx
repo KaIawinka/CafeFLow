@@ -31,7 +31,6 @@ import {
 } from 'lucide-react';
 import type { Locale } from '@/app/i18n/config';
 import { getLocaleTranslations } from '@/app/i18n/catalog';
-import { getUiTranslations } from '@/lib/ui-translations';
 
 type UserRecord = {
   id: string;
@@ -140,8 +139,10 @@ function percentage(value: number, total: number) {
 }
 
 export default function AdminDashboardClient({ locale, embedded = false }: { locale: Locale; embedded?: boolean }) {
-  const ui = getUiTranslations(locale);
-  const dashboardTranslations = getLocaleTranslations(locale).dashboard;
+  const translations = getLocaleTranslations(locale);
+  const admin = translations.admin.panel;
+  const ui = { admin };
+  const dashboardTranslations = translations.dashboard;
   const text = {
     ...dashboardTranslations.copy,
     roleNames: dashboardTranslations.copy.roleNames as Record<string, string>,
@@ -160,11 +161,11 @@ export default function AdminDashboardClient({ locale, embedded = false }: { loc
     try {
       const response = await fetch('/api/admin/dashboard?view=dashboard&usersPage=1&ordersPage=1', { cache: 'no-store' });
       const payload = await response.json() as DashboardData & { error?: string };
-      if (!response.ok) throw new Error(payload.error || ui.admin.errorLoad);
+      if (!response.ok) throw new Error(payload.error || admin.errorLoad);
       setData(payload);
       setError('');
     } catch {
-      setError(ui.admin.errorLoad);
+      setError(admin.errorLoad);
     } finally {
       setLoading(false);
     }
@@ -184,7 +185,7 @@ export default function AdminDashboardClient({ locale, embedded = false }: { loc
     }).slice(0, 6);
   }, [data, query, roleFilter]);
 
-  const currency = data?.tenant?.currency || ui.admin.currency;
+  const currency = data?.tenant?.currency || admin.currency;
   const metrics = data?.metrics || { users: 0, activeUsers: 0, admins: 0, orders: 0, revenue: 0, products: 0, activeProducts: 0 };
   const utilization = metrics.products ? Math.round((metrics.activeProducts / metrics.products) * 100) : 0;
   const orderStatuses = Object.entries(text.orderStatuses).map(([status, label]) => ({ status, label, count: data?.recentOrders.filter((order) => order.status === status).length || 0 }));

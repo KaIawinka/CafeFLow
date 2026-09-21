@@ -19,7 +19,7 @@ import {
   Calendar,
 } from 'lucide-react';
 import { locales, type Locale } from '@/app/i18n/config';
-import { getUiTranslations } from '@/lib/ui-translations';
+import { getLocaleTranslations } from '@/app/i18n/catalog';
 import { CustomerAddresses } from '@/components/profile/CustomerAddresses';
 
 interface UserProfile {
@@ -74,17 +74,19 @@ function ProfileContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const locale = (locales.find((item) => pathname.split('/')[1] === item) || 'ru') as Locale;
-  const ui = getUiTranslations(locale);
+  const copy = getLocaleTranslations(locale).ui.profile;
+  const roleLabels = copy.roles as Record<string, string>;
+  const welcomeMessage = `${copy.welcome} ${copy.welcomeMessage}`;
   const message = searchParams.get('message');
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(
-    message === 'awaiting_approval' ? ui.profile.awaitingApproval : ''
+    message === 'awaiting_approval' ? copy.awaitingApproval : ''
   );
   const [success, setSuccess] = useState(
-    message === 'welcome' ? ui.profile.welcome : ''
+    message === 'welcome' ? welcomeMessage : ''
   );
   const [activeTab, setActiveTab] = useState<'profile' | 'settings'>('profile');
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
@@ -115,7 +117,7 @@ function ProfileContent() {
       const response = await fetch('/api/user/profile');
       const data = await response.json();
 
-      if (!response.ok) throw new Error(data.error || ui.profile.loadError);
+      if (!response.ok) throw new Error(data.error || copy.loadingError);
       if (data.user) {
         setProfile(data.user);
         setFormData({
@@ -141,11 +143,11 @@ function ProfileContent() {
         }
       }
     } catch {
-      setError(ui.profile.loadError);
+      setError(copy.loadingError);
     } finally {
       setIsLoading(false);
     }
-  }, [ui]);
+  }, [copy]);
 
   // Load profile after mounting so the page can show its initial status message immediately.
   useEffect(() => {
@@ -170,13 +172,13 @@ function ProfileContent() {
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess('Профиль успешно обновлён');
+        setSuccess(copy.messages.profileUpdated);
         setProfile((prev) => (prev ? { ...prev, ...data.user } : null));
       } else {
-        setError(data.error || 'Ошибка сохранения');
+        setError(data.error || copy.messages.saveError);
       }
     } catch {
-      setError('Произошла ошибка');
+      setError(copy.messages.genericError);
     } finally {
       setIsSaving(false);
     }
@@ -197,12 +199,12 @@ function ProfileContent() {
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess('Настройки успешно обновлены');
+        setSuccess(copy.messages.settingsUpdated);
       } else {
-        setError(data.error || 'Ошибка сохранения');
+        setError(data.error || copy.messages.saveError);
       }
     } catch {
-      setError('Произошла ошибка');
+      setError(copy.messages.genericError);
     } finally {
       setIsSaving(false);
     }
@@ -221,7 +223,7 @@ function ProfileContent() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <p className="text-gray-700 dark:text-gray-300">Не удалось загрузить профиль</p>
+          <p className="text-gray-700 dark:text-gray-300">{copy.loadingError}</p>
         </div>
       </div>
     );
@@ -236,14 +238,14 @@ function ProfileContent() {
               {/* Avatar */}
               <div className="relative shrink-0">
                 {profile.avatar_file?.storage_key ? (
-                  <Image src={profile.avatar_file.storage_key} alt={ui.profile.avatarAlt} width={96} height={96} className="h-20 w-20 sm:h-24 sm:w-24 rounded-full object-cover shadow-lg" />
+                  <Image src={profile.avatar_file.storage_key} alt={copy.title} width={96} height={96} className="h-20 w-20 sm:h-24 sm:w-24 rounded-full object-cover shadow-lg" />
                 ) : (
                   <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold shadow-lg">
                     {profile.first_name[0]?.toUpperCase()}
                   </div>
                 )}
                 <label className="absolute -bottom-2 -right-2 cursor-pointer rounded-full bg-gray-900 px-3 py-1 text-xs font-medium text-white shadow hover:bg-gray-700">
-                  {isUploadingAvatar ? '...' : ui.profile.photo}
+                  {isUploadingAvatar ? '...' : copy.updatePhoto}
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
@@ -260,16 +262,16 @@ function ProfileContent() {
                         const response = await fetch('/api/user/avatar', { method: 'POST', body: uploadData });
                         const data = await response.json();
                         if (!response.ok) {
-                          setError(data.error || ui.profile.uploadError);
+                          setError(data.error || copy.messages.avatarError);
                         } else {
                           setProfile((current) => current ? {
                             ...current,
                             avatar_file: { storage_key: data.avatarUrl, mime_type: file.type },
                           } : current);
-                          setSuccess(ui.profile.avatarUpdated);
+                          setSuccess(copy.messages.avatarUpdated);
                         }
                       } catch {
-                        setError(ui.profile.uploadError);
+                        setError(copy.messages.avatarError);
                       } finally {
                         setIsUploadingAvatar(false);
                         event.target.value = '';
@@ -290,14 +292,14 @@ function ProfileContent() {
                     {profile.email}
                   </span>
                   <span className="px-3 py-1 bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 rounded-full text-xs font-medium">
-                    {ui.profile.roleLabels[profile.role] || profile.role}
+                    {roleLabels[profile.role] || profile.role}
                   </span>
                 </div>
 
                 {profile.requires_approval && (
                   <div className="mt-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
                     <p className="text-sm text-yellow-800 dark:text-yellow-300">
-                      ⏳ {ui.profile.awaitingApproval}
+                      ⏳ {copy.awaitingApproval}
                     </p>
                   </div>
                 )}
@@ -333,7 +335,7 @@ function ProfileContent() {
                   }`}
                 >
                   <User className="w-4 h-4 inline mr-2" />
-                  {ui.profile.profileTab}
+                  {copy.profileTab}
                 </button>
                 <button
                   onClick={() => setActiveTab('settings')}
@@ -344,7 +346,7 @@ function ProfileContent() {
                   }`}
                 >
                   <Shield className="w-4 h-4 inline mr-2" />
-                  {ui.profile.settingsTab}
+                  {copy.settingsTab}
                 </button>
               </nav>
             </div>
@@ -356,7 +358,7 @@ function ProfileContent() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {ui.profile.firstName}
+                        {copy.fields.firstName}
                       </label>
                       <input
                         type="text"
@@ -368,7 +370,7 @@ function ProfileContent() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {ui.profile.lastName}
+                        {copy.fields.lastName}
                       </label>
                       <input
                         type="text"
@@ -380,7 +382,7 @@ function ProfileContent() {
 
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {ui.profile.displayName}
+                        {copy.fields.displayName}
                       </label>
                       <input
                         type="text"
@@ -392,20 +394,20 @@ function ProfileContent() {
 
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {ui.profile.about}
+                        {copy.fields.bio}
                       </label>
                       <textarea
                         value={formData.bio}
                         onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                         rows={4}
                         className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 dark:bg-gray-700 dark:text-white"
-                        placeholder={ui.profile.aboutPlaceholder}
+                        placeholder={copy.fields.bioPlaceholder}
                       />
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {ui.profile.phone}
+                        {copy.fields.phone}
                       </label>
                       <div className="relative">
                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -420,7 +422,7 @@ function ProfileContent() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {ui.profile.timezone}
+                        {copy.fields.timezone}
                       </label>
                       <div className="relative">
                         <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -444,7 +446,7 @@ function ProfileContent() {
                         <MessageSquare className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                         <div className="flex-1">
                           <h3 className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-1">
-                            {ui.profile.telegramConnected}
+                            {copy.telegram.connected}
                           </h3>
                           <p className="text-sm text-blue-700 dark:text-blue-400">
                             @{profile.telegram_username || 'username'}
@@ -464,7 +466,7 @@ function ProfileContent() {
                     <div className="flex items-center gap-3 text-sm">
                       <Calendar className="w-4 h-4 text-gray-400" />
                       <div>
-                        <span className="text-gray-500 dark:text-gray-400">{ui.profile.registration}</span>
+                        <span className="text-gray-500 dark:text-gray-400">{copy.fields.createdAt}:</span>
                         <span className="ml-2 text-gray-900 dark:text-white">
                           {new Date(profile.created_at).toLocaleDateString('ru-RU')}
                         </span>
@@ -475,7 +477,7 @@ function ProfileContent() {
                       <div className="flex items-center gap-3 text-sm">
                         <Clock className="w-4 h-4 text-gray-400" />
                         <div>
-                          <span className="text-gray-500 dark:text-gray-400">{ui.profile.lastLogin}</span>
+                          <span className="text-gray-500 dark:text-gray-400">{copy.fields.lastLogin}:</span>
                           <span className="ml-2 text-gray-900 dark:text-white">
                             {new Date(profile.last_login_at).toLocaleDateString('ru-RU')}
                           </span>
@@ -492,12 +494,12 @@ function ProfileContent() {
                     {isSaving ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        {ui.profile.saving}
+                        {copy.buttons.saving}
                       </>
                     ) : (
                       <>
                         <Save className="w-5 h-5" />
-                        {ui.profile.saveProfile}
+                        {copy.buttons.save}
                       </>
                     )}
                   </button>
@@ -510,14 +512,14 @@ function ProfileContent() {
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                       <Bell className="w-5 h-5" />
-                      {ui.profile.notifications}
+                      {copy.notifications.title}
                     </h3>
                     <div className="space-y-3">
                       {[
-                        { key: 'emailNotifications', label: ui.profile.emailNotifications, icon: Mail },
-                        { key: 'smsNotifications', label: ui.profile.smsNotifications, icon: Phone },
-                        { key: 'pushNotifications', label: ui.profile.pushNotifications, icon: Bell },
-                        { key: 'telegramNotifications', label: ui.profile.telegramNotifications, icon: MessageSquare },
+                        { key: 'emailNotifications', label: copy.notifications.email, icon: Mail },
+                        { key: 'smsNotifications', label: copy.notifications.sms, icon: Phone },
+                        { key: 'pushNotifications', label: copy.notifications.push, icon: Bell },
+                        { key: 'telegramNotifications', label: copy.notifications.telegram, icon: MessageSquare },
                       ].map((item) => (
                         <label key={item.key} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600">
                           <span className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300">
@@ -539,14 +541,14 @@ function ProfileContent() {
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                       <Eye className="w-5 h-5" />
-                      {ui.profile.privacy}
+                      {copy.privacy.title}
                     </h3>
                     <div className="space-y-3">
                       {[
-                        { key: 'showOnlineStatus', label: ui.profile.showOnlineStatus },
-                        { key: 'showPhone', label: ui.profile.showPhone },
-                        { key: 'showEmail', label: ui.profile.showEmail },
-                        { key: 'compactMode', label: ui.profile.compactMode },
+                        { key: 'showOnlineStatus', label: copy.privacy.showOnlineStatus },
+                        { key: 'showPhone', label: copy.privacy.showPhone },
+                        { key: 'showEmail', label: copy.privacy.showEmail },
+                        { key: 'compactMode', label: copy.privacy.compactMode },
                       ].map((item) => (
                         <label key={item.key} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600">
                           <span className="text-sm text-gray-700 dark:text-gray-300">{item.label}</span>
@@ -569,12 +571,12 @@ function ProfileContent() {
                     {isSaving ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        {ui.profile.saving}
+                        {copy.buttons.saving}
                       </>
                     ) : (
                       <>
                         <Save className="w-5 h-5" />
-                        {ui.profile.saveSettings}
+                        {copy.buttons.saveSettings}
                       </>
                     )}
                   </button>
