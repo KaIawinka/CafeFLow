@@ -37,6 +37,7 @@
       "daily": "Every morning",
       "chefs": "Skilled chefs",
       "experience": "10+ years of craft",
+      "experienceValue": "10+",
       "ambience": "Warm ambience",
       "meetings": "For important moments",
       "service": "Fast service",
@@ -44,10 +45,10 @@
       "years": "Years of experience"
     },
     "dishes": [
-      { "name": "Flat white", "description": "Double espresso and silky milk", "label": "Morning ritual" },
-      { "name": "Avocado toast", "description": "Sourdough, avocado, and poached egg", "label": "Best seller" },
-      { "name": "Salmon bowl", "description": "Rice, edamame, salmon, and sesame sauce", "label": "Chef pick" },
-      { "name": "Berry cheesecake", "description": "Creamy cheesecake with seasonal berries", "label": "Sweet finish" }
+      { "name": "Flat white", "description": "Double espresso and silky milk", "label": "Morning ritual", "price": "180 som" },
+      { "name": "Avocado toast", "description": "Sourdough, avocado, and poached egg", "label": "Best seller", "price": "420 som" },
+      { "name": "Salmon bowl", "description": "Rice, edamame, salmon, and sesame sauce", "label": "Chef pick", "price": "680 som" },
+      { "name": "Berry cheesecake", "description": "Creamy cheesecake with seasonal berries", "label": "Sweet finish", "price": "320 som" }
     ]
   },
   "promotions": {

@@ -453,7 +453,7 @@ function ProfileContent() {
                           </p>
                           {profile.telegram_activated_with_key && (
                             <p className="text-xs text-blue-600 dark:text-blue-500 mt-1">
-                              Ключ: {profile.telegram_activated_with_key}
+                              {copy.telegram.key}: {profile.telegram_activated_with_key}
                             </p>
                           )}
                         </div>

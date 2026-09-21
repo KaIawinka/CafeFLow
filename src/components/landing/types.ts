@@ -37,6 +37,7 @@ export interface LandingTranslations {
       daily: string;
       chefs: string;
       experience: string;
+      experienceValue: string;
       ambience: string;
       meetings: string;
       service: string;
@@ -47,6 +48,7 @@ export interface LandingTranslations {
       name: string;
       description: string;
       label: string;
+      price: string;
     }>;
   };
   promotions: {

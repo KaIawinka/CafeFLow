@@ -9,10 +9,10 @@ interface FeaturesSectionProps {
 }
 
 const dishMeta = [
-  { price: '180 сом', image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=85' },
-  { price: '420 сом', image: 'https://images.unsplash.com/photo-1541519227354-08fa5d50c44d?auto=format&fit=crop&w=900&q=85' },
-  { price: '680 сом', image: 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=900&q=85' },
-  { price: '320 сом', image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=900&q=85' },
+  { image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=85' },
+  { image: 'https://images.unsplash.com/photo-1541519227354-08fa5d50c44d?auto=format&fit=crop&w=900&q=85' },
+  { image: 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=900&q=85' },
+  { image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=900&q=85' },
 ];
 
 export function FeaturesSection({ t, locale }: FeaturesSectionProps) {
@@ -35,7 +35,7 @@ export function FeaturesSection({ t, locale }: FeaturesSectionProps) {
           </div>
           <div className="relative min-h-[420px]">
             <div className="absolute right-0 top-0 h-[360px] w-[88%] overflow-hidden rounded-[1.5rem] bg-[#20272c] shadow-2xl shadow-[#151a1e]/15 sm:h-[440px]"><div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1200&q=90')] bg-cover bg-center transition-transform duration-700 hover:scale-105" /><div className="absolute inset-0 bg-gradient-to-t from-[#151a1e]/70 to-transparent" /></div>
-            <div className="absolute bottom-0 left-0 flex items-center gap-4 rounded-lg bg-[#fffdf8] p-5 shadow-xl sm:p-6"><div className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-500 text-white"><ChefHat className="h-7 w-7" /></div><div><p className="text-3xl font-black text-orange-600">10+</p><p className="text-xs font-bold uppercase tracking-wider text-[#687078]">{copy.years}</p></div></div>
+            <div className="absolute bottom-0 left-0 flex items-center gap-4 rounded-lg bg-[#fffdf8] p-5 shadow-xl sm:p-6"><div className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-500 text-white"><ChefHat className="h-7 w-7" /></div><div><p className="text-3xl font-black text-orange-600">{copy.experienceValue}</p><p className="text-xs font-bold uppercase tracking-wider text-[#687078]">{copy.years}</p></div></div>
           </div>
         </div>
       </section>

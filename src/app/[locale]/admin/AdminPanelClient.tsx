@@ -593,8 +593,8 @@ export default function AdminPage() {
                       <select value={userSort} onChange={(event) => { prepareUserQuery(); setUserSort(event.target.value); }} className="mt-1 min-h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-sm text-gray-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                         <option value="newest">{ui.admin.newest}</option>
                         <option value="oldest">{ui.admin.oldest}</option>
-                        <option value="nameAsc">{ui.admin.alphabetical} (А → Я)</option>
-                        <option value="nameDesc">{ui.admin.alphabetical} (Я → А)</option>
+                        <option value="nameAsc">{ui.admin.alphabeticalAscending}</option>
+                        <option value="nameDesc">{ui.admin.alphabeticalDescending}</option>
                       </select>
                     </label>
                     <label className="block text-xs font-bold uppercase tracking-[0.08em] text-gray-500 dark:text-gray-400"><span className="mb-1.5 flex items-center gap-2 normal-case tracking-normal text-sm text-gray-800 dark:text-gray-200"><ShieldCheck className="h-4 w-4 text-amber-600" />{ui.admin.role}</span>
@@ -879,7 +879,7 @@ export default function AdminPage() {
                         <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${product.is_available ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'}`}>{product.is_available ? ui.admin.available : ui.admin.hidden}</span>
                       </div>
                       <div className="mt-4 flex items-center gap-3">
-                        <input aria-label={`Цена ${product.name}`} defaultValue={String(product.price)} onBlur={(event) => { if (event.target.value !== String(product.price)) void updateProduct(product.id, { price: event.target.value }); }} className="min-h-10 w-32 rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm font-semibold dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+                        <input aria-label={`${ui.admin.price} ${product.name}`} defaultValue={String(product.price)} onBlur={(event) => { if (event.target.value !== String(product.price)) void updateProduct(product.id, { price: event.target.value }); }} className="min-h-10 w-32 rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm font-semibold dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
                         <span className="text-sm text-gray-500 dark:text-gray-400">{product.currency}</span>
                         <button type="button" disabled={savingId === product.id} onClick={() => void updateProduct(product.id, { isAvailable: !product.is_available })} className="ml-auto min-h-10 rounded-lg bg-amber-100 px-3 text-sm font-semibold text-amber-700 transition hover:bg-amber-200 disabled:opacity-50 dark:bg-amber-900/30 dark:text-amber-300">{product.is_available ? ui.admin.hide : ui.admin.publish}</button>
                       </div>
