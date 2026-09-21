@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { getPublicCafeContext } from '@/lib/public-context';
 import { verifyAccessToken } from '@/lib/auth/jwt';
 import { addressSnapshot } from '@/lib/customer-address';
+import { apiPublicMessage } from '@/lib/api-response';
 
 function serialize<T>(value: T): T { return JSON.parse(JSON.stringify(value, (_, item) => typeof item === 'bigint' ? item.toString() : item)); }
 function guestToken() { return randomBytes(48).toString('base64url'); }
@@ -33,22 +34,22 @@ export async function POST(request: NextRequest) {
     const promoCode = body.promoCode?.trim().toUpperCase() || null;
     const requestIdempotencyKey = body.idempotencyKey?.trim() || request.cookies.get('guestOrderIdempotencyKey')?.value || idempotencyKey();
     if (!customerName || customerName.length > 200 || customerPhone.length > 40 || !['dine_in', 'pickup', 'delivery'].includes(fulfillmentType) || !['cash', 'card', 'online', 'other'].includes(paymentMethod) || requestIdempotencyKey.length > 120) {
-      return NextResponse.json({ error: 'Укажите имя, канал получения, оплату и корректные позиции заказа' }, { status: 400 });
+      return NextResponse.json({ error: apiPublicMessage(request, 'orderInputInvalid') }, { status: 400 });
     }
     const context = await getPublicCafeContext(request);
-    if (!context?.branch) return NextResponse.json({ error: 'Филиал кафе пока не настроен' }, { status: 503 });
+    if (!context?.branch) return NextResponse.json({ error: apiPublicMessage(request, 'branchNotConfigured') }, { status: 503 });
     const branch = context.branch;
     const orderingUser = await getOrderingUser(request, context.tenant.id);
     let deliveryAddress: Record<string, unknown> | undefined = body.deliveryAddress;
     const addressId = body.addressId?.trim();
     if (addressId) {
-      if (fulfillmentType !== 'delivery') return NextResponse.json({ error: 'Сохранённый адрес доступен только для доставки' }, { status: 400 });
-      if (!orderingUser) return NextResponse.json({ error: 'Войдите в аккаунт, чтобы использовать сохранённый адрес' }, { status: 401 });
+      if (fulfillmentType !== 'delivery') return NextResponse.json({ error: apiPublicMessage(request, 'savedAddressDeliveryOnly') }, { status: 400 });
+      if (!orderingUser) return NextResponse.json({ error: apiPublicMessage(request, 'savedAddressAuthRequired') }, { status: 401 });
       const savedAddress = await prisma.customer_addresses.findFirst({
         where: { id: addressId, tenant_id: context.tenant.id, user_id: orderingUser.id },
         select: { id: true, label: true, address_text: true, entrance: true, floor: true, apartment: true, comment: true, latitude: true, longitude: true },
       });
-      if (!savedAddress) return NextResponse.json({ error: 'Сохранённый адрес не найден' }, { status: 404 });
+      if (!savedAddress) return NextResponse.json({ error: apiPublicMessage(request, 'savedAddressNotFound') }, { status: 404 });
       deliveryAddress = addressSnapshot(savedAddress);
     }
 
@@ -64,29 +65,29 @@ export async function POST(request: NextRequest) {
     }
 
     const cartSession = request.cookies.get('guestCartSession')?.value;
-    if (!cartSession) return NextResponse.json({ error: 'Корзина пуста или устарела' }, { status: 409 });
+    if (!cartSession) return NextResponse.json({ error: apiPublicMessage(request, 'cartStale') }, { status: 409 });
     const cart = await prisma.carts.findFirst({ where: { tenant_id: context.tenant.id, branch_id: branch.id, session_key: cartSession, status: 'active' }, select: { id: true, items: true } });
     const storedItems = Array.isArray(cart?.items) ? cart.items as StoredCartItem[] : [];
     const quantities = new Map<string, number>();
     for (const item of storedItems) {
       if (typeof item.productId !== 'string' || !Number.isInteger(item.quantity) || Number(item.quantity) < 1 || Number(item.quantity) > 20) {
-        return NextResponse.json({ error: 'Корзина содержит некорректные позиции' }, { status: 409 });
+        return NextResponse.json({ error: apiPublicMessage(request, 'cartInvalidItems') }, { status: 409 });
       }
       quantities.set(item.productId, (quantities.get(item.productId) || 0) + Number(item.quantity));
     }
     const productIds = [...quantities.keys()];
-    if (!cart || !productIds.length) return NextResponse.json({ error: 'Корзина пуста или устарела' }, { status: 409 });
+    if (!cart || !productIds.length) return NextResponse.json({ error: apiPublicMessage(request, 'cartStale') }, { status: 409 });
     const products = await prisma.products.findMany({ where: { tenant_id: context.tenant.id, id: { in: productIds }, is_available: true, deleted_at: null }, select: { id: true, name: true, price: true, currency: true } });
-    if (products.length !== productIds.length) return NextResponse.json({ error: 'Одно из блюд больше недоступно' }, { status: 409 });
+    if (products.length !== productIds.length) return NextResponse.json({ error: apiPublicMessage(request, 'cartProductUnavailable') }, { status: 409 });
     const table = fulfillmentType === 'dine_in'
       ? await prisma.restaurant_tables.findFirst({ where: { id: body.tableId, tenant_id: context.tenant.id, branch_id: branch.id, status: 'active' }, select: { id: true, name: true } })
       : null;
-    if (fulfillmentType === 'dine_in' && !table) return NextResponse.json({ error: 'Столик недоступен' }, { status: 409 });
-    if (fulfillmentType === 'delivery' && (!deliveryAddress || typeof deliveryAddress.addressText !== 'string' || !deliveryAddress.addressText.trim() || deliveryAddress.addressText.length > 500 || !body.zoneId)) return NextResponse.json({ error: 'Для доставки нужны адрес и зона' }, { status: 400 });
+    if (fulfillmentType === 'dine_in' && !table) return NextResponse.json({ error: apiPublicMessage(request, 'tableUnavailable') }, { status: 409 });
+    if (fulfillmentType === 'delivery' && (!deliveryAddress || typeof deliveryAddress.addressText !== 'string' || !deliveryAddress.addressText.trim() || deliveryAddress.addressText.length > 500 || !body.zoneId)) return NextResponse.json({ error: apiPublicMessage(request, 'deliveryAddressRequired') }, { status: 400 });
     const zone = fulfillmentType === 'delivery' && body.zoneId
       ? await prisma.delivery_zones.findFirst({ where: { id: body.zoneId, tenant_id: context.tenant.id, branch_id: branch.id, is_active: true }, select: { id: true, delivery_fee: true, min_order_amount: true, estimated_minutes: true } })
       : null;
-    if (fulfillmentType === 'delivery' && !zone) return NextResponse.json({ error: 'Зона доставки недоступна' }, { status: 409 });
+    if (fulfillmentType === 'delivery' && !zone) return NextResponse.json({ error: apiPublicMessage(request, 'deliveryZoneUnavailable') }, { status: 409 });
 
     const lines = products.map((product) => {
       const unitPrice = product.price;
@@ -94,16 +95,16 @@ export async function POST(request: NextRequest) {
       return { product_id: product.id, product_name: product.name, unit_price: unitPrice, quantity, modifiers_total: new Prisma.Decimal(0), discount_amount: new Prisma.Decimal(0), line_total: unitPrice.mul(quantity), comment: null };
     });
     const subtotal = lines.reduce((sum, line) => sum.add(line.line_total), new Prisma.Decimal(0));
-    if (zone && subtotal.lt(zone.min_order_amount)) return NextResponse.json({ error: `Минимальная сумма доставки: ${zone.min_order_amount.toString()}` }, { status: 409 });
+    if (zone && subtotal.lt(zone.min_order_amount)) return NextResponse.json({ error: apiPublicMessage(request, 'deliveryMinimumAmount', { amount: zone.min_order_amount.toString() }) }, { status: 409 });
     const deliveryFee = zone?.delivery_fee || new Prisma.Decimal(0);
     let promotionId: string | null = null;
     let promotionUsageLimit: number | null = null;
     let discountTotal = new Prisma.Decimal(0);
     if (promoCode) {
       const promotion = await prisma.promotions.findFirst({ where: { tenant_id: context.tenant.id, code: promoCode, is_active: true, OR: [{ starts_at: null }, { starts_at: { lte: new Date() } }], AND: [{ OR: [{ ends_at: null }, { ends_at: { gte: new Date() } }] }] }, select: { id: true, type: true, value: true, min_order_amount: true, max_discount: true, usage_limit: true, usage_count: true } });
-      if (!promotion) return NextResponse.json({ error: 'Промокод недействителен' }, { status: 404 });
-      if (promotion.usage_limit !== null && promotion.usage_count >= promotion.usage_limit) return NextResponse.json({ error: 'Лимит промокода исчерпан' }, { status: 409 });
-      if (promotion.min_order_amount && subtotal.lt(promotion.min_order_amount)) return NextResponse.json({ error: `Минимальная сумма: ${promotion.min_order_amount.toString()}` }, { status: 409 });
+      if (!promotion) return NextResponse.json({ error: apiPublicMessage(request, 'promotionInvalid') }, { status: 404 });
+      if (promotion.usage_limit !== null && promotion.usage_count >= promotion.usage_limit) return NextResponse.json({ error: apiPublicMessage(request, 'promotionLimit') }, { status: 409 });
+      if (promotion.min_order_amount && subtotal.lt(promotion.min_order_amount)) return NextResponse.json({ error: apiPublicMessage(request, 'promotionMinimumAmount', { amount: promotion.min_order_amount.toString() }) }, { status: 409 });
       discountTotal = promotion.type === 'percent' ? subtotal.mul(promotion.value).div(100) : promotion.type === 'fixed' ? promotion.value : promotion.type === 'free_delivery' ? deliveryFee : new Prisma.Decimal(0);
       if (promotion.max_discount && discountTotal.gt(promotion.max_discount)) discountTotal = promotion.max_discount;
       if (discountTotal.gt(subtotal.add(deliveryFee))) discountTotal = subtotal.add(deliveryFee);
@@ -112,7 +113,7 @@ export async function POST(request: NextRequest) {
     }
     const total = subtotal.add(deliveryFee).sub(discountTotal);
     const desiredAt = body.desiredAt ? new Date(body.desiredAt) : null;
-    if (desiredAt && Number.isNaN(desiredAt.getTime())) return NextResponse.json({ error: 'Некорректное желаемое время' }, { status: 400 });
+    if (desiredAt && Number.isNaN(desiredAt.getTime())) return NextResponse.json({ error: apiPublicMessage(request, 'desiredTimeInvalid') }, { status: 400 });
     const token = guestToken();
     const newOrderNumber = orderNumber();
     const staff = await prisma.users.findMany({
@@ -142,10 +143,10 @@ export async function POST(request: NextRequest) {
       });
     } catch (error) {
       if (error instanceof Error && error.message === 'CART_ALREADY_CONVERTED') {
-        return NextResponse.json({ error: 'Корзина уже использована для заказа' }, { status: 409 });
+        return NextResponse.json({ error: apiPublicMessage(request, 'cartAlreadyUsed') }, { status: 409 });
       }
       if (error instanceof Error && error.message === 'PROMOTION_UNAVAILABLE') {
-        return NextResponse.json({ error: 'Промокод больше недоступен' }, { status: 409 });
+        return NextResponse.json({ error: apiPublicMessage(request, 'promotionUnavailable') }, { status: 409 });
       }
       if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
         const concurrentOrder = await prisma.orders.findFirst({
@@ -167,21 +168,21 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error) {
     console.error('Public order create error', error);
-    return NextResponse.json({ error: 'Не удалось создать заказ' }, { status: 500 });
+    return NextResponse.json({ error: apiPublicMessage(request, 'orderCreateFailed') }, { status: 500 });
   }
 }
 
 export async function GET(request: NextRequest) {
   const token = request.nextUrl.searchParams.get('token') || request.cookies.get('guestOrderToken')?.value;
-  if (!token) return NextResponse.json({ error: 'Токен заказа обязателен' }, { status: 400 });
+  if (!token) return NextResponse.json({ error: apiPublicMessage(request, 'orderTokenRequired') }, { status: 400 });
   try {
     const context = await getPublicCafeContext(request);
-    if (!context) return NextResponse.json({ error: 'Кафе пока не настроено' }, { status: 503 });
+    if (!context) return NextResponse.json({ error: apiPublicMessage(request, 'cafeNotConfigured') }, { status: 503 });
     const order = await prisma.orders.findFirst({ where: { guest_token: token, tenant_id: context.tenant.id }, include: { order_items: true } });
-    if (!order) return NextResponse.json({ error: 'Заказ не найден' }, { status: 404 });
+    if (!order) return NextResponse.json({ error: apiPublicMessage(request, 'orderNotFound') }, { status: 404 });
     return NextResponse.json(serialize({ order }));
   } catch (error) {
     console.error('Public order read error', error);
-    return NextResponse.json({ error: 'Не удалось загрузить заказ' }, { status: 500 });
+    return NextResponse.json({ error: apiPublicMessage(request, 'orderLoadFailed') }, { status: 500 });
   }
 }
