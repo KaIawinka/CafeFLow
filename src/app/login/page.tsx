@@ -267,9 +267,11 @@ function LoginContent() {
 
               <Link
                 href={`/api/auth/google?locale=${currentLocale}&redirect=${encodeURIComponent(redirectTo)}`}
-                className="w-full border border-[#dadce0] bg-white py-3 rounded-md flex items-center justify-center gap-3 text-[15px] font-medium text-[#3c4043] shadow-sm transition hover:bg-[#f8faff] hover:shadow-md dark:border-gray-500 dark:bg-white dark:text-[#3c4043]"
+                className="flex min-h-12 w-full items-center justify-center gap-3 rounded-full border border-[#e1e3e6] bg-[#f1f3f4] px-5 text-sm font-semibold text-[#5f6368] shadow-sm transition hover:bg-[#e8eaed] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4285f4] focus-visible:ring-offset-2 dark:border-gray-600 dark:bg-[#f1f3f4] dark:text-[#5f6368]"
               >
-                <span aria-hidden="true" className="bg-[linear-gradient(90deg,#4285f4_0_25%,#34a853_25%_50%,#fbbc05_50%_75%,#ea4335_75%)] bg-clip-text text-xl font-bold leading-none text-transparent">G</span>
+                <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-lg font-bold leading-none shadow-sm">
+                  <span className="bg-[linear-gradient(90deg,#4285f4_0_25%,#34a853_25%_50%,#fbbc05_50%_75%,#ea4335_75%)] bg-clip-text text-transparent">G</span>
+                </span>
                 {auth.login.google.button}
               </Link>
 
