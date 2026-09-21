@@ -63,12 +63,9 @@ interface User {
 
 interface SiteSettings {
   siteName: string;
-  siteDescription: string;
   logoUrl: string;
   logoData: string;
-  primaryColor: string;
   maintenanceMode: boolean;
-  timezone: string;
   contactPhone: string;
   contactEmail: string;
   addressText: string;
@@ -127,15 +124,12 @@ function cloneSiteSettings(settings: SiteSettings): SiteSettings {
   return { ...settings, siteOptions: { ...settings.siteOptions } };
 }
 
-function createDefaultSiteSettings(description: string): SiteSettings {
+function createDefaultSiteSettings(): SiteSettings {
   return {
     siteName: 'CaféFlow',
-    siteDescription: description,
     logoUrl: '/cafeflow-logo.svg',
     logoData: '',
-    primaryColor: '#f59e0b',
     maintenanceMode: false,
-    timezone: 'Asia/Bishkek',
     contactPhone: '',
     contactEmail: '',
     addressText: '',
@@ -255,8 +249,8 @@ export default function AdminPage() {
   };
   
   // Site settings
-  const [siteSettings, setSiteSettings] = useState<SiteSettings>(() => createDefaultSiteSettings(ui.admin.description));
-  const [savedSiteSettings, setSavedSiteSettings] = useState<SiteSettings | null>(() => createDefaultSiteSettings(ui.admin.description));
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>(() => createDefaultSiteSettings());
+  const [savedSiteSettings, setSavedSiteSettings] = useState<SiteSettings | null>(() => createDefaultSiteSettings());
   const [settingsFeedback, setSettingsFeedback] = useState<'saved' | 'copied' | ''>('');
 
   const loadDashboard = useEffectEvent(async (signal: AbortSignal) => {
@@ -287,12 +281,9 @@ export default function AdminPage() {
         const nextSettings = {
           ...siteSettings,
           siteName: data.tenant.name || siteSettings.siteName,
-          primaryColor: data.tenant.primary_color || siteSettings.primaryColor,
-          timezone: data.tenant.timezone || siteSettings.timezone,
           contactPhone: data.tenant.contact_phone || '',
           contactEmail: data.tenant.contact_email || '',
           addressText: data.tenant.address_text || '',
-          siteDescription: typeof data.tenant.settings?.siteDescription === 'string' ? data.tenant.settings.siteDescription : siteSettings.siteDescription,
           logoUrl: typeof data.tenant.settings?.logoUrl === 'string' ? data.tenant.settings.logoUrl : siteSettings.logoUrl,
           logoData: typeof data.tenant.settings?.logoData === 'string' ? data.tenant.settings.logoData : siteSettings.logoData,
           maintenanceMode: data.tenant.settings?.maintenanceMode === true,
@@ -374,19 +365,16 @@ export default function AdminPage() {
       const response = await fetch('/api/admin/dashboard', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resource: 'tenant', name: siteSettings.siteName, timezone: siteSettings.timezone, primaryColor: siteSettings.primaryColor, contactPhone: siteSettings.contactPhone || null, contactEmail: siteSettings.contactEmail || null, addressText: siteSettings.addressText || null, siteDescription: siteSettings.siteDescription, logoUrl: siteSettings.logoUrl, logoData: siteSettings.logoData || null, maintenanceMode: siteSettings.maintenanceMode, siteOptions: siteSettings.siteOptions }),
+        body: JSON.stringify({ resource: 'tenant', name: siteSettings.siteName, contactPhone: siteSettings.contactPhone || null, contactEmail: siteSettings.contactEmail || null, addressText: siteSettings.addressText || null, logoUrl: siteSettings.logoUrl, logoData: siteSettings.logoData || null, maintenanceMode: siteSettings.maintenanceMode, siteOptions: siteSettings.siteOptions }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || ui.admin.errorSave);
       const nextSettings = {
         ...siteSettings,
         siteName: data.tenant.name,
-        timezone: data.tenant.timezone,
-        primaryColor: data.tenant.primary_color || siteSettings.primaryColor,
         contactPhone: data.tenant.contact_phone || '',
         contactEmail: data.tenant.contact_email || '',
         addressText: data.tenant.address_text || '',
-        siteDescription: data.tenant.settings?.siteDescription || siteSettings.siteDescription,
         logoUrl: data.tenant.settings?.logoUrl || siteSettings.logoUrl,
         logoData: data.tenant.settings?.logoData || siteSettings.logoData,
         maintenanceMode: data.tenant.settings?.maintenanceMode === true,
@@ -961,7 +949,7 @@ export default function AdminPage() {
                     { label: siteOptionLabels.siteStatus, value: siteSettings.maintenanceMode ? siteOptionLabels.maintenanceMode : siteSettings.siteOptions.publicSiteEnabled ? siteOptionLabels.online : siteOptionLabels.disabled, detail: `${enabledOptions}/${totalOptions} ${siteOptionLabels.configured}`, icon: Globe2, iconClass: 'bg-orange-100 text-orange-600 dark:bg-orange-950/40 dark:text-orange-300' },
                     { label: siteOptionLabels.channels, value: `${enabledChannels}/5`, detail: siteOptionLabels.activeChannels, icon: Eye, iconClass: 'bg-blue-100 text-blue-600 dark:bg-blue-950/40 dark:text-blue-300' },
                     { label: siteOptionLabels.deliveryStatus, value: siteSettings.siteOptions.deliveryEnabled ? siteOptionLabels.enabled : siteOptionLabels.disabled, detail: `${siteOptionLabels.pickup}: ${siteSettings.siteOptions.pickupEnabled ? siteOptionLabels.enabled : siteOptionLabels.disabled}`, icon: Truck, iconClass: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300' },
-                    { label: siteOptionLabels.savedState, value: hasUnsavedSettings ? siteOptionLabels.unsaved : siteOptionLabels.saved, detail: siteSettings.timezone, icon: CheckCircle2, iconClass: 'bg-violet-100 text-violet-600 dark:bg-violet-950/40 dark:text-violet-300' },
+                    { label: siteOptionLabels.savedState, value: hasUnsavedSettings ? siteOptionLabels.unsaved : siteOptionLabels.saved, detail: siteSettings.siteName, icon: CheckCircle2, iconClass: 'bg-violet-100 text-violet-600 dark:bg-violet-950/40 dark:text-violet-300' },
                   ].map(({ label, value, detail, icon: Icon, iconClass }) => <AdminSettingsCard key={label} className="p-5"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted-foreground)]">{label}</p><p className="mt-3 truncate text-xl font-black tracking-tight">{value}</p></div><div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${iconClass}`}><Icon className="h-5 w-5" /></div></div><p className="mt-4 text-xs font-semibold text-[var(--muted-foreground)]">{detail}</p></AdminSettingsCard>)}
                 </div>
 
@@ -971,9 +959,6 @@ export default function AdminPage() {
                     <div className="grid gap-4 md:grid-cols-2">
                       <label className="block text-xs font-bold uppercase tracking-[0.08em] text-[var(--muted-foreground)]">{ui.admin.siteName}<input type="text" value={siteSettings.siteName} onChange={(event) => setSiteSettings({ ...siteSettings, siteName: event.target.value })} className="mt-2 min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 text-sm font-semibold text-[var(--foreground)] outline-none transition focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--ring)]/20" /></label>
                       <label className="block text-xs font-bold uppercase tracking-[0.08em] text-[var(--muted-foreground)]">{ui.admin.logoUrl}<input type="text" value={siteSettings.logoUrl} onChange={(event) => setSiteSettings({ ...siteSettings, logoUrl: event.target.value })} className="mt-2 min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 text-sm font-semibold text-[var(--foreground)] outline-none transition focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--ring)]/20" /><span className="mt-3 flex items-center gap-3 normal-case tracking-normal"><span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border border-[var(--border)] bg-white"><Image unoptimized width={48} height={48} src={siteSettings.logoData || siteSettings.logoUrl || '/cafeflow-logo.svg'} alt={siteSettings.siteName} className="h-full w-full object-cover" /></span><span className="flex flex-col gap-1"><span className="text-xs font-semibold text-[var(--muted-foreground)]">{ui.admin.logoUpload}</span><label className="inline-flex min-h-8 cursor-pointer items-center gap-2 text-xs font-bold text-[var(--primary)] hover:underline"><ExternalLink className="h-3.5 w-3.5" /><span>{ui.admin.logoUpload}</span><input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="sr-only" onChange={(event) => { const file = event.target.files?.[0]; if (!file || file.size > 1024 * 1024) { setError(ui.admin.logoSizeError); return; } const reader = new FileReader(); reader.onload = () => setSiteSettings((current) => ({ ...current, logoData: typeof reader.result === 'string' ? reader.result : '' })); reader.readAsDataURL(file); }} /></label></span></span></label>
-                      <label className="block text-xs font-bold uppercase tracking-[0.08em] text-[var(--muted-foreground)]">{siteOptionLabels.color}<span className="mt-2 flex min-h-11 items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--background)] px-3"><input type="color" value={siteSettings.primaryColor} onChange={(event) => setSiteSettings({ ...siteSettings, primaryColor: event.target.value })} className="h-7 w-9 cursor-pointer rounded border-0 bg-transparent p-0" /><span className="text-sm font-bold text-[var(--foreground)]">{siteSettings.primaryColor}</span></span></label>
-                      <label className="block text-xs font-bold uppercase tracking-[0.08em] text-[var(--muted-foreground)]">{siteOptionLabels.timezone}<select value={siteSettings.timezone} onChange={(event) => setSiteSettings({ ...siteSettings, timezone: event.target.value })} className="mt-2 min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 text-sm font-semibold text-[var(--foreground)] outline-none focus:border-[var(--primary)]"><option value="Asia/Bishkek">Asia/Bishkek</option><option value="Asia/Almaty">Asia/Almaty</option><option value="Asia/Tashkent">Asia/Tashkent</option><option value="UTC">UTC</option></select></label>
-                      <label className="block text-xs font-bold uppercase tracking-[0.08em] text-[var(--muted-foreground)] md:col-span-2">{siteOptionLabels.description}<textarea value={siteSettings.siteDescription} onChange={(event) => setSiteSettings({ ...siteSettings, siteDescription: event.target.value })} rows={3} className="mt-2 w-full resize-y rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-3 text-sm font-medium text-[var(--foreground)] outline-none transition focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--ring)]/20" /></label>
                     </div>
                   </AdminSettingsCard>
 
