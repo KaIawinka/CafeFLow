@@ -3,13 +3,14 @@
  * Logout user and invalidate session
  */
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { verifyAccessToken } from '@/lib/auth/jwt';
 import { prisma } from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import { logger } from '@/lib/logger';
+import { apiError, apiMessage } from '@/lib/api-response';
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get('accessToken')?.value;
@@ -25,15 +26,12 @@ export async function POST() {
 
     return NextResponse.json({
       success: true,
-      message: payload ? 'Выход выполнен успешно' : 'Сессия уже завершена',
+      message: apiMessage(request, payload ? 'logoutSuccess' : 'sessionAlreadyEnded'),
     });
 
   } catch (error) {
     logger.error('Logout error', error);
     
-    return NextResponse.json(
-      { error: 'Внутренняя ошибка сервера' },
-      { status: 500 }
-    );
+    return apiError(request, 'server', 500);
   }
 }

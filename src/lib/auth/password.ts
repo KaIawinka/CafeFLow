@@ -33,34 +33,39 @@ export async function verifyPassword(
   }
 }
 
+export type PasswordStrengthErrorKey =
+  | 'passwordMinLength'
+  | 'passwordUppercase'
+  | 'passwordLowercase'
+  | 'passwordDigit'
+  | 'passwordSpecial';
+
+const passwordStrengthMessages: Record<PasswordStrengthErrorKey, string> = {
+  passwordMinLength: 'Пароль должен содержать минимум 8 символов',
+  passwordUppercase: 'Пароль должен содержать хотя бы одну заглавную букву',
+  passwordLowercase: 'Пароль должен содержать хотя бы одну строчную букву',
+  passwordDigit: 'Пароль должен содержать хотя бы одну цифру',
+  passwordSpecial: 'Пароль должен содержать хотя бы один специальный символ',
+};
+
+export function getPasswordStrengthErrorKeys(password: string): PasswordStrengthErrorKey[] {
+  const errors: PasswordStrengthErrorKey[] = [];
+
+  if (password.length < 8) errors.push('passwordMinLength');
+  if (!/[A-Z]/.test(password)) errors.push('passwordUppercase');
+  if (!/[a-z]/.test(password)) errors.push('passwordLowercase');
+  if (!/[0-9]/.test(password)) errors.push('passwordDigit');
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) errors.push('passwordSpecial');
+
+  return errors;
+}
+
 /**
  * Validate password strength
  * Returns array of error messages (empty if valid)
  */
 export function validatePasswordStrength(password: string): string[] {
-  const errors: string[] = [];
-
-  if (password.length < 8) {
-    errors.push('Пароль должен содержать минимум 8 символов');
-  }
-
-  if (!/[A-Z]/.test(password)) {
-    errors.push('Пароль должен содержать хотя бы одну заглавную букву');
-  }
-
-  if (!/[a-z]/.test(password)) {
-    errors.push('Пароль должен содержать хотя бы одну строчную букву');
-  }
-
-  if (!/[0-9]/.test(password)) {
-    errors.push('Пароль должен содержать хотя бы одну цифру');
-  }
-
-  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-    errors.push('Пароль должен содержать хотя бы один специальный символ');
-  }
-
-  return errors;
+  return getPasswordStrengthErrorKeys(password).map((key) => passwordStrengthMessages[key]);
 }
 
 /**

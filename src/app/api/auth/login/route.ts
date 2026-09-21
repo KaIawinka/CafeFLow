@@ -13,6 +13,7 @@ import { logger } from '@/lib/logger';
 import crypto from 'crypto';
 import { verifyRecaptcha } from '@/lib/recaptcha';
 import { getClientIp, isLoginRateLimited, recordLoginAttempt } from '@/lib/auth/login-attempts';
+import { apiError, apiMessage } from '@/lib/api-response';
 
 interface LoginRequest {
   email: string;
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
     // Validation
     if (!email || !password) {
       return NextResponse.json(
-        { error: 'Email и пароль обязательны' },
+        { error: apiMessage(request, 'emailPasswordRequired') },
         { status: 400 }
       );
     }
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
           score: recaptchaResult.score 
         });
         return NextResponse.json(
-          { error: 'Проверка безопасности не пройдена. Попробуйте позже.' },
+          { error: apiMessage(request, 'securityCheckFailed') },
           { status: 403 }
         );
       }
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
     const ipAddress = getClientIp(request);
     if (await isLoginRateLimited(normalizedEmail, ipAddress)) {
       await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'rate_limit_exceeded' });
-      return NextResponse.json({ error: 'Слишком много попыток входа. Попробуйте позже.' }, { status: 429 });
+      return NextResponse.json({ error: apiMessage(request, 'tooManyLoginAttempts') }, { status: 429 });
     }
 
     // Find user by email
@@ -85,7 +86,7 @@ export async function POST(request: NextRequest) {
       logger.warn('Login failed: User not found', { email, ipAddress });
       
       return NextResponse.json(
-        { error: 'Неверный email или пароль' },
+        { error: apiMessage(request, 'invalidCredentials') },
         { status: 401 }
       );
     }
@@ -96,7 +97,7 @@ export async function POST(request: NextRequest) {
       logger.warn('Login failed: User inactive', { email, status: user.status });
       
       return NextResponse.json(
-        { error: 'Аккаунт заблокирован. Обратитесь к администратору.' },
+        { error: apiMessage(request, 'accountBlocked') },
         { status: 403 }
       );
     }
@@ -105,7 +106,7 @@ export async function POST(request: NextRequest) {
     if (!user.password_hash) {
       logger.warn('Login failed: No password hash', { email });
       return NextResponse.json(
-        { error: 'Неверный email или пароль' },
+        { error: apiMessage(request, 'invalidCredentials') },
         { status: 401 }
       );
     }
@@ -117,7 +118,7 @@ export async function POST(request: NextRequest) {
       logger.warn('Login failed: Invalid password', { email, ipAddress });
       
       return NextResponse.json(
-        { error: 'Неверный email или пароль' },
+        { error: apiMessage(request, 'invalidCredentials') },
         { status: 401 }
       );
     }
@@ -133,7 +134,7 @@ export async function POST(request: NextRequest) {
       
       if (!rateLimitCheck.allowed) {
         return NextResponse.json(
-          { error: rateLimitCheck.error },
+          { error: apiMessage(request, 'codeRateLimited', { minutes: 5 }) },
           { status: 429 }
         );
       }
@@ -163,7 +164,7 @@ export async function POST(request: NextRequest) {
             // Continue to generate tokens below
           } else {
             return NextResponse.json(
-              { error: 'Не удалось отправить код подтверждения. Попробуйте позже.' },
+              { error: apiMessage(request, 'verificationSendFailed') },
               { status: 500 }
             );
           }
@@ -187,7 +188,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({
             requires2FA: true,
             tempSessionId,
-            message: 'Код подтверждения отправлен в Telegram',
+            message: apiMessage(request, 'twoFaCodeSent'),
             expiresInMinutes: 5,
           });
         }
@@ -201,7 +202,7 @@ export async function POST(request: NextRequest) {
           // Continue to generate tokens below
         } else {
           return NextResponse.json(
-            { error: 'Ошибка отправки кода. Попробуйте позже.' },
+            { error: apiMessage(request, 'codeSendError') },
             { status: 500 }
           );
         }
@@ -266,9 +267,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     logger.error('Login error', error);
     
-    return NextResponse.json(
-      { error: 'Внутренняя ошибка сервера' },
-      { status: 500 }
-    );
+    return apiError(request, 'server', 500);
   }
 }

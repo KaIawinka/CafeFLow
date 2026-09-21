@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { generateTokenPair, getTokenExpirySeconds, hashSessionToken, verifyRefreshToken } from '@/lib/auth/jwt';
+import { apiMessage } from '@/lib/api-response';
 
 export async function POST(request: NextRequest) {
   try {
     const oldRefreshToken = request.cookies.get('refreshToken')?.value;
     if (!oldRefreshToken) return new NextResponse(null, { status: 204 });
     const payload = await verifyRefreshToken(oldRefreshToken);
-    if (!payload?.sessionId) return NextResponse.json({ error: 'Сессия истекла' }, { status: 401 });
+    if (!payload?.sessionId) return NextResponse.json({ error: apiMessage(request, 'sessionExpired') }, { status: 401 });
 
     const { accessToken, refreshToken } = await generateTokenPair(payload);
     const sessionUpdate = await prisma.auth_sessions.updateMany({
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest) {
         last_activity: new Date(),
       },
     });
-    if (sessionUpdate.count !== 1) return NextResponse.json({ error: 'Сессия уже обновлена' }, { status: 401 });
+    if (sessionUpdate.count !== 1) return NextResponse.json({ error: apiMessage(request, 'sessionAlreadyRefreshed') }, { status: 401 });
 
     const response = NextResponse.json({ success: true });
     response.cookies.set('accessToken', accessToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: getTokenExpirySeconds('access'), path: '/' });
@@ -26,6 +27,6 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error) {
     console.error('Refresh token error', error);
-    return NextResponse.json({ error: 'Не удалось обновить сессию' }, { status: 401 });
+    return NextResponse.json({ error: apiMessage(request, 'sessionRefreshFailed') }, { status: 401 });
   }
 }

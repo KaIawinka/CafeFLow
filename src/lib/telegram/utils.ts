@@ -66,7 +66,12 @@ export async function verifyCode(
   userId: string,
   inputCode: string,
   type: string = '2fa_login'
-): Promise<{ valid: boolean; error?: string; attemptsLeft?: number }> {
+): Promise<{
+  valid: boolean;
+  error?: string;
+  errorKey?: 'telegramCodeMissingOrExpired' | 'telegramAttemptsExceeded' | 'telegramInvalidCode';
+  attemptsLeft?: number;
+}> {
   // Find active code
   const verification = await prisma.verification_codes.findFirst({
     where: {
@@ -82,6 +87,7 @@ export async function verifyCode(
     return {
       valid: false,
       error: 'Код не найден или истёк. Запросите новый код.',
+      errorKey: 'telegramCodeMissingOrExpired',
     };
   }
 
@@ -90,6 +96,7 @@ export async function verifyCode(
     return {
       valid: false,
       error: 'Превышен лимит попыток. Запросите новый код.',
+      errorKey: 'telegramAttemptsExceeded',
       attemptsLeft: 0,
     };
   }
@@ -107,6 +114,7 @@ export async function verifyCode(
     return {
       valid: false,
       error: `Неверный код. Осталось попыток: ${attemptsLeft}`,
+      errorKey: 'telegramInvalidCode',
       attemptsLeft,
     };
   }

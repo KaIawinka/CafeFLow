@@ -61,7 +61,11 @@ export async function verifyCode(
   userId: string,
   code: string,
   type: 'email_verification' | 'password_reset' | '2fa_login'
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{
+  success: boolean;
+  error?: string;
+  errorKey?: 'verificationCodeInvalid' | 'verificationCodeExpired' | 'verificationAttemptsExceeded';
+}> {
   // Find the code
   const verificationCode = await prisma.verification_codes.findFirst({
     where: {
@@ -77,19 +81,19 @@ export async function verifyCode(
 
   if (!verificationCode) {
     logger.warn('Verification code not found', { userId, type });
-    return { success: false, error: 'Неверный код подтверждения' };
+    return { success: false, error: 'Неверный код подтверждения', errorKey: 'verificationCodeInvalid' };
   }
 
   // Check if expired
   if (new Date() > new Date(verificationCode.expires_at)) {
     logger.warn('Verification code expired', { userId, type });
-    return { success: false, error: 'Код подтверждения истёк. Запросите новый.' };
+    return { success: false, error: 'Код подтверждения истёк. Запросите новый.', errorKey: 'verificationCodeExpired' };
   }
 
   // Check attempts
   if (verificationCode.attempts >= MAX_ATTEMPTS) {
     logger.warn('Max verification attempts reached', { userId, type });
-    return { success: false, error: 'Превышено количество попыток. Запросите новый код.' };
+    return { success: false, error: 'Превышено количество попыток. Запросите новый код.', errorKey: 'verificationAttemptsExceeded' };
   }
 
   // Increment attempts
@@ -103,7 +107,7 @@ export async function verifyCode(
   // Validate code
   if (verificationCode.code !== code) {
     logger.warn('Invalid verification code', { userId, type, attempts: verificationCode.attempts + 1 });
-    return { success: false, error: 'Неверный код подтверждения' };
+    return { success: false, error: 'Неверный код подтверждения', errorKey: 'verificationCodeInvalid' };
   }
 
   // Mark as used
@@ -154,11 +158,16 @@ export async function canRequestNewCode(
 /**
  * Validate email format and check if it's from a real domain
  */
-export async function validateEmailAddress(email: string): Promise<{ valid: boolean; error?: string }> {
+export async function validateEmailAddress(email: string): Promise<{
+  valid: boolean;
+  error?: string;
+  errorKey?: 'invalidEmailFormat' | 'temporaryEmailNotAllowed' | 'emailDomainSuggestion';
+  errorParams?: Record<string, string>;
+}> {
   // Basic format validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    return { valid: false, error: 'Неверный формат email адреса' };
+    return { valid: false, error: 'Неверный формат email адреса', errorKey: 'invalidEmailFormat' };
   }
 
   // Extract domain
@@ -172,7 +181,7 @@ export async function validateEmailAddress(email: string): Promise<{ valid: bool
   ];
 
   if (disposableDomains.includes(domain)) {
-    return { valid: false, error: 'Временные email адреса не допускаются' };
+    return { valid: false, error: 'Временные email адреса не допускаются', errorKey: 'temporaryEmailNotAllowed' };
   }
 
   // Check for common typos in popular domains
@@ -188,7 +197,9 @@ export async function validateEmailAddress(email: string): Promise<{ valid: bool
   if (domainSuggestions[domain]) {
     return { 
       valid: false, 
-      error: `Возможно, вы имели в виду ${email.split('@')[0]}@${domainSuggestions[domain]}?` 
+      error: `Возможно, вы имели в виду ${email.split('@')[0]}@${domainSuggestions[domain]}?`,
+      errorKey: 'emailDomainSuggestion',
+      errorParams: { suggestion: `${email.split('@')[0]}@${domainSuggestions[domain]}` },
     };
   }
 

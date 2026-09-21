@@ -3,6 +3,13 @@ import { getLocaleTranslations, type TranslationCatalog } from '@/app/i18n/catal
 import { defaultLocale, locales, type Locale } from '@/app/i18n/config';
 
 type ApiErrorKey = keyof TranslationCatalog['api']['errors'];
+type ApiAuthCatalog = TranslationCatalog['api']['auth'];
+type ApiMessageKey = {
+  [Key in keyof ApiAuthCatalog]: ApiAuthCatalog[Key] extends string ? Key : never;
+}[keyof ApiAuthCatalog];
+type ApiListKey = {
+  [Key in keyof ApiAuthCatalog]: ApiAuthCatalog[Key] extends string[] ? Key : never;
+}[keyof ApiAuthCatalog];
 
 function parseLocale(value: string | null | undefined): Locale | undefined {
   if (!value) return undefined;
@@ -44,4 +51,21 @@ export function apiError(request: NextRequest, key: ApiErrorKey, status: number)
     { error: getLocaleTranslations(locale).api.errors[key] },
     { status },
   );
+}
+
+export function apiMessage(
+  request: NextRequest,
+  key: ApiMessageKey,
+  params: Record<string, string | number> = {},
+) {
+  const locale = getRequestLocale(request);
+  return Object.entries(params).reduce(
+    (message, [name, value]) => message.replaceAll(`{${name}}`, String(value)),
+    getLocaleTranslations(locale).api.auth[key],
+  );
+}
+
+export function apiList(request: NextRequest, key: ApiListKey) {
+  const locale = getRequestLocale(request);
+  return getLocaleTranslations(locale).api.auth[key];
 }

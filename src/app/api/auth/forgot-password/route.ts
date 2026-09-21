@@ -3,15 +3,15 @@ import { prisma } from '@/lib/prisma';
 import { createVerificationCode } from '@/lib/email/verification';
 import { sendPasswordResetEmail } from '@/lib/email/client';
 import { logger } from '@/lib/logger';
-
-const genericResponse = { message: 'Если аккаунт с таким email существует, код восстановления отправлен на почту.' };
+import { apiError, apiMessage } from '@/lib/api-response';
 
 export async function POST(request: NextRequest) {
   try {
+    const genericMessage = apiMessage(request, 'forgotPasswordGeneric');
     const body = await request.json() as { email?: string };
     const email = body.email?.trim().toLowerCase();
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return NextResponse.json({ error: 'Введите корректный email' }, { status: 400 });
+      return NextResponse.json({ error: apiMessage(request, 'invalidEmail') }, { status: 400 });
     }
 
     const user = await prisma.users.findUnique({
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Do not reveal whether the email is registered.
-    if (!user) return NextResponse.json(genericResponse);
+    if (!user) return NextResponse.json({ message: genericMessage });
 
     const ipAddress = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
     const code = await createVerificationCode(user.id, 'password_reset', ipAddress);
@@ -28,12 +28,12 @@ export async function POST(request: NextRequest) {
 
     if (!sent && process.env.NODE_ENV === 'production') {
       logger.error('Password reset email was not sent', undefined, { userId: user.id });
-      return NextResponse.json({ error: 'Не удалось отправить письмо. Попробуйте позже.' }, { status: 503 });
+      return NextResponse.json({ error: apiMessage(request, 'emailSendFailed') }, { status: 503 });
     }
 
-    return NextResponse.json({ ...genericResponse, ...(process.env.NODE_ENV === 'development' ? { devCode: code } : {}) });
+    return NextResponse.json({ message: genericMessage, ...(process.env.NODE_ENV === 'development' ? { devCode: code } : {}) });
   } catch (error) {
     logger.error('Forgot password error', error);
-    return NextResponse.json({ error: 'Внутренняя ошибка сервера' }, { status: 500 });
+    return apiError(request, 'server', 500);
   }
 }
