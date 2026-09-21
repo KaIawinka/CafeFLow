@@ -17,7 +17,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const result = await scope(request, id);
   if ('error' in result) return result.error;
   const body = await request.json().catch(() => ({})) as { name?: string; slug?: string; description?: string | null; parentId?: string | null; sortOrder?: number; isActive?: boolean };
-  const category = await prisma.menu_categories.update({ where: { id }, data: { ...(body.name?.trim() ? { name: body.name.trim() } : {}), ...(body.slug?.trim() ? { slug: body.slug.trim().toLowerCase() } : {}), ...(body.description !== undefined ? { description: body.description?.trim() || null } : {}), ...(body.parentId !== undefined ? { parent_id: body.parentId || null } : {}), ...(Number.isInteger(body.sortOrder) ? { sort_order: body.sortOrder } : {}), ...(typeof body.isActive === 'boolean' ? { is_active: body.isActive } : {}) } });
+  const parentId = body.parentId === undefined ? undefined : body.parentId?.trim() || null;
+  if (parentId) {
+    const parent = await prisma.menu_categories.findFirst({ where: { id: parentId, tenant_id: result.category.tenant_id }, select: { id: true } });
+    if (!parent || parent.id === id) return NextResponse.json({ error: apiAdminMessage(request, 'categoryInputInvalid') }, { status: 400 });
+  }
+  const category = await prisma.menu_categories.update({ where: { id }, data: { ...(body.name?.trim() ? { name: body.name.trim() } : {}), ...(body.slug?.trim() ? { slug: body.slug.trim().toLowerCase() } : {}), ...(body.description !== undefined ? { description: body.description?.trim() || null } : {}), ...(parentId !== undefined ? { parent_id: parentId } : {}), ...(Number.isInteger(body.sortOrder) ? { sort_order: body.sortOrder } : {}), ...(typeof body.isActive === 'boolean' ? { is_active: body.isActive } : {}) } });
   return NextResponse.json({ category });
 }
 

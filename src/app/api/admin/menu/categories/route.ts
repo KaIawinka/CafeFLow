@@ -24,7 +24,12 @@ export async function POST(request: NextRequest) {
   const name = body.name?.trim() || '';
   const slug = body.slug?.trim().toLowerCase() || name.toLowerCase().replace(/[^a-z0-9а-яё]+/gi, '-').replace(/^-|-$/g, '');
   if (!name || name.length > 150 || !slug || slug.length > 150) return NextResponse.json({ error: apiAdminMessage(request, 'categoryInputInvalid') }, { status: 400 });
+  const parentId = body.parentId?.trim() || null;
+  if (parentId) {
+    const parent = await prisma.menu_categories.findFirst({ where: { id: parentId, tenant_id: result.id }, select: { id: true } });
+    if (!parent) return NextResponse.json({ error: apiAdminMessage(request, 'categoryNotFound') }, { status: 404 });
+  }
   const sortOrder = Number.isInteger(body.sortOrder) ? body.sortOrder as number : 0;
-  const category = await prisma.menu_categories.create({ data: { tenant_id: result.id, name, slug, description: body.description?.trim() || null, parent_id: body.parentId || null, sort_order: sortOrder, is_active: body.isActive !== false } });
+  const category = await prisma.menu_categories.create({ data: { tenant_id: result.id, name, slug, description: body.description?.trim() || null, parent_id: parentId, sort_order: sortOrder, is_active: body.isActive !== false } });
   return NextResponse.json({ category }, { status: 201 });
 }

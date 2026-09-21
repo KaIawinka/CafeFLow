@@ -25,8 +25,13 @@ export async function POST(request: NextRequest) {
   const name = body.name?.trim() || '';
   const price = body.price?.trim() || '';
   if (!name || name.length > 200 || !price || !Number.isFinite(Number(price)) || Number(price) < 0) return NextResponse.json({ error: apiAdminMessage(request, 'productInputInvalid') }, { status: 400 });
+  const categoryId = body.categoryId?.trim() || null;
+  if (categoryId) {
+    const category = await prisma.menu_categories.findFirst({ where: { id: categoryId, tenant_id: result.id }, select: { id: true } });
+    if (!category) return NextResponse.json({ error: apiAdminMessage(request, 'categoryNotFound') }, { status: 404 });
+  }
   const slug = body.slug?.trim().toLowerCase() || name.toLowerCase().replace(/[^a-z0-9а-яё]+/gi, '-').replace(/^-|-$/g, '');
   const sortOrder = Number.isInteger(body.sortOrder) ? body.sortOrder as number : 0;
-  const product = await prisma.products.create({ data: { tenant_id: result.id, category_id: body.categoryId || null, name, slug, description: body.description?.trim() || null, composition: body.composition?.trim() || null, price: new Prisma.Decimal(price), currency: body.currency?.trim().toUpperCase().slice(0, 3) || 'KGS', weight: body.weight ? new Prisma.Decimal(body.weight) : null, image_file_ids: body.imageFileIds as Prisma.InputJsonValue || undefined, modifiers: body.modifiers as Prisma.InputJsonValue || undefined, allergens: body.allergens as Prisma.InputJsonValue || undefined, preparation_minutes: Number.isInteger(body.preparationMinutes) ? body.preparationMinutes : null, sort_order: sortOrder, is_available: body.isAvailable !== false, is_featured: body.isFeatured === true } });
+  const product = await prisma.products.create({ data: { tenant_id: result.id, category_id: categoryId, name, slug, description: body.description?.trim() || null, composition: body.composition?.trim() || null, price: new Prisma.Decimal(price), currency: body.currency?.trim().toUpperCase().slice(0, 3) || 'KGS', weight: body.weight ? new Prisma.Decimal(body.weight) : null, image_file_ids: body.imageFileIds as Prisma.InputJsonValue || undefined, modifiers: body.modifiers as Prisma.InputJsonValue || undefined, allergens: body.allergens as Prisma.InputJsonValue || undefined, preparation_minutes: Number.isInteger(body.preparationMinutes) ? body.preparationMinutes : null, sort_order: sortOrder, is_available: body.isAvailable !== false, is_featured: body.isFeatured === true } });
   return NextResponse.json({ product }, { status: 201 });
 }
