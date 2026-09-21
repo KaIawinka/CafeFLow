@@ -65,9 +65,7 @@ export async function POST(request: NextRequest) {
       await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'admin_2fa_unknown_user' });
       logger.warn('Admin 2FA verification failed: User not found', { email });
       
-      return NextResponse.json(
-        apiError(request, 'userNotFound', 404)
-      );
+      return apiError(request, 'userNotFound', 404);
     }
 
     // Check if user is still active
