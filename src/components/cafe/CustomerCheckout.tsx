@@ -3,6 +3,7 @@
 import { useEffect, useEffectEvent, useState } from 'react';
 import { CheckCircle2, Loader2, MapPin, Minus, Plus, ReceiptText, ShoppingBag, Table2, Ticket, Truck } from 'lucide-react';
 import type { Locale } from '@/app/i18n/config';
+import { getLocaleTranslations } from '@/app/i18n/catalog';
 
 type CartItem = {
   product: { id: string; name: string; price: string | number; currency: string };
@@ -12,12 +13,6 @@ type CartItem = {
 type Address = { id: string; label: string | null; address_text: string; is_default: boolean };
 type DeliveryZone = { id: string; name: string; delivery_fee: string | number; min_order_amount: string | number; estimated_minutes: number | null };
 type Table = { id: string; name: string; zone: string | null; capacity: number };
-
-const copy: Record<Locale, Record<string, string>> = {
-  ru: { title: 'Оформление заказа', contact: 'Контакты', name: 'Ваше имя', phone: 'Телефон', delivery: 'Доставка', pickup: 'Самовывоз', dineIn: 'В заведении', address: 'Адрес доставки', savedAddress: 'Сохранённый адрес', manualAddress: 'Другой адрес', zone: 'Зона доставки', table: 'Столик', selectZone: 'Выберите зону', selectTable: 'Выберите столик', promo: 'Промокод', comment: 'Комментарий к заказу', total: 'Итого', deliveryFee: 'Доставка', placeOrder: 'Оформить заказ', loading: 'Загружаем варианты доставки...', unavailable: 'Нет доступных зон доставки', success: 'Заказ создан', error: 'Не удалось оформить заказ', empty: 'Корзина пуста', saveAddress: 'Управлять адресами', estimated: 'Ориентировочно', minute: 'мин.' },
-  en: { title: 'Checkout', contact: 'Contact details', name: 'Your name', phone: 'Phone', delivery: 'Delivery', pickup: 'Pickup', dineIn: 'Dine in', address: 'Delivery address', savedAddress: 'Saved address', manualAddress: 'Another address', zone: 'Delivery zone', table: 'Table', selectZone: 'Select a zone', selectTable: 'Select a table', promo: 'Promo code', comment: 'Order note', total: 'Total', deliveryFee: 'Delivery', placeOrder: 'Place order', loading: 'Loading delivery options...', unavailable: 'No delivery zones available', success: 'Order created', error: 'Unable to place order', empty: 'Your cart is empty', saveAddress: 'Manage addresses', estimated: 'Estimated', minute: 'min.' },
-  kg: { title: 'Заказды тариздөө', contact: 'Байланыш маалыматтары', name: 'Атыңыз', phone: 'Телефон', delivery: 'Жеткирүү', pickup: 'Алып кетүү', dineIn: 'Кафеде', address: 'Жеткирүү дареги', savedAddress: 'Сакталган дарек', manualAddress: 'Башка дарек', zone: 'Жеткирүү аймагы', table: 'Стол', selectZone: 'Аймакты тандаңыз', selectTable: 'Столду тандаңыз', promo: 'Промокод', comment: 'Заказга комментарий', total: 'Жалпы', deliveryFee: 'Жеткирүү', placeOrder: 'Заказ берүү', loading: 'Жеткирүү варианттары жүктөлүүдө...', unavailable: 'Жеткирүү аймактары жок', success: 'Заказ түзүлдү', error: 'Заказды тариздөө мүмкүн болгон жок', empty: 'Себет бош', saveAddress: 'Даректерди башкаруу', estimated: 'Болжолдуу', minute: 'мүн.' },
-};
 
 function publicPath(path: string) {
   if (typeof window === 'undefined') return path;
@@ -35,7 +30,7 @@ export function CustomerCheckout({ items, locale, onQuantityChange, onComplete }
   onQuantityChange: (productId: string, quantity: number) => void;
   onComplete: () => void;
 }) {
-  const t = copy[locale];
+  const t = getLocaleTranslations(locale).checkout;
   const [form, setForm] = useState({ name: '', phone: '', fulfillmentType: 'pickup', paymentMethod: 'cash', tableId: '', addressId: '', addressText: '', zoneId: '', promoCode: '', comment: '' });
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [zones, setZones] = useState<DeliveryZone[]>([]);
@@ -114,9 +109,9 @@ export function CustomerCheckout({ items, locale, onQuantityChange, onComplete }
         {items.map((item) => (
           <article key={item.product.id} className="flex items-center gap-3 rounded-lg border border-[#dde4dc] bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
             <div className="min-w-0 flex-1"><h2 className="font-semibold">{item.product.name}</h2><p className="mt-1 text-sm text-[#60706b]">{money(item.product.price, item.product.currency)}</p></div>
-            <button type="button" onClick={() => onQuantityChange(item.product.id, item.quantity - 1)} className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800" aria-label="Remove item"><Minus className="h-4 w-4" /></button>
+            <button type="button" onClick={() => onQuantityChange(item.product.id, item.quantity - 1)} className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800" aria-label={t.removeItem}><Minus className="h-4 w-4" /></button>
             <span className="w-6 text-center font-bold">{item.quantity}</span>
-            <button type="button" onClick={() => onQuantityChange(item.product.id, item.quantity + 1)} className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800" aria-label="Add item"><Plus className="h-4 w-4" /></button>
+            <button type="button" onClick={() => onQuantityChange(item.product.id, item.quantity + 1)} className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800" aria-label={t.addItem}><Plus className="h-4 w-4" /></button>
           </article>
         ))}
         {!items.length && <p className="rounded-lg border border-dashed border-[#d9dfd8] p-6 text-center text-sm text-[#60706b] dark:border-gray-700">{t.empty}</p>}
@@ -124,7 +119,7 @@ export function CustomerCheckout({ items, locale, onQuantityChange, onComplete }
 
       <section className="h-fit space-y-4 rounded-lg border border-[#dde4dc] bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
         <div className="flex items-center gap-2"><ReceiptText className="h-5 w-5 text-[#d06b3c]" /><h2 className="text-xl font-black">{t.title}</h2></div>
-        <fieldset className="grid grid-cols-3 gap-2"><legend className="sr-only">Fulfillment</legend>{[
+        <fieldset className="grid grid-cols-3 gap-2"><legend className="sr-only">{t.fulfillment}</legend>{[
           ['pickup', t.pickup, ShoppingBag], ['delivery', t.delivery, Truck], ['dine_in', t.dineIn, Table2],
         ].map(([value, label, Icon]) => <button key={value as string} type="button" onClick={() => setForm({ ...form, fulfillmentType: value as string, tableId: '', zoneId: '' })} className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg border text-xs font-semibold ${form.fulfillmentType === value ? 'border-[#d06b3c] bg-[#fff1e9] text-[#9e4a25] dark:border-amber-500 dark:bg-amber-900/20 dark:text-amber-300' : 'border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300'}`}><Icon className="h-4 w-4" />{label as string}</button>)}</fieldset>
         <div className="grid gap-3 sm:grid-cols-2">
