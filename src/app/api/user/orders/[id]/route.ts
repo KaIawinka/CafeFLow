@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyAccessToken } from '@/lib/auth/jwt';
 import { prisma } from '@/lib/prisma';
 import { canCustomerCancelOrder, canTransitionOrderStatus, type OrderStatus } from '@/lib/orders/status';
+import { apiError, apiUserMessage } from '@/lib/api-response';
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const token = request.cookies.get('accessToken')?.value;
   const payload = token ? await verifyAccessToken(token) : null;
-  if (!payload) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
+  if (!payload) return apiError(request, 'unauthorized', 401);
 
   const body = await request.json().catch(() => ({})) as { action?: 'cancel' | 'problem'; reason?: string };
   const reason = body.reason?.trim() || '';
@@ -15,11 +16,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     where: { id, user_id: payload.userId },
     select: { id: true, tenant_id: true, order_number: true, status: true, payment_status: true, status_history: true },
   });
-  if (!order) return NextResponse.json({ error: 'Заказ не найден' }, { status: 404 });
+  if (!order) return NextResponse.json({ error: apiUserMessage(request, 'orderNotFound') }, { status: 404 });
 
   if (body.action === 'cancel') {
     if (!canCustomerCancelOrder(order.status as OrderStatus) || !canTransitionOrderStatus(order.status as OrderStatus, 'cancelled')) {
-      return NextResponse.json({ error: 'Заказ уже готовится и не может быть отменён клиентом' }, { status: 409 });
+      return NextResponse.json({ error: apiUserMessage(request, 'orderCannotCancel') }, { status: 409 });
     }
     const now = new Date();
     const history = Array.isArray(order.status_history) ? order.status_history : [];
@@ -42,18 +43,18 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       if (error instanceof Error && error.message === 'ORDER_CANCEL_CONFLICT') return null;
       throw error;
     });
-    if (!updated) return NextResponse.json({ error: 'Заказ уже изменён и не может быть отменён' }, { status: 409 });
+    if (!updated) return NextResponse.json({ error: apiUserMessage(request, 'orderCancelConflict') }, { status: 409 });
     await prisma.activity_logs.create({ data: { tenant_id: order.tenant_id, actor_user_id: payload.userId, action: 'customer.order.cancelled', entity_type: 'orders', entity_id: order.id, before_data: order, after_data: updated } });
     return NextResponse.json({ order: updated });
   }
 
   if (body.action === 'problem') {
-    if (!reason || reason.length > 500) return NextResponse.json({ error: 'Опишите проблему не более чем в 500 символах' }, { status: 400 });
-    if (order.status === 'cancelled') return NextResponse.json({ error: 'По отменённому заказу нельзя открыть проблему' }, { status: 409 });
+    if (!reason || reason.length > 500) return NextResponse.json({ error: apiUserMessage(request, 'problemTooLong') }, { status: 400 });
+    if (order.status === 'cancelled') return NextResponse.json({ error: apiUserMessage(request, 'problemOnCancelledOrder') }, { status: 409 });
     const updated = await prisma.orders.update({ where: { id: order.id }, data: { problem: reason }, select: { id: true, order_number: true, status: true, problem: true } });
     await prisma.activity_logs.create({ data: { tenant_id: order.tenant_id, actor_user_id: payload.userId, action: 'customer.order.problem_reported', entity_type: 'orders', entity_id: order.id, before_data: { problem: null }, after_data: updated } });
     return NextResponse.json({ order: updated }, { status: 201 });
   }
 
-  return NextResponse.json({ error: 'Действие должно быть cancel или problem' }, { status: 400 });
+  return NextResponse.json({ error: apiUserMessage(request, 'orderActionInvalid') }, { status: 400 });
 }

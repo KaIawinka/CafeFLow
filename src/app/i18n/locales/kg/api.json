@@ -100,6 +100,17 @@
     "notificationNotFound": "Билдирме табылган жок",
     "notificationsUpdateFailed": "Билдирмени жаңыртуу мүмкүн болгон жок",
     "currentSessionLogout": "Учурдагы сессия үчүн чыгууну колдонуңуз",
-    "sessionNotFound": "Сессия табылган жок"
+    "sessionNotFound": "Сессия табылган жок",
+    "orderNotFound": "Буйрутма табылган жок",
+    "orderCannotCancel": "Буйрутма даярдалып жатат жана кардар аны жокко чыгара албайт",
+    "orderCancelConflict": "Буйрутма өзгөртүлүп калгандыктан, аны жокко чыгарууга болбойт",
+    "problemTooLong": "Көйгөйдү 500 белгиден ашырбай сүрөттөңүз",
+    "problemOnCancelledOrder": "Жокко чыгарылган буйрутма боюнча көйгөй ачууга болбойт",
+    "orderActionInvalid": "Аракет cancel же problem болушу керек",
+    "orderBranchUnavailable": "Буйрутма табылган жок же филиал жеткиликсиз",
+    "repeatItemsUnavailable": "Бул буйрутмадагы тамактар эми жеткиликсиз",
+    "reviewInvalid": "Баалоо же пикирдин тексти туура эмес",
+    "reviewTargetRequired": "Буйрутма же тамак талап кылынат",
+    "reviewOrderIncomplete": "Пикирди аяктаган буйрутма боюнча гана калтырууга болот"
   }
 }

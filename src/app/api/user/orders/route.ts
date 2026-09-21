@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAccessToken } from '@/lib/auth/jwt';
 import { prisma } from '@/lib/prisma';
+import { apiError } from '@/lib/api-response';
 
 export async function GET(request: NextRequest) {
   const token = request.cookies.get('accessToken')?.value;
   const payload = token ? await verifyAccessToken(token) : null;
-  if (!payload) return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
+  if (!payload) return apiError(request, 'unauthorized', 401);
   const page = Math.max(1, Number(request.nextUrl.searchParams.get('page') || 1));
   const pageSize = 20;
   const where = { user_id: payload.userId };

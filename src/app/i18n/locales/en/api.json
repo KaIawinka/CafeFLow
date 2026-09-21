@@ -100,6 +100,17 @@
     "notificationNotFound": "Notification not found",
     "notificationsUpdateFailed": "Could not update the notification",
     "currentSessionLogout": "Use sign out for the current session",
-    "sessionNotFound": "Session not found"
+    "sessionNotFound": "Session not found",
+    "orderNotFound": "Order not found",
+    "orderCannotCancel": "The order is already being prepared and cannot be cancelled by the customer",
+    "orderCancelConflict": "The order was already changed and cannot be cancelled",
+    "problemTooLong": "Describe the problem in no more than 500 characters",
+    "problemOnCancelledOrder": "You cannot report a problem for a cancelled order",
+    "orderActionInvalid": "Action must be cancel or problem",
+    "orderBranchUnavailable": "Order not found or branch unavailable",
+    "repeatItemsUnavailable": "The dishes from this order are no longer available",
+    "reviewInvalid": "The rating or review text is invalid",
+    "reviewTargetRequired": "An order or dish is required",
+    "reviewOrderIncomplete": "You can review only a completed order"
   }
 }

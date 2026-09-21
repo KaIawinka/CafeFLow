@@ -100,6 +100,17 @@
     "notificationNotFound": "Уведомление не найдено",
     "notificationsUpdateFailed": "Не удалось обновить уведомление",
     "currentSessionLogout": "Для текущей сессии используйте выход",
-    "sessionNotFound": "Сессия не найдена"
+    "sessionNotFound": "Сессия не найдена",
+    "orderNotFound": "Заказ не найден",
+    "orderCannotCancel": "Заказ уже готовится и не может быть отменён клиентом",
+    "orderCancelConflict": "Заказ уже изменён и не может быть отменён",
+    "problemTooLong": "Опишите проблему не более чем в 500 символах",
+    "problemOnCancelledOrder": "По отменённому заказу нельзя открыть проблему",
+    "orderActionInvalid": "Действие должно быть cancel или problem",
+    "orderBranchUnavailable": "Заказ не найден или филиал недоступен",
+    "repeatItemsUnavailable": "Блюда из заказа больше недоступны",
+    "reviewInvalid": "Оценка и текст отзыва некорректны",
+    "reviewTargetRequired": "Заказ или блюдо обязательно",
+    "reviewOrderIncomplete": "Можно оставить отзыв только по завершённому заказу"
   }
 }
