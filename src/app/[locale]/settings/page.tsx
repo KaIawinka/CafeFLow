@@ -27,7 +27,11 @@ import {
   RefreshCw,
   ShieldCheck,
   ShieldOff,
+  AlertTriangle,
+  Trash2,
+  X,
 } from 'lucide-react';
+import { SettingsToggle } from '@/components/ui/SettingsToggle';
 
 type SettingsTab = 'profile' | 'security' | 'notifications' | 'privacy' | 'appearance';
 
@@ -74,13 +78,21 @@ export default function SettingsPage() {
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
+    code: '',
   });
+  const [isRequestingPasswordCode, setIsRequestingPasswordCode] = useState(false);
+  const [passwordCodeRequested, setPasswordCodeRequested] = useState(false);
   const [twoFactorPassword, setTwoFactorPassword] = useState('');
   const [telegramLinkUrl, setTelegramLinkUrl] = useState('');
   const [telegramLinkInstructions, setTelegramLinkInstructions] = useState<string[]>([]);
   const [isLinkingTelegram, setIsLinkingTelegram] = useState(false);
   const [isCheckingTelegram, setIsCheckingTelegram] = useState(false);
   const [isUpdatingTwoFA, setIsUpdatingTwoFA] = useState(false);
+  const [isDeletionModalOpen, setIsDeletionModalOpen] = useState(false);
+  const [deletionCode, setDeletionCode] = useState('');
+  const [deletionCodeRequested, setDeletionCodeRequested] = useState(false);
+  const [isRequestingDeletionCode, setIsRequestingDeletionCode] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   const [settings, setSettings] = useState<UserSettings>({
     language: 'ru',
@@ -235,6 +247,28 @@ export default function SettingsPage() {
     }
   };
 
+  const handleRequestPasswordCode = async () => {
+    setError('');
+    setSuccess('');
+    setIsRequestingPasswordCode(true);
+
+    try {
+      const response = await fetch('/api/user/password/request-code', { method: 'POST' });
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.error || copy.messages.passwordError);
+        return;
+      }
+
+      setPasswordCodeRequested(true);
+      setSuccess(data.message || copy.security.passwordCodeSent);
+    } catch {
+      setError(copy.messages.passwordGenericError);
+    } finally {
+      setIsRequestingPasswordCode(false);
+    }
+  };
+
   const handlePasswordChange = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError('');
@@ -254,12 +288,65 @@ export default function SettingsPage() {
         return;
       }
 
-      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '', code: '' });
+      setPasswordCodeRequested(false);
       router.push(`/${locale}/login?message=password_changed`);
     } catch {
       setError(copy.messages.passwordGenericError);
     } finally {
       setIsChangingPassword(false);
+    }
+  };
+
+  const handleRequestDeletionCode = async () => {
+    setError('');
+    setSuccess('');
+    setIsRequestingDeletionCode(true);
+
+    try {
+      const response = await fetch('/api/user/account/request-deletion-code', { method: 'POST' });
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.error || copy.security.accountDeletionError);
+        return;
+      }
+
+      setDeletionCodeRequested(true);
+      setSuccess(data.message || copy.security.accountDeletionCodeSent);
+    } catch {
+      setError(copy.messages.saveGenericError);
+    } finally {
+      setIsRequestingDeletionCode(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!deletionCode.trim()) {
+      setError(copy.security.accountDeletionCodeRequired);
+      return;
+    }
+
+    setError('');
+    setSuccess('');
+    setIsDeletingAccount(true);
+
+    try {
+      const response = await fetch('/api/user/account/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: deletionCode }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.error || copy.security.accountDeletionError);
+        return;
+      }
+
+      router.push(`/${locale}/login?message=account_deleted`);
+    } catch {
+      setError(copy.security.accountDeletionError);
+    } finally {
+      setIsDeletingAccount(false);
     }
   };
 
@@ -280,14 +367,14 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-[var(--background)] py-8 text-[var(--foreground)]">
+    <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+        <div className="mb-6 overflow-hidden rounded-2xl border border-[var(--border)] border-l-4 border-l-orange-500 bg-[var(--card)] p-6 shadow-[0_12px_32px_rgba(21,26,30,0.06)] sm:mb-8 sm:p-8">
+          <h1 className="mb-2 text-2xl font-black tracking-tight text-[var(--foreground)] sm:text-3xl">
             {copy.title}
           </h1>
-          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-[var(--muted-foreground)] sm:text-base">
             {copy.description}
           </p>
         </div>
@@ -311,7 +398,7 @@ export default function SettingsPage() {
           {/* Sidebar - horizontal on mobile, vertical on desktop */}
           <div className="lg:col-span-1">
             {/* Mobile: horizontal scrollable tabs */}
-            <div className="lg:hidden bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-2 mb-4">
+            <div className="mb-4 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-2 shadow-[0_12px_32px_rgba(21,26,30,0.06)] lg:hidden">
               <nav className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
@@ -321,8 +408,8 @@ export default function SettingsPage() {
                       onClick={() => setActiveTab(tab.id as SettingsTab)}
                       className={`flex-shrink-0 flex flex-col items-center gap-1.5 px-4 py-3 rounded-xl transition-all touch-manipulation ${
                         activeTab === tab.id
-                          ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg'
-                          : 'text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700'
+                          ? 'bg-[var(--secondary)] text-[var(--primary)] shadow-sm'
+                          : 'bg-[var(--muted)]/60 text-[var(--muted-foreground)]'
                       }`}
                     >
                       <Icon className="w-5 h-5" />
@@ -334,7 +421,7 @@ export default function SettingsPage() {
             </div>
 
             {/* Desktop: vertical sidebar */}
-            <div className="hidden lg:block bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-2 sticky top-8">
+            <div className="sticky top-8 hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] p-2 shadow-[0_12px_32px_rgba(21,26,30,0.06)] lg:block">
               <nav className="space-y-1">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
@@ -344,8 +431,8 @@ export default function SettingsPage() {
                       onClick={() => setActiveTab(tab.id as SettingsTab)}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all ${
                         activeTab === tab.id
-                          ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg'
-                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                          ? 'bg-[var(--secondary)] text-[var(--primary)] shadow-sm'
+                          : 'text-[var(--muted-foreground)] hover:bg-[var(--muted)]'
                       }`}
                     >
                       <Icon className="w-5 h-5" />
@@ -359,7 +446,7 @@ export default function SettingsPage() {
 
           {/* Content */}
           <div className="lg:col-span-3">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 sm:p-6">
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-[0_12px_32px_rgba(21,26,30,0.06)] sm:p-6">
               {/* Profile Tab */}
               {activeTab === 'profile' && (
                 <div className="space-y-4 sm:space-y-6">
@@ -516,9 +603,7 @@ export default function SettingsPage() {
                           {copy.security.verified}
                         </span>
                       ) : (
-                        <button className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-medium min-h-[44px] transition-colors">
-                          {copy.security.verify}
-                        </button>
+                        <span className="px-3 py-1 bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap">{copy.security.notVerified}</span>
                       )}
                     </div>
 
@@ -532,9 +617,7 @@ export default function SettingsPage() {
                           {copy.security.verified}
                         </span>
                       ) : (
-                        <button className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-medium min-h-[44px] transition-colors">
-                          {copy.security.verify}
-                        </button>
+                        <span className="px-3 py-1 bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap">{copy.security.notVerified}</span>
                       )}
                     </div>
                   </div>
@@ -547,6 +630,35 @@ export default function SettingsPage() {
                       </h3>
                       <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{copy.security.changePasswordDescription}</p>
                     </div>
+                    <div className="rounded-xl border border-[var(--border)] bg-[var(--muted)]/40 p-4">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <p className="text-sm font-semibold text-[var(--foreground)]">{copy.security.passwordCode}</p>
+                          <p className="mt-1 text-xs text-[var(--muted-foreground)]">{copy.security.passwordCodeDescription}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => void handleRequestPasswordCode()}
+                          disabled={isRequestingPasswordCode}
+                          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--card)] px-4 text-sm font-bold text-[var(--foreground)] transition hover:border-orange-400 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {isRequestingPasswordCode ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                          {copy.security.requestPasswordCode}
+                        </button>
+                      </div>
+                      {passwordCodeRequested && <p className="mt-3 text-xs font-semibold text-emerald-600 dark:text-emerald-400">{copy.security.passwordCodeSent}</p>}
+                    </div>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      maxLength={6}
+                      value={passwordData.code}
+                      onChange={(event) => setPasswordData({ ...passwordData, code: event.target.value.replace(/\D/g, '') })}
+                      placeholder={copy.security.passwordCodePlaceholder}
+                      required
+                      className="w-full rounded-lg border border-gray-300 px-4 py-3 tracking-[0.3em] dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    />
                     <input
                       type="password"
                       autoComplete="current-password"
@@ -583,6 +695,24 @@ export default function SettingsPage() {
                       {isChangingPassword ? copy.security.changingPassword : copy.security.changePasswordButton}
                     </button>
                   </form>
+
+                  <section className="rounded-2xl border border-red-200 bg-red-50/70 p-5 dark:border-red-900/70 dark:bg-red-950/20 sm:p-6">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600 dark:bg-red-950/60 dark:text-red-300"><AlertTriangle className="h-5 w-5" /></div>
+                      <div>
+                        <h3 className="text-base font-black text-red-900 dark:text-red-200">{copy.security.accountDeletion}</h3>
+                        <p className="mt-1 text-sm text-red-800/80 dark:text-red-300/80">{copy.security.accountDeletionDescription}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { setDeletionCode(''); setDeletionCodeRequested(false); setIsDeletionModalOpen(true); }}
+                      className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-red-300 bg-white px-5 text-sm font-bold text-red-700 transition hover:bg-red-100 dark:border-red-800 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-950/60"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      {copy.security.deleteAccount}
+                    </button>
+                  </section>
                 </div>
               )}
 
@@ -603,23 +733,15 @@ export default function SettingsPage() {
                       { key: 'pushNotifications', label: copy.notifications.push, icon: Smartphone, desc: copy.notifications.pushDescription },
                       { key: 'telegramNotifications', label: copy.notifications.telegram, icon: MessageSquare, desc: copy.notifications.telegramDescription },
                     ].map((item) => {
-                      const Icon = item.icon;
                       return (
-                        <label key={item.key} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-                          <div className="flex items-start gap-3">
-                            <Icon className="w-5 h-5 text-gray-600 dark:text-gray-400 mt-1" />
-                            <div>
-                              <span className="block font-medium text-gray-900 dark:text-white">{item.label}</span>
-                              <span className="block text-sm text-gray-500 dark:text-gray-400 mt-0.5">{item.desc}</span>
-                            </div>
-                          </div>
-                          <input
-                            type="checkbox"
-                            checked={settings[item.key as keyof UserSettings] as boolean}
-                            onChange={(e) => setSettings({ ...settings, [item.key]: e.target.checked })}
-                            className="w-5 h-5 text-amber-600 focus:ring-amber-500 rounded"
-                          />
-                        </label>
+                        <SettingsToggle
+                          key={item.key}
+                          checked={settings[item.key as keyof UserSettings] as boolean}
+                          label={item.label}
+                          description={item.desc}
+                          icon={item.icon}
+                          onChange={(checked) => setSettings({ ...settings, [item.key]: checked })}
+                        />
                       );
                     })}
                   </div>
@@ -642,18 +764,13 @@ export default function SettingsPage() {
                       { key: 'showPhone', label: copy.privacy.phone, desc: copy.privacy.phoneDescription },
                       { key: 'showEmail', label: copy.privacy.email, desc: copy.privacy.emailDescription },
                     ].map((item) => (
-                      <label key={item.key} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-                        <div>
-                          <span className="block font-medium text-gray-900 dark:text-white">{item.label}</span>
-                          <span className="block text-sm text-gray-500 dark:text-gray-400 mt-0.5">{item.desc}</span>
-                        </div>
-                        <input
-                          type="checkbox"
-                          checked={settings[item.key as keyof UserSettings] as boolean}
-                          onChange={(e) => setSettings({ ...settings, [item.key]: e.target.checked })}
-                          className="w-5 h-5 text-amber-600 focus:ring-amber-500 rounded"
-                        />
-                      </label>
+                      <SettingsToggle
+                        key={item.key}
+                        checked={settings[item.key as keyof UserSettings] as boolean}
+                        label={item.label}
+                        description={item.desc}
+                        onChange={(checked) => setSettings({ ...settings, [item.key]: checked })}
+                      />
                     ))}
                   </div>
                 </div>
@@ -706,20 +823,12 @@ export default function SettingsPage() {
                     </div>
                   </div>
 
-                  <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-                    <div>
-                      <span className="block font-medium text-gray-900 dark:text-white">{copy.appearance.compactMode}</span>
-                      <span className="block text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                        {copy.appearance.compactModeDescription}
-                      </span>
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={settings.compactMode}
-                      onChange={(e) => setSettings({ ...settings, compactMode: e.target.checked })}
-                      className="w-5 h-5 text-amber-600 focus:ring-amber-500 rounded"
-                    />
-                  </label>
+                  <SettingsToggle
+                    checked={settings.compactMode}
+                    label={copy.appearance.compactMode}
+                    description={copy.appearance.compactModeDescription}
+                    onChange={(checked) => setSettings({ ...settings, compactMode: checked })}
+                  />
                 </div>
               )}
 
@@ -746,6 +855,60 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+
+        {isDeletionModalOpen && (
+          <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-labelledby="account-deletion-title">
+            <div className="w-full max-w-lg rounded-2xl border border-red-200 bg-[var(--card)] p-5 shadow-2xl dark:border-red-900/70 sm:p-7">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600 dark:bg-red-950/60 dark:text-red-300"><AlertTriangle className="h-5 w-5" /></div>
+                  <div>
+                    <h2 id="account-deletion-title" className="text-lg font-black text-[var(--foreground)]">{copy.security.accountDeletionConfirmTitle}</h2>
+
+                {error && <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/70 dark:bg-red-950/30 dark:text-red-300">{error}</p>}
+                    <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">{copy.security.accountDeletionConfirmDescription}</p>
+                  </div>
+                </div>
+                <button type="button" onClick={() => setIsDeletionModalOpen(false)} className="rounded-lg p-2 text-[var(--muted-foreground)] transition hover:bg-[var(--muted)] hover:text-[var(--foreground)]" aria-label={copy.security.cancelDeletion}>
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {!deletionCodeRequested ? (
+                <button
+                  type="button"
+                  onClick={() => void handleRequestDeletionCode()}
+                  disabled={isRequestingDeletionCode}
+                  className="mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-red-600 px-5 font-bold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isRequestingDeletionCode ? <Loader2 className="h-5 w-5 animate-spin" /> : <Mail className="h-5 w-5" />}
+                  {copy.security.requestDeletionCode}
+                </button>
+              ) : (
+                <div className="mt-6 space-y-4">
+                  <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">{copy.security.accountDeletionCodeSent}</p>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    value={deletionCode}
+                    onChange={(event) => setDeletionCode(event.target.value.replace(/\D/g, ''))}
+                    placeholder={copy.security.accountDeletionCodePlaceholder}
+                    className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-4 py-3 tracking-[0.3em] text-[var(--foreground)] outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
+                  />
+                  <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                    <button type="button" onClick={() => setIsDeletionModalOpen(false)} className="min-h-11 rounded-lg border border-[var(--border)] px-5 text-sm font-bold text-[var(--foreground)] transition hover:bg-[var(--muted)]">{copy.security.cancelDeletion}</button>
+                    <button type="button" onClick={() => void handleDeleteAccount()} disabled={isDeletingAccount} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-red-600 px-5 text-sm font-bold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50">
+                      {isDeletingAccount ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                      {isDeletingAccount ? copy.security.deletingAccount : copy.security.confirmDeleteAccount}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

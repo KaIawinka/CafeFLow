@@ -29,6 +29,7 @@ import {
 import { locales, type Locale } from '@/app/i18n/config';
 import { getLocaleTranslations } from '@/app/i18n/catalog';
 import { CustomerAddresses } from '@/components/profile/CustomerAddresses';
+import { SettingsToggle } from '@/components/ui/SettingsToggle';
 
 interface UserProfile {
   id: string;
@@ -37,11 +38,9 @@ interface UserProfile {
   first_name: string;
   last_name?: string;
   display_name?: string;
-  bio?: string;
   role: string;
   status: string;
   language: string;
-  timezone: string;
   email_verified_at?: string;
   phone_verified_at?: string;
   telegram_chat_id?: string;
@@ -113,9 +112,7 @@ function ProfileContent() {
     firstName: '',
     lastName: '',
     displayName: '',
-    bio: '',
     phone: '',
-    timezone: 'Asia/Bishkek',
   });
 
   const [settings, setSettings] = useState({
@@ -141,21 +138,22 @@ function ProfileContent() {
           firstName: data.user.first_name || '',
           lastName: data.user.last_name || '',
           displayName: data.user.display_name || '',
-          bio: data.user.bio || '',
           phone: data.user.phone || '',
-          timezone: data.user.timezone || 'Asia/Bishkek',
         });
 
-        if (data.user.user_settings) {
+        const settingsResponse = await fetch('/api/user/settings', { cache: 'no-store' });
+        const settingsData = await settingsResponse.json();
+        const serverSettings = settingsData.settings || data.user.user_settings;
+        if (serverSettings) {
           setSettings({
-            emailNotifications: data.user.user_settings.email_notifications,
-            smsNotifications: data.user.user_settings.sms_notifications,
-            pushNotifications: data.user.user_settings.push_notifications,
-            telegramNotifications: data.user.user_settings.telegram_notifications,
-            showOnlineStatus: data.user.user_settings.show_online_status,
-            showPhone: data.user.user_settings.show_phone,
-            showEmail: data.user.user_settings.show_email,
-            compactMode: data.user.user_settings.compact_mode,
+            emailNotifications: Boolean(serverSettings.emailNotifications ?? serverSettings.email_notifications),
+            smsNotifications: Boolean(serverSettings.smsNotifications ?? serverSettings.sms_notifications),
+            pushNotifications: Boolean(serverSettings.pushNotifications ?? serverSettings.push_notifications),
+            telegramNotifications: Boolean(serverSettings.telegramNotifications ?? serverSettings.telegram_notifications),
+            showOnlineStatus: Boolean(serverSettings.showOnlineStatus ?? serverSettings.show_online_status),
+            showPhone: Boolean(serverSettings.showPhone ?? serverSettings.show_phone),
+            showEmail: Boolean(serverSettings.showEmail ?? serverSettings.show_email),
+            compactMode: Boolean(serverSettings.compactMode ?? serverSettings.compact_mode),
           });
         }
       }
@@ -623,19 +621,6 @@ function ProfileContent() {
                       />
                     </div>
 
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {copy.fields.bio}
-                      </label>
-                      <textarea
-                        value={formData.bio}
-                        onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                        rows={4}
-                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-[var(--foreground)] outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
-                        placeholder={copy.fields.bioPlaceholder}
-                      />
-                    </div>
-
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         {copy.fields.phone}
@@ -651,23 +636,6 @@ function ProfileContent() {
                       </div>
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {copy.fields.timezone}
-                      </label>
-                      <div className="relative">
-                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <select
-                          value={formData.timezone}
-                          onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
-                          className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] py-3 pl-10 pr-4 text-[var(--foreground)] outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
-                        >
-                          <option value="Asia/Bishkek">Asia/Bishkek (GMT+6)</option>
-                          <option value="Europe/Moscow">Europe/Moscow (GMT+3)</option>
-                          <option value="Europe/London">Europe/London (GMT+0)</option>
-                        </select>
-                      </div>
-                    </div>
                   </div>
 
                   {/* Account Info */}
@@ -730,18 +698,13 @@ function ProfileContent() {
                         { key: 'pushNotifications', label: copy.notifications.push, icon: Bell },
                         { key: 'telegramNotifications', label: copy.notifications.telegram, icon: MessageSquare },
                       ].map((item) => (
-                        <label key={item.key} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600">
-                          <span className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300">
-                            <item.icon className="w-4 h-4" />
-                            {item.label}
-                          </span>
-                          <input
-                            type="checkbox"
-                            checked={settings[item.key as keyof typeof settings] as boolean}
-                            onChange={(e) => setSettings({ ...settings, [item.key]: e.target.checked })}
-                            className="w-5 h-5 text-amber-600 focus:ring-amber-500 rounded"
-                          />
-                        </label>
+                        <SettingsToggle
+                          key={item.key}
+                          checked={settings[item.key as keyof typeof settings] as boolean}
+                          label={item.label}
+                          icon={item.icon}
+                          onChange={(checked) => setSettings({ ...settings, [item.key]: checked })}
+                        />
                       ))}
                     </div>
                   </div>
@@ -759,15 +722,12 @@ function ProfileContent() {
                         { key: 'showEmail', label: copy.privacy.showEmail },
                         { key: 'compactMode', label: copy.privacy.compactMode },
                       ].map((item) => (
-                        <label key={item.key} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600">
-                          <span className="text-sm text-gray-700 dark:text-gray-300">{item.label}</span>
-                          <input
-                            type="checkbox"
-                            checked={settings[item.key as keyof typeof settings] as boolean}
-                            onChange={(e) => setSettings({ ...settings, [item.key]: e.target.checked })}
-                            className="w-5 h-5 text-amber-600 focus:ring-amber-500 rounded"
-                          />
-                        </label>
+                        <SettingsToggle
+                          key={item.key}
+                          checked={settings[item.key as keyof typeof settings] as boolean}
+                          label={item.label}
+                          onChange={(checked) => setSettings({ ...settings, [item.key]: checked })}
+                        />
                       ))}
                     </div>
                   </div>

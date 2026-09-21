@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAccessToken } from '@/lib/auth/jwt';
 import { getPasswordStrengthErrorKeys, hashPassword, verifyPassword } from '@/lib/auth/password';
+import { verifyCode } from '@/lib/email/verification';
 import { logger } from '@/lib/logger';
 import { apiError, apiMessage, apiUserMessage } from '@/lib/api-response';
 
@@ -11,13 +12,17 @@ export async function POST(request: NextRequest) {
     const payload = token ? await verifyAccessToken(token) : null;
     if (!payload) return apiError(request, 'unauthorized', 401);
 
-    const body = await request.json() as { currentPassword?: string; newPassword?: string; confirmPassword?: string };
+    const body = await request.json() as { currentPassword?: string; newPassword?: string; confirmPassword?: string; code?: string };
     const currentPassword = body.currentPassword || '';
     const newPassword = body.newPassword || '';
     const confirmPassword = body.confirmPassword || '';
+    const code = body.code?.trim() || '';
 
-    if (!currentPassword || !newPassword || !confirmPassword) {
+    if (!currentPassword || !newPassword || !confirmPassword || !code) {
       return NextResponse.json({ error: apiUserMessage(request, 'passwordFieldsRequired') }, { status: 400 });
+    }
+    if (!/^\d{6}$/.test(code)) {
+      return NextResponse.json({ error: apiMessage(request, 'invalidCodeFormat') }, { status: 400 });
     }
     if (newPassword !== confirmPassword) {
       return NextResponse.json({ error: apiUserMessage(request, 'passwordsDoNotMatch') }, { status: 400 });
@@ -37,6 +42,11 @@ export async function POST(request: NextRequest) {
     });
     if (!user || !(await verifyPassword(currentPassword, user.password_hash))) {
       return NextResponse.json({ error: apiUserMessage(request, 'currentPasswordInvalid') }, { status: 400 });
+    }
+
+    const verification = await verifyCode(user.id, code, 'password_change');
+    if (!verification.success) {
+      return NextResponse.json({ error: verification.errorKey ? apiMessage(request, verification.errorKey) : verification.error }, { status: 400 });
     }
 
     await prisma.$transaction([

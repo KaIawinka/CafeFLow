@@ -288,3 +288,31 @@ ${APP_NAME} - Сброс пароля
     text,
   });
 }
+
+export async function sendSecurityCodeEmail(
+  email: string,
+  code: string,
+  action: 'password_change' | 'account_deletion',
+): Promise<boolean> {
+  const isDeletion = action === 'account_deletion';
+  const subject = isDeletion ? `Подтверждение удаления аккаунта - ${APP_NAME}` : `Подтверждение смены пароля - ${APP_NAME}`;
+  const title = isDeletion ? 'Подтверждение удаления аккаунта' : 'Подтверждение смены пароля';
+  const description = isDeletion
+    ? 'Вы запросили удаление аккаунта. Если это были не вы, проигнорируйте письмо и смените пароль.'
+    : 'Вы запросили смену пароля. Введите код в настройках аккаунта.';
+
+  const html = `
+<!DOCTYPE html>
+<html lang="ru">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${title}</title></head>
+<body style="margin:0;padding:40px 16px;font-family:Arial,sans-serif;background:#f3f4f6;color:#111827">
+  <table role="presentation" style="width:100%;max-width:600px;margin:0 auto;border-collapse:collapse;background:#fff;border-radius:16px;overflow:hidden">
+    <tr><td style="padding:28px;text-align:center;background:#151a1e;color:#f5c98a;font-size:24px;font-weight:700">${APP_NAME}</td></tr>
+    <tr><td style="padding:32px"><h1 style="margin:0 0 16px;font-size:24px">${title}</h1><p style="color:#4b5563;line-height:1.5">${description}</p><div style="margin:28px 0;padding:20px;text-align:center;border-radius:12px;background:#fff7ed;color:#9a3412;font:700 36px/1.2 monospace;letter-spacing:8px">${code}</div><p style="color:#6b7280;font-size:14px">Код действует 10 минут. Никому не сообщайте этот код.</p></td></tr>
+  </table>
+</body>
+</html>`;
+  const text = `${APP_NAME}\n\n${title}\n\n${description}\n\nВаш код: ${code}\n\nКод действует 10 минут. Никому не сообщайте этот код.`;
+
+  return sendEmail({ to: email, subject, html, text });
+}

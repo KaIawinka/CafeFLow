@@ -9,6 +9,7 @@ import crypto from 'crypto';
 
 const CODE_EXPIRY_MINUTES = 10;
 const MAX_ATTEMPTS = 5;
+export type VerificationCodeType = 'email_verification' | 'password_reset' | 'password_change' | 'account_deletion' | '2fa_login';
 
 /**
  * Generate a random 6-digit verification code
@@ -22,7 +23,7 @@ export function generateVerificationCode(): string {
  */
 export async function createVerificationCode(
   userId: string,
-  type: 'email_verification' | 'password_reset' | '2fa_login',
+  type: VerificationCodeType,
   ipAddress?: string
 ): Promise<string> {
   const code = generateVerificationCode();
@@ -60,7 +61,7 @@ export async function createVerificationCode(
 export async function verifyCode(
   userId: string,
   code: string,
-  type: 'email_verification' | 'password_reset' | '2fa_login'
+  type: VerificationCodeType
 ): Promise<{
   success: boolean;
   error?: string;
