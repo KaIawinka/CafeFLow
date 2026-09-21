@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAccessToken } from '@/lib/auth/jwt';
 import { logger } from '@/lib/logger';
+import { apiError, apiUserMessage } from '@/lib/api-response';
 
 export const runtime = 'nodejs';
 
@@ -21,23 +22,23 @@ export async function POST(request: NextRequest) {
     const payload = token ? await verifyAccessToken(token) : null;
 
     if (!payload) {
-      return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
+      return apiError(request, 'unauthorized', 401);
     }
 
     const formData = await request.formData();
     const file = formData.get('avatar');
 
     if (!(file instanceof File)) {
-      return NextResponse.json({ error: 'Файл аватарки не выбран' }, { status: 400 });
+      return NextResponse.json({ error: apiUserMessage(request, 'avatarFileRequired') }, { status: 400 });
     }
 
     const extension = ALLOWED_TYPES.get(file.type);
     if (!extension) {
-      return NextResponse.json({ error: 'Разрешены только JPG, PNG и WebP' }, { status: 415 });
+      return NextResponse.json({ error: apiUserMessage(request, 'avatarType') }, { status: 415 });
     }
 
     if (file.size === 0 || file.size > MAX_AVATAR_SIZE) {
-      return NextResponse.json({ error: 'Размер аватарки должен быть от 1 байта до 5 МБ' }, { status: 413 });
+      return NextResponse.json({ error: apiUserMessage(request, 'avatarSize') }, { status: 413 });
     }
 
     const fileName = `${randomUUID()}.${extension}`;
@@ -88,6 +89,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     logger.error('Avatar upload error', error);
-    return NextResponse.json({ error: 'Не удалось загрузить аватарку' }, { status: 500 });
+    return NextResponse.json({ error: apiUserMessage(request, 'avatarUploadFailed') }, { status: 500 });
   }
 }

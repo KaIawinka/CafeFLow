@@ -88,6 +88,18 @@
     "passwordChangedAllSessions": "Сырсөз өзгөртүлдү. Бардык түзмөктөрдөн кайра кириңиз.",
     "passwordChangeFailed": "Сырсөздү өзгөртүү мүмкүн болгон жок",
     "invalidLanguage": "Интерфейс тили туура эмес",
-    "invalidTheme": "Көрүнүш темасы туура эмес"
+    "invalidTheme": "Көрүнүш темасы туура эмес",
+    "avatarFileRequired": "Аватар файлы тандалган жок",
+    "avatarType": "JPG, PNG жана WebP файлдарына гана уруксат берилет",
+    "avatarSize": "Аватардын өлчөмү 1 байттан 5 МБга чейин болушу керек",
+    "avatarUploadFailed": "Аватарды жүктөө мүмкүн болгон жок",
+    "favoriteProductRequired": "Тамак талап кылынат",
+    "favoriteProductNotFound": "Тамак табылган жок",
+    "notificationsLoadFailed": "Билдирмелерди жүктөө мүмкүн болгон жок",
+    "notificationRequired": "Билдирмени көрсөтүңүз",
+    "notificationNotFound": "Билдирме табылган жок",
+    "notificationsUpdateFailed": "Билдирмени жаңыртуу мүмкүн болгон жок",
+    "currentSessionLogout": "Учурдагы сессия үчүн чыгууну колдонуңуз",
+    "sessionNotFound": "Сессия табылган жок"
   }
 }

@@ -88,6 +88,18 @@
     "passwordChangedAllSessions": "Пароль изменён. Войдите снова на всех устройствах.",
     "passwordChangeFailed": "Не удалось изменить пароль",
     "invalidLanguage": "Недопустимый язык интерфейса",
-    "invalidTheme": "Недопустимая тема оформления"
+    "invalidTheme": "Недопустимая тема оформления",
+    "avatarFileRequired": "Файл аватарки не выбран",
+    "avatarType": "Разрешены только JPG, PNG и WebP",
+    "avatarSize": "Размер аватарки должен быть от 1 байта до 5 МБ",
+    "avatarUploadFailed": "Не удалось загрузить аватарку",
+    "favoriteProductRequired": "Блюдо обязательно",
+    "favoriteProductNotFound": "Блюдо не найдено",
+    "notificationsLoadFailed": "Не удалось загрузить уведомления",
+    "notificationRequired": "Укажите уведомление",
+    "notificationNotFound": "Уведомление не найдено",
+    "notificationsUpdateFailed": "Не удалось обновить уведомление",
+    "currentSessionLogout": "Для текущей сессии используйте выход",
+    "sessionNotFound": "Сессия не найдена"
   }
 }

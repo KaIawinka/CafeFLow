@@ -88,6 +88,18 @@
     "passwordChangedAllSessions": "Password changed. Sign in again on all devices.",
     "passwordChangeFailed": "Could not change the password",
     "invalidLanguage": "Invalid interface language",
-    "invalidTheme": "Invalid appearance theme"
+    "invalidTheme": "Invalid appearance theme",
+    "avatarFileRequired": "No avatar file was selected",
+    "avatarType": "Only JPG, PNG, and WebP files are allowed",
+    "avatarSize": "Avatar size must be between 1 byte and 5 MB",
+    "avatarUploadFailed": "Could not upload the avatar",
+    "favoriteProductRequired": "A dish is required",
+    "favoriteProductNotFound": "Dish not found",
+    "notificationsLoadFailed": "Could not load notifications",
+    "notificationRequired": "Specify a notification",
+    "notificationNotFound": "Notification not found",
+    "notificationsUpdateFailed": "Could not update the notification",
+    "currentSessionLogout": "Use sign out for the current session",
+    "sessionNotFound": "Session not found"
   }
 }
