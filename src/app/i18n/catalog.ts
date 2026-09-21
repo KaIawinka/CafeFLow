@@ -17,6 +17,9 @@ import kgDelivery from './locales/kg/delivery.json';
 import ruCheckout from './locales/ru/checkout.json';
 import enCheckout from './locales/en/checkout.json';
 import kgCheckout from './locales/kg/checkout.json';
+import ruCafe from './locales/ru/cafe.json';
+import enCafe from './locales/en/cafe.json';
+import kgCafe from './locales/kg/cafe.json';
 import ruUi from './locales/ru/ui.json';
 import enUi from './locales/en/ui.json';
 import kgUi from './locales/kg/ui.json';
@@ -33,12 +36,13 @@ export type TranslationCatalog = {
   checkout: typeof ruCheckout;
   ui: typeof ruUi;
   admin: typeof ruAdmin;
+  cafe: typeof ruCafe;
 };
 
 export const translationCatalog = {
-  ru: { auth: ruAuth, common: ruCommon, landing: ruLanding, dashboard: ruDashboard, delivery: ruDelivery, checkout: ruCheckout, ui: ruUi, admin: ruAdmin },
-  en: { auth: enAuth, common: enCommon, landing: enLanding, dashboard: enDashboard, delivery: enDelivery, checkout: enCheckout, ui: enUi, admin: enAdmin },
-  kg: { auth: kgAuth, common: kgCommon, landing: kgLanding, dashboard: kgDashboard, delivery: kgDelivery, checkout: kgCheckout, ui: kgUi, admin: kgAdmin },
+  ru: { auth: ruAuth, common: ruCommon, landing: ruLanding, dashboard: ruDashboard, delivery: ruDelivery, checkout: ruCheckout, cafe: ruCafe, ui: ruUi, admin: ruAdmin },
+  en: { auth: enAuth, common: enCommon, landing: enLanding, dashboard: enDashboard, delivery: enDelivery, checkout: enCheckout, cafe: enCafe, ui: enUi, admin: enAdmin },
+  kg: { auth: kgAuth, common: kgCommon, landing: kgLanding, dashboard: kgDashboard, delivery: kgDelivery, checkout: kgCheckout, cafe: kgCafe, ui: kgUi, admin: kgAdmin },
 } satisfies Record<Locale, TranslationCatalog>;
 
 export function getLocaleTranslations(locale: Locale): TranslationCatalog {
