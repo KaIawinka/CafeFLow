@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { verifyAdminOrManager } from '@/lib/api-middleware';
 import { canTransitionDeliveryStatus, deliveryRequiresCourier, deliveryStatuses, isDeliveryRetry, type DeliveryStatus } from '@/lib/orders/delivery-status';
 import { canTransitionOrderStatus, type OrderStatus } from '@/lib/orders/status';
+import { apiAdminMessage, apiError } from '@/lib/api-response';
 
 type DeliveryPatch = {
   status?: DeliveryStatus;
@@ -33,7 +34,7 @@ function statusMessage(status: DeliveryStatus) {
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ orderId: string }> }) {
   const auth = await verifyAdminOrManager(request, 'manage_orders');
-  if (!auth.success || !auth.userId || !auth.tenantId) return auth.error || NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
+  if (!auth.success || !auth.userId || !auth.tenantId) return auth.error || apiError(request, 'unauthorized', 401);
   const { orderId } = await params;
   const delivery = await prisma.order_deliveries.findFirst({
     where: { order_id: orderId, order: { tenant_id: auth.tenantId, ...branchScope(auth) } },
@@ -44,29 +45,29 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       events: { orderBy: { created_at: 'asc' }, include: { actor: { select: { id: true, first_name: true, last_name: true } } } },
     },
   });
-  if (!delivery) return NextResponse.json({ error: 'Доставка не найдена' }, { status: 404 });
+  if (!delivery) return NextResponse.json({ error: apiAdminMessage(request, 'deliveryNotFound') }, { status: 404 });
   return NextResponse.json(serialize({ delivery }));
 }
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ orderId: string }> }) {
   const auth = await verifyAdminOrManager(request, 'manage_orders');
-  if (!auth.success || !auth.userId || !auth.tenantId) return auth.error || NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
+  if (!auth.success || !auth.userId || !auth.tenantId) return auth.error || apiError(request, 'unauthorized', 401);
   const { orderId } = await params;
   const body = await request.json().catch(() => null) as DeliveryPatch | null;
-  if (!body || (body.status !== undefined && !deliveryStatuses.includes(body.status)) || (body.courierUserId !== undefined && body.courierUserId !== null && (typeof body.courierUserId !== 'string' || !body.courierUserId.trim())) || (body.trackingCode !== undefined && body.trackingCode !== null && (typeof body.trackingCode !== 'string' || body.trackingCode.trim().length > 100)) || (body.reason !== undefined && (typeof body.reason !== 'string' || body.reason.trim().length > 500))) return NextResponse.json({ error: 'Некорректные данные доставки' }, { status: 400 });
+  if (!body || (body.status !== undefined && !deliveryStatuses.includes(body.status)) || (body.courierUserId !== undefined && body.courierUserId !== null && (typeof body.courierUserId !== 'string' || !body.courierUserId.trim())) || (body.trackingCode !== undefined && body.trackingCode !== null && (typeof body.trackingCode !== 'string' || body.trackingCode.trim().length > 100)) || (body.reason !== undefined && (typeof body.reason !== 'string' || body.reason.trim().length > 500))) return NextResponse.json({ error: apiAdminMessage(request, 'invalidDeliveryData') }, { status: 400 });
   const promisedAt = parseDate(body.promisedAt);
-  if (body.promisedAt !== undefined && promisedAt === undefined) return NextResponse.json({ error: 'Некорректное обещанное время' }, { status: 400 });
+  if (body.promisedAt !== undefined && promisedAt === undefined) return NextResponse.json({ error: apiAdminMessage(request, 'invalidPromisedTime') }, { status: 400 });
   const delivery = await prisma.order_deliveries.findFirst({
     where: { order_id: orderId, order: { tenant_id: auth.tenantId, ...branchScope(auth) } },
     include: { order: { select: { id: true, tenant_id: true, branch_id: true, order_number: true, status: true, status_history: true, user_id: true } } },
   });
-  if (!delivery) return NextResponse.json({ error: 'Доставка не найдена' }, { status: 404 });
+  if (!delivery) return NextResponse.json({ error: apiAdminMessage(request, 'deliveryNotFound') }, { status: 404 });
   const currentStatus = delivery.status as DeliveryStatus;
   const nextStatus = body.status || (body.courierUserId ? 'assigned' : currentStatus);
-  if (!canTransitionDeliveryStatus(currentStatus, nextStatus)) return NextResponse.json({ error: 'Недопустимый переход доставки' }, { status: 409 });
+  if (!canTransitionDeliveryStatus(currentStatus, nextStatus)) return NextResponse.json({ error: apiAdminMessage(request, 'invalidDeliveryTransition') }, { status: 409 });
   const courierUserId = body.courierUserId === undefined ? delivery.courier_user_id : body.courierUserId;
-  if (deliveryRequiresCourier(nextStatus) && !courierUserId) return NextResponse.json({ error: 'Для этого статуса требуется курьер' }, { status: 409 });
-  if (nextStatus === 'failed' && !body.reason?.trim()) return NextResponse.json({ error: 'Укажите причину проблемы с доставкой' }, { status: 400 });
+  if (deliveryRequiresCourier(nextStatus) && !courierUserId) return NextResponse.json({ error: apiAdminMessage(request, 'deliveryCourierRequired') }, { status: 409 });
+  if (nextStatus === 'failed' && !body.reason?.trim()) return NextResponse.json({ error: apiAdminMessage(request, 'deliveryFailureReasonRequired') }, { status: 400 });
 
   let courier: { id: string; first_name: string; last_name: string | null; phone: string | null } | null = null;
   if (courierUserId) {
@@ -80,7 +81,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       },
       select: { id: true, first_name: true, last_name: true, phone: true },
     });
-    if (!courier) return NextResponse.json({ error: 'Курьер не найден в доступном филиале' }, { status: 404 });
+    if (!courier) return NextResponse.json({ error: apiAdminMessage(request, 'courierNotFound') }, { status: 404 });
   }
 
   const now = new Date();
@@ -123,7 +124,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
     return NextResponse.json(serialize({ delivery: updated }));
   } catch (error) {
-    if (error instanceof Error && error.message === 'ORDER_STATUS_CONFLICT') return NextResponse.json({ error: 'Статус заказа не позволяет изменить доставку' }, { status: 409 });
+    if (error instanceof Error && error.message === 'ORDER_STATUS_CONFLICT') return NextResponse.json({ error: apiAdminMessage(request, 'orderStatusConflict') }, { status: 409 });
     throw error;
   }
 }

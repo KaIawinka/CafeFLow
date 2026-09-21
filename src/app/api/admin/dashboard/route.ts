@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { verifyAdminOrManager } from '@/lib/api-middleware';
 import { logger } from '@/lib/logger';
 import { canTransitionOrderStatus, orderStatuses, type OrderStatus } from '@/lib/orders/status';
+import { apiAdminMessage, apiError } from '@/lib/api-response';
 
 const roles = ['guest', 'customer', 'employee', 'kitchen', 'manager', 'admin'] as const;
 const statuses = ['active', 'blocked', 'pending'] as const;
@@ -111,11 +112,11 @@ async function getAnalytics(tenantId: string | null, branchIds: string[] | null)
 
 export async function GET(request: NextRequest) {
   const auth = await verifyAdminOrManager(request, 'view_orders');
-  if (!auth.success || !auth.userId) return auth.error;
+  if (!auth.success || !auth.userId) return auth.error || apiError(request, 'unauthorized', 401);
 
   try {
     const actor = await getActor(auth.userId);
-    if (!actor) return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
+    if (!actor) return apiError(request, 'userNotFound', 404);
     const tenantId = auth.tenantId ?? actor.tenant_id;
     const branchIds = auth.branchIds ?? (actor.branch_id ? [actor.branch_id] : null);
 
@@ -215,17 +216,17 @@ export async function GET(request: NextRequest) {
     }));
   } catch (error) {
     logger.error('Admin dashboard read error', error);
-    return NextResponse.json({ error: 'Не удалось загрузить данные админ-панели' }, { status: 500 });
+    return NextResponse.json({ error: apiAdminMessage(request, 'dashboardLoadFailed') }, { status: 500 });
   }
 }
 
 export async function PATCH(request: NextRequest) {
   const auth = await verifyAdminOrManager(request, 'manage_orders');
-  if (!auth.success || !auth.userId) return auth.error;
+  if (!auth.success || !auth.userId) return auth.error || apiError(request, 'unauthorized', 401);
 
   try {
     const actor = await getActor(auth.userId);
-    if (!actor) return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
+    if (!actor) return NextResponse.json({ error: apiAdminMessage(request, 'userOrBranchNotFound') }, { status: 404 });
     const tenantId = auth.tenantId ?? actor.tenant_id;
     const branchIds = auth.branchIds ?? (actor.branch_id ? [actor.branch_id] : null);
     const body = await request.json() as {
@@ -252,14 +253,14 @@ export async function PATCH(request: NextRequest) {
     };
 
     if (body.resource === 'user') {
-      if (!body.id || body.id === actor.id) return NextResponse.json({ error: 'Нельзя изменить текущего администратора' }, { status: 400 });
-      if (body.role && !roles.includes(body.role)) return NextResponse.json({ error: 'Недопустимая роль' }, { status: 400 });
-      if (body.status && !statuses.includes(body.status)) return NextResponse.json({ error: 'Недопустимый статус' }, { status: 400 });
-      if (auth.role !== 'admin' && body.role === 'admin') return NextResponse.json({ error: 'Менеджер не может назначать администратора' }, { status: 403 });
+      if (!body.id || body.id === actor.id) return NextResponse.json({ error: apiAdminMessage(request, 'currentAdminCannotChange') }, { status: 400 });
+      if (body.role && !roles.includes(body.role)) return NextResponse.json({ error: apiAdminMessage(request, 'invalidRole') }, { status: 400 });
+      if (body.status && !statuses.includes(body.status)) return NextResponse.json({ error: apiAdminMessage(request, 'invalidUserStatus') }, { status: 400 });
+      if (auth.role !== 'admin' && body.role === 'admin') return NextResponse.json({ error: apiAdminMessage(request, 'managerCannotAssignAdmin') }, { status: 403 });
 
       const target = await prisma.users.findUnique({ where: { id: body.id }, select: { id: true, tenant_id: true, branch_id: true, role: true, status: true, requires_approval: true } });
-      if (!target || (tenantId && target.tenant_id !== tenantId) || (branchIds && target.branch_id && !branchIds.includes(target.branch_id))) return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
-      if (body.role === 'admin' && auth.role !== 'admin') return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 });
+      if (!target || (tenantId && target.tenant_id !== tenantId) || (branchIds && target.branch_id && !branchIds.includes(target.branch_id))) return apiError(request, 'userNotFound', 404);
+      if (body.role === 'admin' && auth.role !== 'admin') return NextResponse.json({ error: apiAdminMessage(request, 'insufficientPermissions') }, { status: 403 });
 
       const updated = await prisma.users.update({
         where: { id: body.id },
@@ -276,11 +277,11 @@ export async function PATCH(request: NextRequest) {
 
     if (body.resource === 'tenant') {
       if (body.logoData && (!body.logoData.startsWith('data:image/') || body.logoData.length > 2_000_000)) {
-        return NextResponse.json({ error: 'Некорректный логотип или слишком большой файл' }, { status: 400 });
+        return NextResponse.json({ error: apiAdminMessage(request, 'invalidLogo') }, { status: 400 });
       }
       let tenantId = actor.tenant_id;
       if (!tenantId) {
-        if (auth.role !== 'admin') return NextResponse.json({ error: 'Для сохранения настроек нужны права администратора' }, { status: 403 });
+        if (auth.role !== 'admin') return NextResponse.json({ error: apiAdminMessage(request, 'adminSettingsRequired') }, { status: 403 });
         const baseSlug = actor.email.split('@')[0].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'cafeflow';
         const slug = `${baseSlug}-${actor.id.slice(0, 8)}`;
         const createdTenant = await prisma.tenants.create({ data: { name: body.name?.trim() || 'CaféFlow', slug, status: 'active', currency: body.currency?.trim().toUpperCase().slice(0, 3) || 'KGS', timezone: body.timezone?.trim() || 'Asia/Bishkek' } });
@@ -315,10 +316,10 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (body.resource === 'order') {
-      if (!body.id || !body.orderStatus || !orderStatuses.includes(body.orderStatus)) return NextResponse.json({ error: 'Недопустимый статус заказа' }, { status: 400 });
+      if (!body.id || !body.orderStatus || !orderStatuses.includes(body.orderStatus)) return NextResponse.json({ error: apiAdminMessage(request, 'invalidOrderStatus') }, { status: 400 });
       const order = await prisma.orders.findUnique({ where: { id: body.id }, select: { id: true, tenant_id: true, branch_id: true, user_id: true, order_number: true, status: true, status_history: true } });
-      if (!order || (tenantId && order.tenant_id !== tenantId) || (branchIds && (!order.branch_id || !branchIds.includes(order.branch_id)))) return NextResponse.json({ error: 'Заказ не найден' }, { status: 404 });
-      if (!canTransitionOrderStatus(order.status as OrderStatus, body.orderStatus)) return NextResponse.json({ error: 'Недопустимый переход статуса заказа' }, { status: 409 });
+      if (!order || (tenantId && order.tenant_id !== tenantId) || (branchIds && (!order.branch_id || !branchIds.includes(order.branch_id)))) return NextResponse.json({ error: apiAdminMessage(request, 'orderNotFound') }, { status: 404 });
+      if (!canTransitionOrderStatus(order.status as OrderStatus, body.orderStatus)) return NextResponse.json({ error: apiAdminMessage(request, 'invalidOrderTransition') }, { status: 409 });
       const history = Array.isArray(order.status_history) ? order.status_history : [];
       const statusHistory = [...history, { from: order.status, to: body.orderStatus, changedAt: new Date().toISOString(), changedBy: actor.id }];
       const staff = await prisma.users.findMany({
@@ -338,17 +339,17 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (body.resource === 'product') {
-      if (!body.id || typeof body.isAvailable !== 'boolean') return NextResponse.json({ error: 'Некорректные данные товара' }, { status: 400 });
+      if (!body.id || typeof body.isAvailable !== 'boolean') return NextResponse.json({ error: apiAdminMessage(request, 'invalidProductData') }, { status: 400 });
       const product = await prisma.products.findUnique({ where: { id: body.id }, select: { id: true, tenant_id: true, is_available: true, price: true } });
-      if (!product || (actor.tenant_id && product.tenant_id !== actor.tenant_id)) return NextResponse.json({ error: 'Товар не найден' }, { status: 404 });
+      if (!product || (actor.tenant_id && product.tenant_id !== actor.tenant_id)) return NextResponse.json({ error: apiAdminMessage(request, 'productNotFound') }, { status: 404 });
       const updated = await prisma.products.update({ where: { id: body.id }, data: { is_available: body.isAvailable, ...(body.price && Number.isFinite(Number(body.price)) ? { price: body.price } : {}) }, select: { id: true, name: true, price: true, currency: true, is_available: true, is_featured: true, sort_order: true, category: { select: { name: true } } } });
       await prisma.activity_logs.create({ data: { tenant_id: product.tenant_id, actor_user_id: actor.id, action: 'admin.product.updated', entity_type: 'products', entity_id: product.id, before_data: product, after_data: updated } });
       return NextResponse.json({ success: true, product: updated });
     }
 
-    return NextResponse.json({ error: 'Неизвестный ресурс' }, { status: 400 });
+    return NextResponse.json({ error: apiAdminMessage(request, 'unknownResource') }, { status: 400 });
   } catch (error) {
     logger.error('Admin dashboard update error', error);
-    return NextResponse.json({ error: 'Не удалось сохранить изменения' }, { status: 500 });
+    return NextResponse.json({ error: apiAdminMessage(request, 'dashboardUpdateFailed') }, { status: 500 });
   }
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAdminOrManager } from '@/lib/api-middleware';
 import { deliveryStatuses, type DeliveryStatus } from '@/lib/orders/delivery-status';
+import { apiError } from '@/lib/api-response';
 
 function serialize<T>(value: T): T {
   return JSON.parse(JSON.stringify(value, (_, item) => typeof item === 'bigint' ? item.toString() : item));
@@ -13,7 +14,7 @@ function branchScope(auth: { branchIds?: string[] | null; branchId?: string | nu
 
 export async function GET(request: NextRequest) {
   const auth = await verifyAdminOrManager(request, 'manage_orders');
-  if (!auth.success || !auth.userId || !auth.tenantId) return auth.error || NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
+  if (!auth.success || !auth.userId || !auth.tenantId) return auth.error || apiError(request, 'unauthorized', 401);
   const page = Math.max(1, Number(request.nextUrl.searchParams.get('page') || 1));
   const pageSize = 25;
   const requestedStatus = request.nextUrl.searchParams.get('status');
