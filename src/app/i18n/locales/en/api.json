@@ -1,0 +1,12 @@
+{
+  "errors": {
+    "unauthorized": "Not authorized",
+    "invalidToken": "Invalid token",
+    "authFailure": "Authentication error",
+    "adminRequired": "Access denied. Administrator permissions are required.",
+    "adminOrManagerRequired": "Access denied. Administrator or manager permissions are required.",
+    "accountUnavailable": "Account is unavailable",
+    "branchAccessDenied": "No active access to the branch",
+    "server": "Internal server error"
+  }
+}
