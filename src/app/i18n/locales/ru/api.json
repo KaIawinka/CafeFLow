@@ -216,6 +216,7 @@
     "reservationsLoadFailed": "Не удалось загрузить бронирования",
     "reservationInputInvalid": "Некорректные данные бронирования",
     "reservationNotFound": "Бронирование не найдено",
+    "invalidReservationTransition": "Нельзя изменить статус бронирования таким образом",
     "reservationUpdateFailed": "Не удалось обновить бронирование"
   }
 }

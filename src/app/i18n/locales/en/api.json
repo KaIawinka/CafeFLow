@@ -216,6 +216,7 @@
     "reservationsLoadFailed": "Could not load reservations",
     "reservationInputInvalid": "Invalid reservation data",
     "reservationNotFound": "Reservation not found",
+    "invalidReservationTransition": "This reservation status change is not allowed",
     "reservationUpdateFailed": "Could not update the reservation"
   }
 }

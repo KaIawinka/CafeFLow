@@ -216,6 +216,7 @@
     "reservationsLoadFailed": "Брондоолорду жүктөө мүмкүн болгон жок",
     "reservationInputInvalid": "Брондоонун маалыматы туура эмес",
     "reservationNotFound": "Брондоо табылган жок",
+    "invalidReservationTransition": "Брондоонун статусун мындай өзгөртүүгө болбойт",
     "reservationUpdateFailed": "Брондоону жаңыртуу мүмкүн болгон жок"
   }
 }
