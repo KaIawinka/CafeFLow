@@ -72,6 +72,31 @@
     "phone": "Phone",
     "hours": "Opening hours"
   },
+  "contactForm": {
+    "title": "Request a demo",
+    "subtitle": "Fill out the form and we will contact you within 24 hours",
+    "successTitle": "Thanks for your request!",
+    "successMessage": "We will get in touch with you soon",
+    "error": "We could not send your request. Check the details and try again.",
+    "fields": {
+      "name": "Your name *",
+      "phone": "Phone *",
+      "email": "Email *",
+      "company": "Venue name",
+      "message": "Comment"
+    },
+    "placeholders": {
+      "name": "Jane Doe",
+      "phone": "+996 (555) 123-456",
+      "email": "jane@example.com",
+      "company": "Cozy Cafe",
+      "message": "Tell us about your venue..."
+    },
+    "submit": "Send request",
+    "submitting": "Sending...",
+    "privacyPrefix": "By submitting this form, you agree to our",
+    "privacyLink": "privacy policy"
+  },
   "footer": {
     "menu": "Menu",
     "reservation": "Reservations",

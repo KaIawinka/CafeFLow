@@ -73,6 +73,31 @@ export interface LandingTranslations {
     phone: string;
     hours: string;
   };
+  contactForm: {
+    title: string;
+    subtitle: string;
+    successTitle: string;
+    successMessage: string;
+    error: string;
+    fields: {
+      name: string;
+      phone: string;
+      email: string;
+      company: string;
+      message: string;
+    };
+    placeholders: {
+      name: string;
+      phone: string;
+      email: string;
+      company: string;
+      message: string;
+    };
+    submit: string;
+    submitting: string;
+    privacyPrefix: string;
+    privacyLink: string;
+  };
   footer: {
     menu: string;
     reservation: string;

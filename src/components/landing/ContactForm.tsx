@@ -2,8 +2,13 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import type { LandingTranslations } from "./types";
 
-export function ContactForm() {
+interface ContactFormProps {
+  t: LandingTranslations["contactForm"];
+}
+
+export function ContactForm({ t }: ContactFormProps) {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -44,27 +49,27 @@ export function ContactForm() {
   return (
     <div id="contact" className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 border border-zinc-200">
       <h3 className="text-3xl font-bold text-zinc-900 mb-2">
-        Запросить демо
+        {t.title}
       </h3>
       <p className="text-zinc-600 mb-8">
-        Заполните форму и мы свяжемся с вами в течение 24 часов
+        {t.subtitle}
       </p>
 
       {status === "success" ? (
         <div className="rounded-xl border border-orange-200 bg-orange-50 p-6 text-center">
           <div className="text-4xl mb-4">✅</div>
           <h4 className="mb-2 text-xl font-semibold text-orange-900">
-            Спасибо за заявку!
+            {t.successTitle}
           </h4>
           <p className="text-orange-700">
-            Мы свяжемся с вами в ближайшее время
+            {t.successMessage}
           </p>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
           {status === "error" && (
             <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-              Не удалось отправить заявку. Проверьте данные и попробуйте ещё раз.
+              {t.error}
             </div>
           )}
           <div className="grid md:grid-cols-2 gap-6">
@@ -73,7 +78,7 @@ export function ContactForm() {
                 htmlFor="name"
                 className="block text-sm font-medium text-zinc-700 mb-2"
               >
-                Ваше имя *
+                {t.fields.name}
               </label>
               <input
                 type="text"
@@ -83,7 +88,7 @@ export function ContactForm() {
                 value={formData.name}
                 onChange={handleChange}
                 className="w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-zinc-900 transition-all focus:border-transparent focus:ring-2 focus:ring-orange-500"
-                placeholder="Иван Иванов"
+                placeholder={t.placeholders.name}
               />
             </div>
 
@@ -92,7 +97,7 @@ export function ContactForm() {
                 htmlFor="phone"
                 className="block text-sm font-medium text-zinc-700 mb-2"
               >
-                Телефон *
+                {t.fields.phone}
               </label>
               <input
                 type="tel"
@@ -102,7 +107,7 @@ export function ContactForm() {
                 value={formData.phone}
                 onChange={handleChange}
                 className="w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-zinc-900 transition-all focus:border-transparent focus:ring-2 focus:ring-orange-500"
-                placeholder="+7 (999) 123-45-67"
+                placeholder={t.placeholders.phone}
               />
             </div>
           </div>
@@ -112,7 +117,7 @@ export function ContactForm() {
               htmlFor="email"
               className="block text-sm font-medium text-zinc-700 mb-2"
             >
-              Email *
+              {t.fields.email}
             </label>
             <input
               type="email"
@@ -122,7 +127,7 @@ export function ContactForm() {
               value={formData.email}
               onChange={handleChange}
               className="w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-zinc-900 transition-all focus:border-transparent focus:ring-2 focus:ring-orange-500"
-              placeholder="ivan@example.com"
+              placeholder={t.placeholders.email}
             />
           </div>
 
@@ -131,7 +136,7 @@ export function ContactForm() {
               htmlFor="company"
               className="block text-sm font-medium text-zinc-700 mb-2"
             >
-              Название заведения
+              {t.fields.company}
             </label>
             <input
               type="text"
@@ -140,7 +145,7 @@ export function ContactForm() {
               value={formData.company}
               onChange={handleChange}
               className="w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-zinc-900 transition-all focus:border-transparent focus:ring-2 focus:ring-orange-500"
-              placeholder="Кафе 'Уют'"
+              placeholder={t.placeholders.company}
             />
           </div>
 
@@ -149,7 +154,7 @@ export function ContactForm() {
               htmlFor="message"
               className="block text-sm font-medium text-zinc-700 mb-2"
             >
-              Комментарий
+              {t.fields.message}
             </label>
             <textarea
               id="message"
@@ -158,7 +163,7 @@ export function ContactForm() {
               value={formData.message}
               onChange={handleChange}
               className="w-full resize-none rounded-xl border border-zinc-300 bg-white px-4 py-3 text-zinc-900 transition-all focus:border-transparent focus:ring-2 focus:ring-orange-500"
-              placeholder="Расскажите о вашем заведении..."
+              placeholder={t.placeholders.message}
             />
           </div>
 
@@ -185,17 +190,17 @@ export function ContactForm() {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                Отправка...
+                {t.submitting}
               </span>
             ) : (
-              "Отправить заявку"
+              t.submit
             )}
           </button>
 
           <p className="text-center text-sm text-zinc-500">
-            Нажимая кнопку, вы соглашаетесь с{" "}
+            {t.privacyPrefix}{" "}
             <Link href="/privacy" className="text-orange-600 underline hover:text-orange-700">
-              политикой конфиденциальности
+              {t.privacyLink}
             </Link>
           </p>
         </form>
