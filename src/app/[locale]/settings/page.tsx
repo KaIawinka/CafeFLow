@@ -489,10 +489,10 @@ export default function SettingsPage() {
                   </div>
 
                   {/* Telegram and 2FA */}
-                  <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-4 dark:border-blue-800 dark:from-blue-900/20 dark:to-indigo-900/20 sm:p-6">
+                  <div className="rounded-xl border border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 p-4 dark:border-orange-800 dark:from-orange-900/20 dark:to-amber-900/20 sm:p-6">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                       <div className="flex items-start gap-3">
-                        <div className="rounded-xl bg-blue-500 p-2 sm:p-3">
+                        <div className="rounded-xl bg-orange-500 p-2 sm:p-3">
                           <Key className="h-5 w-5 text-white sm:h-6 sm:w-6" />
                         </div>
                         <div>
@@ -513,7 +513,7 @@ export default function SettingsPage() {
                     <div className="mt-5 rounded-lg bg-white/70 p-4 dark:bg-gray-900/30">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-2 text-sm font-medium text-gray-800 dark:text-gray-200">
-                          <MessageSquare className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                          <MessageSquare className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                           {settings.telegramLinked ? copy.security.telegramConnected : copy.security.telegramNotConnected}
                           {settings.telegramUsername && <span className="font-normal text-gray-500">@{settings.telegramUsername}</span>}
                         </div>
@@ -523,7 +523,7 @@ export default function SettingsPage() {
                               type="button"
                               onClick={handleLinkTelegram}
                               disabled={isLinkingTelegram}
-                              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-orange-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               {isLinkingTelegram ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageSquare className="h-4 w-4" />}
                               {copy.security.connectTelegram}
@@ -542,13 +542,13 @@ export default function SettingsPage() {
                       </div>
 
                       {telegramLinkUrl && (
-                        <div className="mt-4 border-t border-blue-100 pt-4 dark:border-blue-900">
+                        <div className="mt-4 border-t border-orange-100 pt-4 dark:border-orange-900">
                           <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{copy.security.telegramLinkReady}</p>
                           <a
                             href={telegramLinkUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700"
+                            className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-lg bg-orange-600 px-4 text-sm font-semibold text-white hover:bg-orange-700"
                           >
                             <ExternalLink className="h-4 w-4" />
                             {copy.security.openTelegram}
@@ -564,7 +564,7 @@ export default function SettingsPage() {
                     </div>
 
                     {(settings.telegramLinked || settings.twoFAEnabled) && (
-                      <form onSubmit={handleTwoFactorChange} className="mt-4 border-t border-blue-200 pt-4 dark:border-blue-800">
+                      <form onSubmit={handleTwoFactorChange} className="mt-4 border-t border-orange-200 pt-4 dark:border-orange-800">
                         <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">{copy.security.twoFactorActionDescription}</p>
                         <div className="flex flex-col gap-3 sm:flex-row">
                           <input

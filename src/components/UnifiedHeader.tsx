@@ -550,7 +550,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
                       </Link>
 
                       <Link
-                        href={`/${currentLocale}/profile#settings`}
+                        href={`/${currentLocale}/settings`}
                         className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                         onClick={() => setIsDropdownOpen(false)}
                       >
@@ -706,7 +706,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
                 </Link>
 
                 <Link
-                  href={`/${currentLocale}/profile#settings`}
+                  href={`/${currentLocale}/settings`}
                   className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 min-h-[44px] transition-colors"
                 >
                   <Settings className="w-4 h-4" />

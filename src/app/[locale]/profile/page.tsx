@@ -434,7 +434,7 @@ function ProfileContent() {
                   <p className="mt-2 flex items-center gap-2 text-sm font-bold"><ShieldCheck className="h-4 w-4 text-emerald-500" />{securityChecks}/3</p>
                 </div>
                 <div className="col-span-2 flex items-center justify-between rounded-xl border border-[var(--border)] px-4 py-3 text-sm">
-                  <span className="flex items-center gap-2 text-[var(--muted-foreground)]"><MessageSquare className="h-4 w-4 text-blue-500" />{profile.telegram_chat_id ? securityCopy.telegramConnected : securityCopy.telegramNotConnected}</span>
+                  <span className="flex items-center gap-2 text-[var(--muted-foreground)]"><MessageSquare className="h-4 w-4 text-orange-500" />{profile.telegram_chat_id ? securityCopy.telegramConnected : securityCopy.telegramNotConnected}</span>
                   <ArrowUpRight className="h-4 w-4 text-[var(--muted-foreground)]" />
                 </div>
               </div>
@@ -444,12 +444,12 @@ function ProfileContent() {
           <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {[
               { label: copy.summary.accountStatus, value: accountStatus, detail: profile.role, icon: Activity, tone: 'orange' },
-              { label: copy.summary.memberSince, value: formatDate(profile.created_at), detail: copy.fields.createdAt, icon: Calendar, tone: 'blue' },
-              { label: copy.summary.lastActivity, value: formatDate(profile.last_login_at), detail: copy.fields.lastLogin, icon: Clock, tone: 'violet' },
+              { label: copy.summary.memberSince, value: formatDate(profile.created_at), detail: copy.fields.createdAt, icon: Calendar, tone: 'orange' },
+              { label: copy.summary.lastActivity, value: formatDate(profile.last_login_at), detail: copy.fields.lastLogin, icon: Clock, tone: 'orange' },
               { label: copy.summary.security, value: `${securityChecks}/3`, detail: securityChecks === 3 ? copy.summary.protected : copy.summary.needsAttention, icon: ShieldCheck, tone: 'emerald' },
             ].map(({ label, value, detail, icon: Icon, tone }) => (
               <div key={label} className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-[0_12px_32px_rgba(21,26,30,0.05)]">
-                <div className="flex items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.1em] text-[var(--muted-foreground)]">{label}</p><p className="mt-3 text-xl font-black tracking-tight">{value}</p></div><div className={`flex h-10 w-10 items-center justify-center rounded-xl ${tone === 'orange' ? 'bg-orange-100 text-orange-600 dark:bg-orange-950/40 dark:text-orange-300' : tone === 'blue' ? 'bg-blue-100 text-blue-600 dark:bg-blue-950/40 dark:text-blue-300' : tone === 'violet' ? 'bg-violet-100 text-violet-600 dark:bg-violet-950/40 dark:text-violet-300' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300'}`}><Icon className="h-5 w-5" /></div></div>
+                <div className="flex items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.1em] text-[var(--muted-foreground)]">{label}</p><p className="mt-3 text-xl font-black tracking-tight">{value}</p></div><div className={`flex h-10 w-10 items-center justify-center rounded-xl ${tone === 'emerald' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300' : 'bg-orange-100 text-orange-600 dark:bg-orange-950/40 dark:text-orange-300'}`}><Icon className="h-5 w-5" /></div></div>
                 <p className="mt-3 text-xs text-[var(--muted-foreground)]">{detail}</p>
               </div>
             ))}
@@ -502,10 +502,10 @@ function ProfileContent() {
             <div className="p-5 sm:p-7">
               {activeTab === 'profile' ? (
                 <div className="space-y-4 sm:space-y-6">
-                  <section className="rounded-2xl border border-blue-200 bg-blue-50/70 p-5 dark:border-blue-900/70 dark:bg-blue-950/20 sm:p-6">
+                  <section className="rounded-2xl border border-orange-200 bg-orange-50/70 p-5 dark:border-orange-900/70 dark:bg-orange-950/20 sm:p-6">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                       <div className="flex items-start gap-3">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><KeyRound className="h-5 w-5" /></div>
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-600 text-white shadow-sm"><KeyRound className="h-5 w-5" /></div>
                         <div>
                           <h2 className="text-base font-black text-[var(--foreground)] sm:text-lg">{securityCopy.twoFactor}</h2>
                           <p className="mt-1 text-sm text-[var(--muted-foreground)]">{securityCopy.twoFactorDescription}</p>
@@ -517,10 +517,10 @@ function ProfileContent() {
                       </span>
                     </div>
 
-                    <div className="mt-5 rounded-xl border border-blue-200/80 bg-white/80 p-4 dark:border-blue-900/60 dark:bg-gray-900/30">
+                    <div className="mt-5 rounded-xl border border-orange-200/80 bg-white/80 p-4 dark:border-orange-900/60 dark:bg-gray-900/30">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-2 text-sm font-bold text-[var(--foreground)]">
-                          <MessageSquare className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                          <MessageSquare className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                           {profile.telegram_chat_id ? securityCopy.telegramConnected : securityCopy.telegramNotConnected}
                           {profile.telegram_username && <span className="font-normal text-[var(--muted-foreground)]">@{profile.telegram_username}</span>}
                         </div>
@@ -530,7 +530,7 @@ function ProfileContent() {
                               type="button"
                               onClick={() => void handleLinkTelegram()}
                               disabled={isLinkingTelegram}
-                              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-bold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-orange-600 px-4 text-sm font-bold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               {isLinkingTelegram ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageSquare className="h-4 w-4" />}
                               {securityCopy.connectTelegram}
@@ -540,7 +540,7 @@ function ProfileContent() {
                             type="button"
                             onClick={() => void handleCheckTelegram()}
                             disabled={isCheckingTelegram}
-                            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--card)] px-4 text-sm font-bold text-[var(--foreground)] transition hover:border-blue-400 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-blue-950/30"
+                            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--card)] px-4 text-sm font-bold text-[var(--foreground)] transition hover:border-orange-400 hover:bg-orange-50 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-orange-950/30"
                           >
                             {isCheckingTelegram ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                             {securityCopy.checkTelegram}
@@ -549,9 +549,9 @@ function ProfileContent() {
                       </div>
 
                       {telegramLinkUrl && (
-                        <div className="mt-4 border-t border-blue-200 pt-4 dark:border-blue-900">
+                        <div className="mt-4 border-t border-orange-200 pt-4 dark:border-orange-900">
                           <p className="text-sm font-semibold text-[var(--foreground)]">{securityCopy.telegramLinkReady}</p>
-                          <a href={telegramLinkUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-bold text-white hover:bg-blue-700">
+                          <a href={telegramLinkUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-lg bg-orange-600 px-4 text-sm font-bold text-white hover:bg-orange-700">
                             <ExternalLink className="h-4 w-4" />
                             {securityCopy.openTelegram}
                           </a>
@@ -562,7 +562,7 @@ function ProfileContent() {
                     </div>
 
                     {(profile.telegram_chat_id || profile.two_fa_enabled) && (
-                      <form onSubmit={handleTwoFactorChange} className="mt-4 border-t border-blue-200 pt-4 dark:border-blue-900">
+                      <form onSubmit={handleTwoFactorChange} className="mt-4 border-t border-orange-200 pt-4 dark:border-orange-900">
                         <p className="mb-3 text-sm text-[var(--muted-foreground)]">{securityCopy.twoFactorActionDescription}</p>
                         <div className="flex flex-col gap-3 sm:flex-row">
                           <input
@@ -572,7 +572,7 @@ function ProfileContent() {
                             onChange={(event) => setTwoFactorPassword(event.target.value)}
                             placeholder={securityCopy.twoFactorPassword}
                             required
-                            className="min-h-11 flex-1 rounded-lg border border-[var(--border)] bg-[var(--card)] px-4 text-[var(--foreground)] outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                            className="min-h-11 flex-1 rounded-lg border border-[var(--border)] bg-[var(--card)] px-4 text-[var(--foreground)] outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
                           />
                           <button type="submit" disabled={isUpdatingTwoFA} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-orange-500 px-5 font-bold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-400">
                             {isUpdatingTwoFA ? <Loader2 className="h-5 w-5 animate-spin" /> : profile.two_fa_enabled ? <ShieldOff className="h-5 w-5" /> : <ShieldCheck className="h-5 w-5" />}

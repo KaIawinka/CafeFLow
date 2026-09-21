@@ -468,10 +468,10 @@ export default function AdminPage() {
   const reservationPageCount = Math.max(1, Math.ceil(reservationTotal / 25));
 
   const roleColors: Record<string, string> = {
-    admin: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
-    manager: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
+    admin: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
+    manager: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
     kitchen: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
-    employee: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+    employee: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
     customer: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
   };
 
@@ -783,7 +783,7 @@ export default function AdminPage() {
                             <span className="text-xs text-gray-500 dark:text-gray-400">{ui.admin.lastSeen}: {user.last_seen_at ? new Date(user.last_seen_at).toLocaleDateString(locale) : '—'}</span>
                             <div className="flex flex-wrap gap-1.5 pt-1">
                               {user.requires_approval && <span className="rounded-full bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-800 dark:bg-amber-900/30 dark:text-amber-200">{ui.admin.pending}</span>}
-                              {user.two_fa_enabled && <span className="rounded-full bg-blue-100 px-2 py-1 text-[11px] font-semibold text-blue-800 dark:bg-blue-900/30 dark:text-blue-200">2FA</span>}
+                              {user.two_fa_enabled && <span className="rounded-full bg-orange-100 px-2 py-1 text-[11px] font-semibold text-orange-800 dark:bg-orange-900/30 dark:text-orange-200">2FA</span>}
                               <span className="rounded-full bg-gray-100 px-2 py-1 text-[11px] font-semibold text-gray-600 dark:bg-gray-700 dark:text-gray-300">{user.language.toUpperCase()}</span>
                             </div>
                           </div>
@@ -827,13 +827,13 @@ export default function AdminPage() {
                 </div>
                 <div className="flex flex-wrap items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-900/60">
                   <button type="button" onClick={() => setOrderQueue('kitchen')} className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-4 text-sm font-bold ${orderQueue === 'kitchen' ? 'bg-white text-orange-700 shadow-sm dark:bg-gray-800 dark:text-orange-300' : 'text-gray-500'}`}><ChefHat className="h-4 w-4" /> {copy.kitchen} <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs">{recentOrders.filter((order) => ['new', 'confirmed', 'cooking'].includes(order.status)).length}</span></button>
-                  <button type="button" onClick={() => setOrderQueue('waiters')} className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-4 text-sm font-bold ${orderQueue === 'waiters' ? 'bg-white text-blue-700 shadow-sm dark:bg-gray-800 dark:text-blue-300' : 'text-gray-500'}`}><Truck className="h-4 w-4" /> {copy.waiters} <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs">{recentOrders.filter((order) => ['ready', 'delivering'].includes(order.status)).length}</span></button>
+                  <button type="button" onClick={() => setOrderQueue('waiters')} className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-4 text-sm font-bold ${orderQueue === 'waiters' ? 'bg-white text-orange-700 shadow-sm dark:bg-gray-800 dark:text-orange-300' : 'text-gray-500'}`}><Truck className="h-4 w-4" /> {copy.waiters} <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs">{recentOrders.filter((order) => ['ready', 'delivering'].includes(order.status)).length}</span></button>
                 </div>
                 {recentOrders.filter((order) => orderQueue === 'kitchen' ? ['new', 'confirmed', 'cooking'].includes(order.status) : ['ready', 'delivering'].includes(order.status)).map((order) => (
                   <div key={`queue-${order.id}`} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                       <div><div className="flex items-center gap-2"><span className="font-black text-gray-900 dark:text-white">{order.order_number}</span><span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-bold text-gray-600 dark:bg-gray-700 dark:text-gray-300">{copy.dbOrder}</span></div><p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{order.customer_name}</p></div>
-                      <button type="button" onClick={() => advanceOrder(order)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#d06b3c] px-4 text-sm font-bold text-white hover:bg-[#b8532c]">{orderQueue === 'kitchen' ? (order.status === 'new' ? copy.confirm : order.status === 'confirmed' ? copy.takeOrder : copy.ready) : (order.status === 'ready' ? copy.pickup : copy.confirmDelivery)} <ArrowRight className="h-4 w-4" /></button>
+                      <button type="button" onClick={() => advanceOrder(order)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-4 text-sm font-bold text-white hover:brightness-95">{orderQueue === 'kitchen' ? (order.status === 'new' ? copy.confirm : order.status === 'confirmed' ? copy.takeOrder : copy.ready) : (order.status === 'ready' ? copy.pickup : copy.confirmDelivery)} <ArrowRight className="h-4 w-4" /></button>
                     </div>
                   </div>
                 ))}
@@ -927,9 +927,9 @@ export default function AdminPage() {
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                   {[
                     { label: siteOptionLabels.siteStatus, value: siteSettings.maintenanceMode ? siteOptionLabels.maintenanceMode : siteSettings.siteOptions.publicSiteEnabled ? siteOptionLabels.online : siteOptionLabels.disabled, detail: `${enabledOptions}/${totalOptions} ${siteOptionLabels.configured}`, icon: Globe2, iconClass: 'bg-orange-100 text-orange-600 dark:bg-orange-950/40 dark:text-orange-300' },
-                    { label: siteOptionLabels.channels, value: `${enabledChannels}/5`, detail: siteOptionLabels.activeChannels, icon: Eye, iconClass: 'bg-blue-100 text-blue-600 dark:bg-blue-950/40 dark:text-blue-300' },
+                    { label: siteOptionLabels.channels, value: `${enabledChannels}/5`, detail: siteOptionLabels.activeChannels, icon: Eye, iconClass: 'bg-orange-100 text-orange-600 dark:bg-orange-950/40 dark:text-orange-300' },
                     { label: siteOptionLabels.deliveryStatus, value: siteSettings.siteOptions.deliveryEnabled ? siteOptionLabels.enabled : siteOptionLabels.disabled, detail: `${siteOptionLabels.pickup}: ${siteSettings.siteOptions.pickupEnabled ? siteOptionLabels.enabled : siteOptionLabels.disabled}`, icon: Truck, iconClass: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300' },
-                    { label: siteOptionLabels.savedState, value: hasUnsavedSettings ? siteOptionLabels.unsaved : siteOptionLabels.saved, detail: siteSettings.siteName, icon: CheckCircle2, iconClass: 'bg-violet-100 text-violet-600 dark:bg-violet-950/40 dark:text-violet-300' },
+                    { label: siteOptionLabels.savedState, value: hasUnsavedSettings ? siteOptionLabels.unsaved : siteOptionLabels.saved, detail: siteSettings.siteName, icon: CheckCircle2, iconClass: 'bg-orange-100 text-orange-600 dark:bg-orange-950/40 dark:text-orange-300' },
                   ].map(({ label, value, detail, icon: Icon, iconClass }) => <AdminSettingsCard key={label} className="p-5"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted-foreground)]">{label}</p><p className="mt-3 truncate text-xl font-black tracking-tight">{value}</p></div><div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${iconClass}`}><Icon className="h-5 w-5" /></div></div><p className="mt-4 text-xs font-semibold text-[var(--muted-foreground)]">{detail}</p></AdminSettingsCard>)}
                 </div>
 
