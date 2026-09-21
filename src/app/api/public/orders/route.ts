@@ -6,6 +6,7 @@ import { getPublicCafeContext } from '@/lib/public-context';
 import { verifyAccessToken } from '@/lib/auth/jwt';
 import { addressSnapshot } from '@/lib/customer-address';
 import { apiPublicMessage } from '@/lib/api-response';
+import { calculatePromotionDiscount } from '@/lib/promotions/discount';
 
 function serialize<T>(value: T): T { return JSON.parse(JSON.stringify(value, (_, item) => typeof item === 'bigint' ? item.toString() : item)); }
 function guestToken() { return randomBytes(48).toString('base64url'); }
@@ -105,9 +106,7 @@ export async function POST(request: NextRequest) {
       if (!promotion) return NextResponse.json({ error: apiPublicMessage(request, 'promotionInvalid') }, { status: 404 });
       if (promotion.usage_limit !== null && promotion.usage_count >= promotion.usage_limit) return NextResponse.json({ error: apiPublicMessage(request, 'promotionLimit') }, { status: 409 });
       if (promotion.min_order_amount && subtotal.lt(promotion.min_order_amount)) return NextResponse.json({ error: apiPublicMessage(request, 'promotionMinimumAmount', { amount: promotion.min_order_amount.toString() }) }, { status: 409 });
-      discountTotal = promotion.type === 'percent' ? subtotal.mul(promotion.value).div(100) : promotion.type === 'fixed' ? promotion.value : promotion.type === 'free_delivery' ? deliveryFee : new Prisma.Decimal(0);
-      if (promotion.max_discount && discountTotal.gt(promotion.max_discount)) discountTotal = promotion.max_discount;
-      if (discountTotal.gt(subtotal.add(deliveryFee))) discountTotal = subtotal.add(deliveryFee);
+      discountTotal = calculatePromotionDiscount({ type: promotion.type, value: promotion.value, subtotal, deliveryFee, maxDiscount: promotion.max_discount });
       promotionId = promotion.id;
       promotionUsageLimit = promotion.usage_limit;
     }
