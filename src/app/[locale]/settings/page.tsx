@@ -30,7 +30,6 @@ type SettingsTab = 'profile' | 'security' | 'notifications' | 'privacy' | 'appea
 interface UserSettings {
   // Profile
   language: string;
-  timezone: string;
   
   // Security
   twoFAEnabled: boolean;
@@ -73,7 +72,6 @@ export default function SettingsPage() {
 
   const [settings, setSettings] = useState<UserSettings>({
     language: 'ru',
-    timezone: 'Asia/Bishkek',
     twoFAEnabled: false,
     emailVerified: false,
     phoneVerified: false,
@@ -273,7 +271,7 @@ export default function SettingsPage() {
                     </h2>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    <div className="grid grid-cols-1 gap-4 sm:gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         <Globe className="w-4 h-4 inline mr-2" />
@@ -290,22 +288,6 @@ export default function SettingsPage() {
                       </select>
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        <Globe className="w-4 h-4 inline mr-2" />
-                        {copy.profile.timezone}
-                      </label>
-                      <select
-                        value={settings.timezone}
-                        onChange={(e) => setSettings({ ...settings, timezone: e.target.value })}
-                        className="w-full px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white touch-manipulation"
-                      >
-                        <option value="Asia/Bishkek">{copy.timezones.bishkek}</option>
-                        <option value="Europe/Moscow">{copy.timezones.moscow}</option>
-                        <option value="Europe/London">{copy.timezones.london}</option>
-                        <option value="America/New_York">{copy.timezones.newYork}</option>
-                      </select>
-                    </div>
                   </div>
                 </div>
               )}

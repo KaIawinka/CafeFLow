@@ -36,7 +36,6 @@ export async function GET(request: NextRequest) {
       where: { id: payload.userId },
       select: {
         language: true,
-        timezone: true,
         two_fa_enabled: true,
         email_verified_at: true,
         phone_verified_at: true,
@@ -65,7 +64,6 @@ export async function GET(request: NextRequest) {
       settings: {
         language: user.language,
         language_ui: user.language,
-        timezone: user.timezone,
         twoFAEnabled: user.two_fa_enabled,
         emailVerified: Boolean(user.email_verified_at),
         phoneVerified: Boolean(user.phone_verified_at),
@@ -117,7 +115,6 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json() as {
       language?: string;
       language_ui?: string;
-      timezone?: string;
       emailNotifications?: boolean;
       smsNotifications?: boolean;
       pushNotifications?: boolean;
@@ -132,9 +129,6 @@ export async function PATCH(request: NextRequest) {
     const supportedLanguages = ['ru', 'en', 'kg'];
     if (language !== undefined && !supportedLanguages.includes(language)) {
       return NextResponse.json({ error: 'Недопустимый язык интерфейса' }, { status: 400 });
-    }
-    if (body.timezone !== undefined && !body.timezone.trim()) {
-      return NextResponse.json({ error: 'Часовой пояс не может быть пустым' }, { status: 400 });
     }
     if (body.theme !== undefined && !['light', 'dark', 'system'].includes(body.theme)) {
       return NextResponse.json({ error: 'Недопустимая тема оформления' }, { status: 400 });
@@ -183,7 +177,6 @@ export async function PATCH(request: NextRequest) {
       where: { id: payload.userId },
       data: {
         ...(language !== undefined ? { language } : {}),
-        ...(body.timezone !== undefined ? { timezone: body.timezone.trim() } : {}),
       },
     });
 

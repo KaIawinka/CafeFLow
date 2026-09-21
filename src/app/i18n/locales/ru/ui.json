@@ -162,16 +162,9 @@
     },
     "profile": {
       "title": "Настройки профиля",
-      "language": "Язык интерфейса",
-      "timezone": "Часовой пояс"
+      "language": "Язык интерфейса"
     },
     "languages": { "ru": "Русский", "en": "English", "kg": "Кыргызча" },
-    "timezones": {
-      "bishkek": "Бишкек (GMT+6)",
-      "moscow": "Москва (GMT+3)",
-      "london": "Лондон (GMT+0)",
-      "newYork": "Нью-Йорк (GMT-5)"
-    },
     "security": {
       "title": "Безопасность",
       "twoFactor": "Двухфакторная аутентификация",
