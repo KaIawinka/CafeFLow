@@ -53,7 +53,7 @@ function getCommandArguments(ctx: BotContext): string {
   return '';
 }
 
-bot.command('admin', async (ctx: BotContext) => {
+bot?.command('admin', async (ctx: BotContext) => {
   const chatId = ctx.chat?.id.toString();
   if (!chatId || !(await getTelegramAdmin(chatId))) {
     await ctx.reply('⛔ Эта команда доступна только администраторам.');
@@ -73,7 +73,7 @@ bot.command('admin', async (ctx: BotContext) => {
   );
 });
 
-bot.command('users', async (ctx: BotContext) => {
+bot?.command('users', async (ctx: BotContext) => {
   const chatId = ctx.chat?.id.toString();
   if (!chatId || !(await getTelegramAdmin(chatId))) {
     await ctx.reply('⛔ Эта команда доступна только администраторам.');
@@ -116,7 +116,7 @@ bot.command('users', async (ctx: BotContext) => {
   );
 });
 
-bot.command('user', async (ctx: BotContext) => {
+bot?.command('user', async (ctx: BotContext) => {
   const chatId = ctx.chat?.id.toString();
   if (!chatId || !(await getTelegramAdmin(chatId))) {
     await ctx.reply('⛔ Эта команда доступна только администраторам.');
@@ -169,7 +169,7 @@ bot.command('user', async (ctx: BotContext) => {
   );
 });
 
-bot.command('setrole', async (ctx: BotContext) => {
+bot?.command('setrole', async (ctx: BotContext) => {
   const chatId = ctx.chat?.id.toString();
   const admin = chatId ? await getTelegramAdmin(chatId) : null;
   if (!admin) {
@@ -215,7 +215,7 @@ bot.command('setrole', async (ctx: BotContext) => {
   );
 });
 
-bot.command('keys', async (ctx: BotContext) => {
+bot?.command('keys', async (ctx: BotContext) => {
   const chatId = ctx.chat?.id.toString();
   if (!chatId || !(await getTelegramAdmin(chatId))) {
     await ctx.reply('⛔ Эта команда доступна только администраторам.');
@@ -251,7 +251,7 @@ bot.command('keys', async (ctx: BotContext) => {
  * /start command handler
  * Welcome message and instructions
  */
-bot.command('start', async (ctx: BotContext) => {
+bot?.command('start', async (ctx: BotContext) => {
   const chatId = ctx.chat?.id.toString();
   const firstName = ctx.from?.first_name || 'Пользователь';
   
@@ -313,7 +313,7 @@ bot.command('start', async (ctx: BotContext) => {
  * /activate command handler
  * Activate account with access key
  */
-bot.command('activate', async (ctx: BotContext) => {
+bot?.command('activate', async (ctx: BotContext) => {
   const chatId = ctx.chat?.id.toString();
   
   if (!chatId) {
@@ -356,7 +356,7 @@ bot.command('activate', async (ctx: BotContext) => {
  * /login command handler
  * Login to system
  */
-bot.command('login', async (ctx: BotContext) => {
+bot?.command('login', async (ctx: BotContext) => {
   const chatId = ctx.chat?.id.toString();
   
   if (!chatId) {
@@ -405,7 +405,7 @@ bot.command('login', async (ctx: BotContext) => {
  * /status command handler
  * Shows current account linking status
  */
-bot.command('status', async (ctx: BotContext) => {
+bot?.command('status', async (ctx: BotContext) => {
   const chatId = ctx.chat?.id.toString();
   
   if (!chatId) {
@@ -485,7 +485,7 @@ bot.command('status', async (ctx: BotContext) => {
  * /help command handler
  * Shows available commands and usage
  */
-bot.command('help', async (ctx: BotContext) => {
+bot?.command('help', async (ctx: BotContext) => {
   const chatId = ctx.chat?.id.toString();
   const isAdmin = chatId ? !!(await getTelegramAdmin(chatId)) : false;
 
@@ -532,7 +532,7 @@ bot.command('help', async (ctx: BotContext) => {
 /**
  * Handle text messages (for activation flow)
  */
-bot.on('message:text', async (ctx: BotContext) => {
+bot?.on('message:text', async (ctx: BotContext) => {
   const chatId = ctx.chat?.id.toString();
   const text = ctx.message?.text;
   const username = ctx.from?.username;

@@ -2,7 +2,7 @@
  * Telegram Message Templates and Sending Functions
  */
 
-import { bot } from './bot';
+import { getTelegramBot } from './bot';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 
@@ -32,7 +32,7 @@ export async function sendVerificationCode(
     const message = formatVerificationMessage(code, attemptsLeft);
 
     // Send message
-    await bot.api.sendMessage(user.telegram_chat_id, message, {
+    await getTelegramBot().api.sendMessage(user.telegram_chat_id, message, {
       parse_mode: 'HTML',
     });
 
@@ -80,7 +80,7 @@ export async function sendAccountLinkedNotification(
       `Теперь при входе вы будете получать коды в этот бот.\n\n` +
       `Используйте /status для проверки статуса`;
 
-    await bot.api.sendMessage(chatId, message, {
+    await getTelegramBot().api.sendMessage(chatId, message, {
       parse_mode: 'HTML',
     });
 
@@ -125,7 +125,7 @@ export async function sendLoginAlert(
       `💻 ${userAgent.substring(0, 50)}...\n\n` +
       `Если это были не вы, немедленно свяжитесь с администратором!`;
 
-    await bot.api.sendMessage(user.telegram_chat_id, message, {
+    await getTelegramBot().api.sendMessage(user.telegram_chat_id, message, {
       parse_mode: 'HTML',
     });
 
@@ -177,7 +177,7 @@ export async function sendSecurityAlert(
       `🕐 ${new Date().toLocaleString('ru-RU')}\n\n` +
       `⚠️ Если это были не вы, <b>немедленно</b> обратитесь к администратору!`;
 
-    await bot.api.sendMessage(user.telegram_chat_id, message, {
+    await getTelegramBot().api.sendMessage(user.telegram_chat_id, message, {
       parse_mode: 'HTML',
     });
 
@@ -207,7 +207,7 @@ export async function sendAdminNotification(
       });
 
       if (user?.telegram_chat_id) {
-        await bot.api.sendMessage(user.telegram_chat_id, message, {
+        await getTelegramBot().api.sendMessage(user.telegram_chat_id, message, {
           parse_mode: 'HTML',
         });
         return { success: true };
@@ -226,7 +226,7 @@ export async function sendAdminNotification(
 
     for (const admin of admins) {
       if (admin.telegram_chat_id) {
-        await bot.api.sendMessage(admin.telegram_chat_id, message, {
+        await getTelegramBot().api.sendMessage(admin.telegram_chat_id, message, {
           parse_mode: 'HTML',
         });
       }
@@ -247,7 +247,7 @@ export async function sendAdminNotification(
  */
 export async function testBotConnection(chatId: string): Promise<boolean> {
   try {
-    await bot.api.sendMessage(chatId, '✅ Бот работает!');
+    await getTelegramBot().api.sendMessage(chatId, '✅ Бот работает!');
     return true;
   } catch (error) {
     logger.error('Bot connection test failed:', error);

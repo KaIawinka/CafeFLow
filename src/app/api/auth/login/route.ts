@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
           5 // 5 minutes expiry
         );
 
-        if (!sent) {
+        if (!sent.success) {
           logger.error('Failed to send 2FA code', undefined, { userId: user.id });
           
           // In development, allow login without 2FA if Telegram fails

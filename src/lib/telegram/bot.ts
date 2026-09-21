@@ -7,18 +7,19 @@ import { Bot, webhookCallback } from 'grammy';
 import type { Context } from 'grammy';
 import { logger } from '@/lib/logger';
 
-// Validate environment variables
-if (!process.env.TELEGRAM_BOT_TOKEN) {
-  throw new Error('TELEGRAM_BOT_TOKEN is not defined in environment variables');
-}
-
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN?.trim();
 
 // Custom context type for type safety
 export type BotContext = Context;
 
-// Create bot instance
-export const bot = new Bot<BotContext>(BOT_TOKEN);
+export const bot = BOT_TOKEN ? new Bot<BotContext>(BOT_TOKEN) : null;
+
+export function getTelegramBot(): Bot<BotContext> {
+  if (!bot) {
+    throw new Error('TELEGRAM_BOT_TOKEN is not defined in environment variables');
+  }
+  return bot;
+}
 
 // Bot info (cached)
 let botInfo: { username: string; id: number } | null = null;
@@ -27,6 +28,8 @@ let botInfo: { username: string; id: number } | null = null;
  * Get bot information
  */
 export async function getBotInfo() {
+  if (!bot) return null;
+
   if (!botInfo) {
     const me = await bot.api.getMe();
     botInfo = {
@@ -40,14 +43,21 @@ export async function getBotInfo() {
 /**
  * Webhook callback for Next.js API route
  */
-export const webhookHandler = webhookCallback(bot, 'next-js');
+type WebhookHandler = ReturnType<typeof webhookCallback<BotContext, 'next-js'>>;
+
+export const webhookHandler: WebhookHandler = bot
+  ? webhookCallback(bot, 'next-js')
+  : async () => {
+      throw new Error('TELEGRAM_BOT_TOKEN is not defined in environment variables');
+    };
 
 /**
  * Set webhook URL
  */
 export async function setWebhook(url: string, secretToken?: string) {
   try {
-    await bot.api.setWebhook(url, {
+    const telegramBot = getTelegramBot();
+    await telegramBot.api.setWebhook(url, {
       secret_token: secretToken,
       allowed_updates: ['message', 'callback_query'],
     });
@@ -60,8 +70,9 @@ export async function setWebhook(url: string, secretToken?: string) {
 }
 
 export async function configureBotProfile() {
-  await bot.api.setMyName('🍽 CaféFlow Bot');
-  await bot.api.setMyDescription(
+  const telegramBot = getTelegramBot();
+  await telegramBot.api.setMyName('🍽 CaféFlow Bot');
+  await telegramBot.api.setMyDescription(
     '🍽 CaféFlow — система управления рестораном\n\n' +
     '✨ Возможности:\n' +
     '• Безопасная авторизация через Telegram\n' +
@@ -72,8 +83,8 @@ export async function configureBotProfile() {
     '🔐 Безопасность превыше всего!\n' +
     'Коды действуют только 5 минут.'
   );
-  await bot.api.setMyShortDescription('🍽 CaféFlow — управление рестораном и безопасная авторизация');
-  await bot.api.setMyCommands([
+  await telegramBot.api.setMyShortDescription('🍽 CaféFlow — управление рестораном и безопасная авторизация');
+  await telegramBot.api.setMyCommands([
     { command: 'start', description: '🏠 Начать работу с ботом' },
     { command: 'activate', description: '🔑 Активировать аккаунт по ключу' },
     { command: 'login', description: '🔐 Получить ссылку для входа' },
@@ -89,7 +100,8 @@ export async function configureBotProfile() {
  */
 export async function deleteWebhook() {
   try {
-    await bot.api.deleteWebhook();
+    const telegramBot = getTelegramBot();
+    await telegramBot.api.deleteWebhook();
     logger.info('Webhook deleted');
     return true;
   } catch (error) {
@@ -102,6 +114,8 @@ export async function deleteWebhook() {
  * Get webhook info
  */
 export async function getWebhookInfo() {
+  if (!bot) return null;
+
   try {
     const info = await bot.api.getWebhookInfo();
     return info;
@@ -121,19 +135,19 @@ export async function startPolling() {
   
   await deleteWebhook();
   logger.info('Starting bot with long polling');
-  await bot.start();
+  await getTelegramBot().start();
 }
 
 /**
  * Stop bot
  */
 export async function stopBot() {
-  await bot.stop();
+  await getTelegramBot().stop();
   logger.info('Bot stopped');
 }
 
 // Handle errors
-bot.catch((err) => {
+bot?.catch((err) => {
   logger.error('Bot error', err);
 });
 
