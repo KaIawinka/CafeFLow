@@ -267,9 +267,9 @@ function LoginContent() {
 
               <Link
                 href={`/api/auth/google?locale=${currentLocale}&redirect=${encodeURIComponent(redirectTo)}`}
-                className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 font-semibold py-3 rounded-lg flex items-center justify-center gap-2 transition-colors hover:border-amber-500 hover:bg-amber-50 dark:hover:bg-gray-600"
+                className="w-full border border-[#dadce0] bg-white py-3 rounded-md flex items-center justify-center gap-3 text-[15px] font-medium text-[#3c4043] shadow-sm transition hover:bg-[#f8faff] hover:shadow-md dark:border-gray-500 dark:bg-white dark:text-[#3c4043]"
               >
-                <span aria-hidden="true" className="flex h-5 w-5 items-center justify-center rounded-full border border-gray-300 text-sm font-bold text-amber-600 dark:border-gray-500 dark:text-amber-400">G</span>
+                <span aria-hidden="true" className="bg-[linear-gradient(90deg,#4285f4_0_25%,#34a853_25%_50%,#fbbc05_50%_75%,#ea4335_75%)] bg-clip-text text-xl font-bold leading-none text-transparent">G</span>
                 {auth.login.google.button}
               </Link>
 

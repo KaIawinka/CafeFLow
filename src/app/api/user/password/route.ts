@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAccessToken } from '@/lib/auth/jwt';
-import { getPasswordStrengthErrorKeys, hashPassword, verifyPassword } from '@/lib/auth/password';
+import { getPasswordStrengthErrorKeys, hashPassword } from '@/lib/auth/password';
 import { verifyCode } from '@/lib/email/verification';
 import { logger } from '@/lib/logger';
 import { apiError, apiMessage, apiUserMessage } from '@/lib/api-response';
@@ -12,13 +12,12 @@ export async function POST(request: NextRequest) {
     const payload = token ? await verifyAccessToken(token) : null;
     if (!payload) return apiError(request, 'unauthorized', 401);
 
-    const body = await request.json() as { currentPassword?: string; newPassword?: string; confirmPassword?: string; code?: string };
-    const currentPassword = body.currentPassword || '';
+    const body = await request.json() as { newPassword?: string; confirmPassword?: string; code?: string };
     const newPassword = body.newPassword || '';
     const confirmPassword = body.confirmPassword || '';
     const code = body.code?.trim() || '';
 
-    if (!currentPassword || !newPassword || !confirmPassword || !code) {
+    if (!newPassword || !confirmPassword || !code) {
       return NextResponse.json({ error: apiUserMessage(request, 'passwordFieldsRequired') }, { status: 400 });
     }
     if (!/^\d{6}$/.test(code)) {
@@ -27,10 +26,6 @@ export async function POST(request: NextRequest) {
     if (newPassword !== confirmPassword) {
       return NextResponse.json({ error: apiUserMessage(request, 'passwordsDoNotMatch') }, { status: 400 });
     }
-    if (currentPassword === newPassword) {
-      return NextResponse.json({ error: apiUserMessage(request, 'passwordMustDiffer') }, { status: 400 });
-    }
-
     const passwordErrorKey = getPasswordStrengthErrorKeys(newPassword)[0];
     if (passwordErrorKey) {
       return NextResponse.json({ error: apiMessage(request, passwordErrorKey) }, { status: 400 });
@@ -38,11 +33,9 @@ export async function POST(request: NextRequest) {
 
     const user = await prisma.users.findUnique({
       where: { id: payload.userId },
-      select: { id: true, password_hash: true },
+      select: { id: true },
     });
-    if (!user || !(await verifyPassword(currentPassword, user.password_hash))) {
-      return NextResponse.json({ error: apiUserMessage(request, 'currentPasswordInvalid') }, { status: 400 });
-    }
+    if (!user) return apiError(request, 'userNotFound', 404);
 
     const verification = await verifyCode(user.id, code, 'password_change');
     if (!verification.success) {

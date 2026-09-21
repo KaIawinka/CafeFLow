@@ -5,11 +5,9 @@ import { usePathname, useRouter } from 'next/navigation';
 import { getLocaleTranslations } from '@/app/i18n/catalog';
 import { locales, type Locale } from '@/app/i18n/config';
 import {
-  User,
   Shield,
   Bell,
   Eye,
-  Globe,
   Palette,
   Save,
   Loader2,
@@ -33,7 +31,7 @@ import {
 } from 'lucide-react';
 import { SettingsToggle } from '@/components/ui/SettingsToggle';
 
-type SettingsTab = 'profile' | 'security' | 'notifications' | 'privacy' | 'appearance';
+type SettingsTab = 'security' | 'notifications' | 'privacy' | 'appearance';
 
 interface UserSettings {
   // Profile
@@ -68,21 +66,19 @@ export default function SettingsPage() {
   const router = useRouter();
   const locale = (locales.find((item) => pathname.split('/')[1] === item) || 'ru') as Locale;
   const copy = getLocaleTranslations(locale).ui.settings;
-  const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
+  const [activeTab, setActiveTab] = useState<SettingsTab>('security');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
     newPassword: '',
     confirmPassword: '',
     code: '',
   });
   const [isRequestingPasswordCode, setIsRequestingPasswordCode] = useState(false);
   const [passwordCodeRequested, setPasswordCodeRequested] = useState(false);
-  const [twoFactorPassword, setTwoFactorPassword] = useState('');
   const [telegramLinkUrl, setTelegramLinkUrl] = useState('');
   const [telegramLinkInstructions, setTelegramLinkInstructions] = useState<string[]>([]);
   const [isLinkingTelegram, setIsLinkingTelegram] = useState(false);
@@ -201,7 +197,7 @@ export default function SettingsPage() {
       const response = await fetch('/api/auth/telegram/2fa', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ enabled, currentPassword: twoFactorPassword }),
+        body: JSON.stringify({ enabled }),
       });
       const data = await response.json();
 
@@ -211,7 +207,6 @@ export default function SettingsPage() {
       }
 
       setSettings((currentSettings) => ({ ...currentSettings, twoFAEnabled: enabled }));
-      setTwoFactorPassword('');
       setSuccess(data.message || (enabled ? copy.security.twoFactorEnabled : copy.security.twoFactorDisabled));
     } catch {
       setError(copy.messages.saveGenericError);
@@ -288,7 +283,7 @@ export default function SettingsPage() {
         return;
       }
 
-      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '', code: '' });
+      setPasswordData({ newPassword: '', confirmPassword: '', code: '' });
       setPasswordCodeRequested(false);
       router.push(`/${locale}/login?message=password_changed`);
     } catch {
@@ -351,7 +346,6 @@ export default function SettingsPage() {
   };
 
   const tabs = [
-    { id: 'profile', label: copy.tabs.profile, icon: User },
     { id: 'security', label: copy.tabs.security, icon: Shield },
     { id: 'notifications', label: copy.tabs.notifications, icon: Bell },
     { id: 'privacy', label: copy.tabs.privacy, icon: Eye },
@@ -447,37 +441,6 @@ export default function SettingsPage() {
           {/* Content */}
           <div className="lg:col-span-3">
             <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-[0_12px_32px_rgba(21,26,30,0.06)] sm:p-6">
-              {/* Profile Tab */}
-              {activeTab === 'profile' && (
-                <div className="space-y-4 sm:space-y-6">
-                  <div>
-                    <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                      <User className="w-5 h-5 sm:w-6 sm:h-6" />
-                      {copy.profile.title}
-                    </h2>
-                  </div>
-
-                    <div className="grid grid-cols-1 gap-4 sm:gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        <Globe className="w-4 h-4 inline mr-2" />
-                        {copy.profile.language}
-                      </label>
-                      <select
-                        value={settings.language_ui}
-                        onChange={(e) => setSettings({ ...settings, language_ui: e.target.value })}
-                        className="w-full px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white touch-manipulation"
-                      >
-                        <option value="ru">{copy.languages.ru}</option>
-                        <option value="en">{copy.languages.en}</option>
-                        <option value="kg">{copy.languages.kg}</option>
-                      </select>
-                    </div>
-
-                  </div>
-                </div>
-              )}
-
               {/* Security Tab */}
               {activeTab === 'security' && (
                 <div className="space-y-4 sm:space-y-6">
@@ -566,25 +529,14 @@ export default function SettingsPage() {
                     {(settings.telegramLinked || settings.twoFAEnabled) && (
                       <form onSubmit={handleTwoFactorChange} className="mt-4 border-t border-orange-200 pt-4 dark:border-orange-800">
                         <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">{copy.security.twoFactorActionDescription}</p>
-                        <div className="flex flex-col gap-3 sm:flex-row">
-                          <input
-                            type="password"
-                            autoComplete="current-password"
-                            value={twoFactorPassword}
-                            onChange={(event) => setTwoFactorPassword(event.target.value)}
-                            placeholder={copy.security.twoFactorPassword}
-                            required
-                            className="min-h-11 flex-1 rounded-lg border border-gray-300 px-4 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                          />
-                          <button
+                        <button
                             type="submit"
                             disabled={isUpdatingTwoFA}
                             className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-amber-600 px-5 font-semibold text-white transition-colors hover:bg-amber-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                           >
                             {isUpdatingTwoFA ? <Loader2 className="h-5 w-5 animate-spin" /> : settings.twoFAEnabled ? <ShieldOff className="h-5 w-5" /> : <ShieldCheck className="h-5 w-5" />}
                             {settings.twoFAEnabled ? copy.security.disableTwoFactor : copy.security.enableTwoFactor}
-                          </button>
-                        </div>
+                        </button>
                       </form>
                     )}
                   </div>
@@ -658,15 +610,6 @@ export default function SettingsPage() {
                       placeholder={copy.security.passwordCodePlaceholder}
                       required
                       className="w-full rounded-lg border border-gray-300 px-4 py-3 tracking-[0.3em] dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                    />
-                    <input
-                      type="password"
-                      autoComplete="current-password"
-                      value={passwordData.currentPassword}
-                      onChange={(event) => setPasswordData({ ...passwordData, currentPassword: event.target.value })}
-                      placeholder={copy.security.currentPassword}
-                      required
-                      className="w-full rounded-lg border border-gray-300 px-4 py-3 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                     />
                     <input
                       type="password"
@@ -787,6 +730,19 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                      {copy.profile.language}
+                    </label>
+                    <select
+                      value={settings.language_ui}
+                      onChange={(event) => setSettings({ ...settings, language_ui: event.target.value })}
+                      className="mb-6 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900 focus:ring-2 focus:ring-amber-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    >
+                      <option value="ru">{copy.languages.ru}</option>
+                      <option value="en">{copy.languages.en}</option>
+                      <option value="kg">{copy.languages.kg}</option>
+                    </select>
+
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                       {copy.appearance.theme}
                     </label>

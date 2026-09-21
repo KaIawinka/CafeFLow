@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAccessToken } from '@/lib/auth/jwt';
-import { verifyPassword } from '@/lib/auth/password';
 import { logger } from '@/lib/logger';
-import { apiError, apiMessage, apiUserMessage } from '@/lib/api-response';
+import { apiError, apiMessage } from '@/lib/api-response';
 
 interface TwoFactorRequest {
   enabled?: boolean;
-  currentPassword?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -18,11 +16,10 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json() as TwoFactorRequest;
     const enabled = body.enabled;
-    const currentPassword = body.currentPassword || '';
 
-    if (typeof enabled !== 'boolean' || !currentPassword) {
+    if (typeof enabled !== 'boolean') {
       return NextResponse.json(
-        { error: apiMessage(request, 'twoFaPasswordRequired') },
+        { error: apiMessage(request, 'twoFaActionRequired') },
         { status: 400 },
       );
     }
@@ -31,20 +28,12 @@ export async function POST(request: NextRequest) {
       where: { id: payload.userId },
       select: {
         id: true,
-        password_hash: true,
         telegram_chat_id: true,
         two_fa_enabled: true,
       },
     });
 
     if (!user) return apiError(request, 'userNotFound', 404);
-
-    if (!(await verifyPassword(currentPassword, user.password_hash))) {
-      return NextResponse.json(
-        { error: apiUserMessage(request, 'currentPasswordInvalid') },
-        { status: 400 },
-      );
-    }
 
     if (enabled && !user.telegram_chat_id) {
       return NextResponse.json(
