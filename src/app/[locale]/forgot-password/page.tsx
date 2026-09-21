@@ -4,13 +4,8 @@ import { FormEvent, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, CheckCircle, KeyRound, Loader2, Mail } from 'lucide-react';
 import type { Locale } from '@/app/i18n/config';
+import { getLocaleTranslations } from '@/app/i18n/catalog';
 
-type Copy = { title: string; subtitle: string; email: string; send: string; code: string; password: string; confirm: string; reset: string; back: string; sent: string; mismatch: string; generic: string; success: string; invalid: string };
-const copy: Record<Locale, Copy> = {
-  ru: { title: 'Восстановление пароля', subtitle: 'Введите email, и мы отправим код для смены пароля.', email: 'Email', send: 'Отправить код', code: 'Код из письма', password: 'Новый пароль', confirm: 'Повторите пароль', reset: 'Изменить пароль', back: 'Вернуться ко входу', sent: 'Код отправлен на почту', mismatch: 'Пароли не совпадают', generic: 'Если аккаунт существует, код отправлен на почту.', success: 'Пароль изменен. Теперь можно войти.', invalid: 'Введите корректный email' },
-  en: { title: 'Reset password', subtitle: 'Enter your email and we will send a reset code.', email: 'Email', send: 'Send code', code: 'Email code', password: 'New password', confirm: 'Confirm password', reset: 'Change password', back: 'Back to login', sent: 'Code sent to your email', mismatch: 'Passwords do not match', generic: 'If an account exists, a code was sent to the email.', success: 'Password changed. You can now log in.', invalid: 'Enter a valid email' },
-  kg: { title: 'Сыр сөздү калыбына келтирүү', subtitle: 'Email киргизиңиз, код жөнөтөбүз.', email: 'Email', send: 'Код жөнөтүү', code: 'Email коду', password: 'Жаңы сыр сөз', confirm: 'Сыр сөздү кайталаңыз', reset: 'Сыр сөздү өзгөртүү', back: 'Кирүүгө кайтуу', sent: 'Код email дарегиңизге жөнөтүлдү', mismatch: 'Сыр сөздөр дал келген жок', generic: 'Аккаунт болсо, код email дарегине жөнөтүлдү.', success: 'Сыр сөз өзгөртүлдү. Эми кирсеңиз болот.', invalid: 'Туура email киргизиңиз' },
-};
 
 export default function ForgotPasswordPage({ params }: { params: Promise<{ locale: Locale }> }) {
   const [locale, setLocale] = useState<Locale>('ru');
@@ -20,7 +15,7 @@ export default function ForgotPasswordPage({ params }: { params: Promise<{ local
 }
 
 function ForgotPasswordForm({ locale }: { locale: Locale }) {
-  const t = copy[locale] || copy.ru;
+  const t = getLocaleTranslations(locale).auth.forgotPassword;
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
