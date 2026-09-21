@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { verifyAdminOrManager } from '@/lib/api-middleware';
 import { apiAdminMessage, apiError } from '@/lib/api-response';
 import { canTransitionReservationStatus, reservationStatuses, type ReservationStatus } from '@/lib/reservations/status';
+import { parseLocalDateTime } from '@/lib/reservations/time';
 
 function serialize<T>(value: T): T {
   return JSON.parse(JSON.stringify(value, (_, item) => typeof item === 'bigint' ? item.toString() : item));
@@ -18,11 +19,23 @@ export async function GET(request: NextRequest) {
     const pageSize = 25;
     const status = searchParams.get('status');
     const date = searchParams.get('date');
+    const validDate = date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null;
+    const branchScope = auth.branchIds ? { branch_id: { in: auth.branchIds } } : auth.branchId ? { branch_id: auth.branchId } : {};
+    const dateFilter = validDate ? {
+      OR: (await prisma.branches.findMany({ where: { tenant_id: auth.tenantId, ...branchScope }, select: { id: true, timezone: true } })).flatMap((branch) => {
+        const nextDate = new Date(`${validDate}T00:00:00Z`);
+        nextDate.setUTCDate(nextDate.getUTCDate() + 1);
+        const timeZone = branch.timezone || 'UTC';
+        const startAt = parseLocalDateTime(validDate, '00:00', timeZone);
+        const endAt = parseLocalDateTime(nextDate.toISOString().slice(0, 10), '00:00', timeZone);
+        return startAt && endAt ? [{ branch_id: branch.id, start_at: { gte: startAt, lt: endAt } }] : [];
+      }),
+    } : undefined;
     const reservationWhere = {
       tenant_id: auth.tenantId,
-      ...(auth.branchIds ? { branch_id: { in: auth.branchIds } } : auth.branchId ? { branch_id: auth.branchId } : {}),
+      ...branchScope,
       ...(reservationStatuses.includes(status as ReservationStatus) ? { status: status as ReservationStatus } : {}),
-      ...(date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? { start_at: { gte: new Date(`${date}T00:00:00`), lt: new Date(`${date}T23:59:59.999`) } } : {}),
+      ...(dateFilter || {}),
     };
     const [reservations, total, tables] = await Promise.all([
       prisma.reservations.findMany({
@@ -34,7 +47,7 @@ export async function GET(request: NextRequest) {
       }),
       prisma.reservations.count({ where: reservationWhere }),
       prisma.restaurant_tables.findMany({
-        where: { tenant_id: auth.tenantId, ...(auth.branchIds ? { branch_id: { in: auth.branchIds } } : auth.branchId ? { branch_id: auth.branchId } : {}), status: 'active' },
+        where: { tenant_id: auth.tenantId, ...branchScope, status: 'active' },
         orderBy: { name: 'asc' },
         select: { id: true, name: true, zone: true, capacity: true },
       }),
