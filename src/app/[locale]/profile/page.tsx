@@ -19,6 +19,12 @@ import {
   Calendar,
   ShieldCheck,
   ShieldOff,
+  ExternalLink,
+  RefreshCw,
+  KeyRound,
+  Camera,
+  Activity,
+  ArrowUpRight,
 } from 'lucide-react';
 import { locales, type Locale } from '@/app/i18n/config';
 import { getLocaleTranslations } from '@/app/i18n/catalog';
@@ -76,10 +82,13 @@ function ProfileContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const locale = (locales.find((item) => pathname.split('/')[1] === item) || 'ru') as Locale;
-  const copy = getLocaleTranslations(locale).ui.profile;
+  const translations = getLocaleTranslations(locale).ui;
+  const copy = translations.profile;
+  const securityCopy = translations.settings.security;
   const roleLabels = copy.roles as Record<string, string>;
   const welcomeMessage = `${copy.welcome} ${copy.welcomeMessage}`;
   const message = searchParams.get('message');
+  const dateLocale = locale === 'ru' ? 'ru-RU' : locale === 'kg' ? 'ky-KG' : 'en-US';
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -92,6 +101,12 @@ function ProfileContent() {
   );
   const [activeTab, setActiveTab] = useState<'profile' | 'settings'>('profile');
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [telegramLinkUrl, setTelegramLinkUrl] = useState('');
+  const [telegramLinkInstructions, setTelegramLinkInstructions] = useState<string[]>([]);
+  const [isLinkingTelegram, setIsLinkingTelegram] = useState(false);
+  const [isCheckingTelegram, setIsCheckingTelegram] = useState(false);
+  const [isUpdatingTwoFA, setIsUpdatingTwoFA] = useState(false);
+  const [twoFactorPassword, setTwoFactorPassword] = useState('');
 
   // Form data
   const [formData, setFormData] = useState({
@@ -212,6 +227,99 @@ function ProfileContent() {
     }
   };
 
+  const handleLinkTelegram = async () => {
+    setError('');
+    setSuccess('');
+    setIsLinkingTelegram(true);
+
+    try {
+      const response = await fetch('/api/auth/telegram/link-code');
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || securityCopy.telegramNotConnected);
+        return;
+      }
+
+      setTelegramLinkUrl(data.linkUrl || '');
+      setTelegramLinkInstructions(Array.isArray(data.instructions) ? data.instructions : []);
+      setSuccess(securityCopy.telegramLinkReady);
+    } catch {
+      setError(securityCopy.telegramNotConnected);
+    } finally {
+      setIsLinkingTelegram(false);
+    }
+  };
+
+  const handleCheckTelegram = async () => {
+    setError('');
+    setSuccess('');
+    setIsCheckingTelegram(true);
+
+    try {
+      const response = await fetch('/api/user/settings', { cache: 'no-store' });
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || copy.messages.genericError);
+        return;
+      }
+
+      if (data.settings) {
+        const telegramLinked = Boolean(data.settings.telegramLinked);
+        setProfile((current) => current ? {
+          ...current,
+          telegram_chat_id: telegramLinked ? current.telegram_chat_id || 'connected' : undefined,
+          telegram_username: data.settings.telegramUsername || undefined,
+          two_fa_enabled: Boolean(data.settings.twoFAEnabled),
+        } : current);
+        if (telegramLinked) {
+          setTelegramLinkUrl('');
+          setTelegramLinkInstructions([]);
+          setSuccess(securityCopy.telegramConnected);
+        } else {
+          setError(securityCopy.telegramNotConnected);
+        }
+      }
+    } catch {
+      setError(copy.messages.genericError);
+    } finally {
+      setIsCheckingTelegram(false);
+    }
+  };
+
+  const handleTwoFactorChange = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!profile) return;
+
+    setError('');
+    setSuccess('');
+    setIsUpdatingTwoFA(true);
+
+    try {
+      const enabled = !profile.two_fa_enabled;
+      const response = await fetch('/api/auth/telegram/2fa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled, currentPassword: twoFactorPassword }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || copy.messages.saveError);
+        return;
+      }
+
+      setProfile((current) => current ? { ...current, two_fa_enabled: enabled } : current);
+      setTwoFactorPassword('');
+      setSuccess(data.message || (enabled ? securityCopy.twoFactorEnabled : securityCopy.twoFactorDisabled));
+    } catch {
+      setError(copy.messages.genericError);
+    } finally {
+      setIsUpdatingTwoFA(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -231,12 +339,21 @@ function ProfileContent() {
     );
   }
 
+  const securityChecks = [
+    Boolean(profile.email_verified_at),
+    Boolean(profile.telegram_chat_id),
+    profile.two_fa_enabled,
+  ].filter(Boolean).length;
+  const profileName = profile.display_name || `${profile.first_name} ${profile.last_name || ''}`.trim();
+  const formatDate = (value?: string) => value ? new Date(value).toLocaleDateString(dateLocale) : '—';
+  const accountStatus = profile.status === 'active' ? copy.summary.active : copy.summary.pending;
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[var(--background)] py-8 text-[var(--foreground)]">
+      <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
           {/* Header */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 mb-6">
-            <div className="flex items-start gap-6">
+          <div className="mb-6 overflow-hidden rounded-2xl border border-[var(--border)] border-l-4 border-l-orange-500 bg-[var(--card)] p-6 shadow-[0_12px_32px_rgba(21,26,30,0.06)] sm:p-8">
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)] lg:items-center">
               {/* Avatar */}
               <div className="relative shrink-0">
                 {profile.avatar_file?.storage_key ? (
@@ -246,8 +363,8 @@ function ProfileContent() {
                     {profile.first_name[0]?.toUpperCase()}
                   </div>
                 )}
-                <label className="absolute -bottom-2 -right-2 cursor-pointer rounded-full bg-gray-900 px-3 py-1 text-xs font-medium text-white shadow hover:bg-gray-700">
-                  {isUploadingAvatar ? '...' : copy.updatePhoto}
+                <label className="absolute -bottom-2 -right-2 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-gray-900 text-white shadow-lg transition hover:bg-orange-500" title={copy.updatePhoto} aria-label={copy.updatePhoto}>
+                  {isUploadingAvatar ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
@@ -285,65 +402,86 @@ function ProfileContent() {
 
               {/* Info */}
               <div className="flex-1">
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                  {profile.display_name || `${profile.first_name} ${profile.last_name || ''}`}
+                <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-orange-600 dark:text-orange-300">{copy.summary.overview}</p>
+                <h1 className="mb-2 text-2xl font-black tracking-tight text-[var(--foreground)] sm:text-4xl">
+                  {profileName}
                 </h1>
-                <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--muted-foreground)]">
                   <span className="flex items-center gap-1">
                     <Mail className="w-4 h-4" />
                     {profile.email}
                   </span>
-                  <span className="px-3 py-1 bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 rounded-full text-xs font-medium">
+                  <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-700 dark:bg-orange-950/40 dark:text-orange-300">
                     {roleLabels[profile.role] || profile.role}
                   </span>
                 </div>
 
                 {profile.requires_approval && (
-                  <div className="mt-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
-                    <p className="text-sm text-yellow-800 dark:text-yellow-300">
-                      ⏳ {copy.awaitingApproval}
+                  <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-950/20">
+                    <p className="text-sm text-amber-800 dark:text-amber-300">
+                      {copy.awaitingApproval}
                     </p>
                   </div>
                 )}
 
-                <div className={`mt-4 flex items-center gap-3 rounded-lg border p-3 ${profile.two_fa_enabled ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20' : 'border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-700/50'}`}>
-                  {profile.two_fa_enabled ? <ShieldCheck className="h-5 w-5 text-green-600 dark:text-green-400" /> : <ShieldOff className="h-5 w-5 text-gray-500 dark:text-gray-400" />}
-                  <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{copy.telegram.twoFactor}</p>
-                    <p className={`text-xs ${profile.two_fa_enabled ? 'text-green-700 dark:text-green-300' : 'text-gray-500 dark:text-gray-400'}`}>
-                      {profile.two_fa_enabled ? copy.telegram.twoFactorEnabled : copy.telegram.twoFactorDisabled}
-                    </p>
-                  </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-xl bg-[var(--muted)]/60 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--muted-foreground)]">{copy.summary.accountStatus}</p>
+                  <p className="mt-2 flex items-center gap-2 text-sm font-bold"><span className={`h-2.5 w-2.5 rounded-full ${profile.status === 'active' ? 'bg-emerald-500' : 'bg-amber-500'}`} />{accountStatus}</p>
+                </div>
+                <div className="rounded-xl bg-[var(--muted)]/60 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--muted-foreground)]">{copy.summary.security}</p>
+                  <p className="mt-2 flex items-center gap-2 text-sm font-bold"><ShieldCheck className="h-4 w-4 text-emerald-500" />{securityChecks}/3</p>
+                </div>
+                <div className="col-span-2 flex items-center justify-between rounded-xl border border-[var(--border)] px-4 py-3 text-sm">
+                  <span className="flex items-center gap-2 text-[var(--muted-foreground)]"><MessageSquare className="h-4 w-4 text-blue-500" />{profile.telegram_chat_id ? securityCopy.telegramConnected : securityCopy.telegramNotConnected}</span>
+                  <ArrowUpRight className="h-4 w-4 text-[var(--muted-foreground)]" />
                 </div>
               </div>
             </div>
           </div>
 
+          <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {[
+              { label: copy.summary.accountStatus, value: accountStatus, detail: profile.role, icon: Activity, tone: 'orange' },
+              { label: copy.summary.memberSince, value: formatDate(profile.created_at), detail: copy.fields.createdAt, icon: Calendar, tone: 'blue' },
+              { label: copy.summary.lastActivity, value: formatDate(profile.last_login_at), detail: copy.fields.lastLogin, icon: Clock, tone: 'violet' },
+              { label: copy.summary.security, value: `${securityChecks}/3`, detail: securityChecks === 3 ? copy.summary.protected : copy.summary.needsAttention, icon: ShieldCheck, tone: 'emerald' },
+            ].map(({ label, value, detail, icon: Icon, tone }) => (
+              <div key={label} className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-[0_12px_32px_rgba(21,26,30,0.05)]">
+                <div className="flex items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.1em] text-[var(--muted-foreground)]">{label}</p><p className="mt-3 text-xl font-black tracking-tight">{value}</p></div><div className={`flex h-10 w-10 items-center justify-center rounded-xl ${tone === 'orange' ? 'bg-orange-100 text-orange-600 dark:bg-orange-950/40 dark:text-orange-300' : tone === 'blue' ? 'bg-blue-100 text-blue-600 dark:bg-blue-950/40 dark:text-blue-300' : tone === 'violet' ? 'bg-violet-100 text-violet-600 dark:bg-violet-950/40 dark:text-violet-300' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300'}`}><Icon className="h-5 w-5" /></div></div>
+                <p className="mt-3 text-xs text-[var(--muted-foreground)]">{detail}</p>
+              </div>
+            ))}
+          </div>
+
           {/* Messages */}
           {error && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6 flex items-start gap-3">
+            <div className="mb-6 flex items-start gap-3 rounded-xl border border-red-300 bg-red-50 p-4 dark:border-red-900/60 dark:bg-red-950/30">
               <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
             </div>
           )}
 
           {success && (
-            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-6 flex items-start gap-3">
+            <div className="mb-6 flex items-start gap-3 rounded-xl border border-emerald-300 bg-emerald-50 p-4 dark:border-emerald-900/60 dark:bg-emerald-950/30">
               <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-green-700 dark:text-green-300">{success}</p>
             </div>
           )}
 
           {/* Tabs */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden">
-            <div className="border-b border-gray-200 dark:border-gray-700">
-              <nav className="flex">
+          <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-[0_12px_32px_rgba(21,26,30,0.06)]">
+            <div className="border-b border-[var(--border)]">
+              <nav className="flex gap-1 p-2">
                 <button
                   onClick={() => setActiveTab('profile')}
                   className={`flex-1 px-6 py-4 text-sm font-medium ${
                     activeTab === 'profile'
-                      ? 'border-b-2 border-amber-600 text-amber-600'
-                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                      ? 'rounded-xl bg-[var(--secondary)] text-[var(--primary)]'
+                        : 'rounded-xl text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]'
                   }`}
                 >
                   <User className="w-4 h-4 inline mr-2" />
@@ -353,8 +491,8 @@ function ProfileContent() {
                   onClick={() => setActiveTab('settings')}
                   className={`flex-1 px-6 py-4 text-sm font-medium ${
                     activeTab === 'settings'
-                      ? 'border-b-2 border-amber-600 text-amber-600'
-                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                      ? 'rounded-xl bg-[var(--secondary)] text-[var(--primary)]'
+                        : 'rounded-xl text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]'
                   }`}
                 >
                   <Shield className="w-4 h-4 inline mr-2" />
@@ -363,9 +501,90 @@ function ProfileContent() {
               </nav>
             </div>
 
-            <div className="p-6">
+            <div className="p-5 sm:p-7">
               {activeTab === 'profile' ? (
                 <div className="space-y-4 sm:space-y-6">
+                  <section className="rounded-2xl border border-blue-200 bg-blue-50/70 p-5 dark:border-blue-900/70 dark:bg-blue-950/20 sm:p-6">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="flex items-start gap-3">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"><KeyRound className="h-5 w-5" /></div>
+                        <div>
+                          <h2 className="text-base font-black text-[var(--foreground)] sm:text-lg">{securityCopy.twoFactor}</h2>
+                          <p className="mt-1 text-sm text-[var(--muted-foreground)]">{securityCopy.twoFactorDescription}</p>
+                        </div>
+                      </div>
+                      <span className={`inline-flex items-center gap-2 self-start rounded-full px-3 py-1.5 text-xs font-bold ${profile.two_fa_enabled ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300' : 'bg-white/80 text-[var(--muted-foreground)] dark:bg-gray-900/40'}`}>
+                        {profile.two_fa_enabled ? <ShieldCheck className="h-4 w-4" /> : <ShieldOff className="h-4 w-4" />}
+                        {profile.two_fa_enabled ? securityCopy.twoFactorEnabled : securityCopy.twoFactorDisabled}
+                      </span>
+                    </div>
+
+                    <div className="mt-5 rounded-xl border border-blue-200/80 bg-white/80 p-4 dark:border-blue-900/60 dark:bg-gray-900/30">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-center gap-2 text-sm font-bold text-[var(--foreground)]">
+                          <MessageSquare className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                          {profile.telegram_chat_id ? securityCopy.telegramConnected : securityCopy.telegramNotConnected}
+                          {profile.telegram_username && <span className="font-normal text-[var(--muted-foreground)]">@{profile.telegram_username}</span>}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {!profile.telegram_chat_id && (
+                            <button
+                              type="button"
+                              onClick={() => void handleLinkTelegram()}
+                              disabled={isLinkingTelegram}
+                              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-bold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              {isLinkingTelegram ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageSquare className="h-4 w-4" />}
+                              {securityCopy.connectTelegram}
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => void handleCheckTelegram()}
+                            disabled={isCheckingTelegram}
+                            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--card)] px-4 text-sm font-bold text-[var(--foreground)] transition hover:border-blue-400 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-blue-950/30"
+                          >
+                            {isCheckingTelegram ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                            {securityCopy.checkTelegram}
+                          </button>
+                        </div>
+                      </div>
+
+                      {telegramLinkUrl && (
+                        <div className="mt-4 border-t border-blue-200 pt-4 dark:border-blue-900">
+                          <p className="text-sm font-semibold text-[var(--foreground)]">{securityCopy.telegramLinkReady}</p>
+                          <a href={telegramLinkUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-bold text-white hover:bg-blue-700">
+                            <ExternalLink className="h-4 w-4" />
+                            {securityCopy.openTelegram}
+                          </a>
+                          {telegramLinkInstructions.length > 0 && <ol className="mt-3 list-inside list-decimal space-y-1 text-xs text-[var(--muted-foreground)]">{telegramLinkInstructions.map((instruction) => <li key={instruction}>{instruction}</li>)}</ol>}
+                          <p className="mt-2 text-xs text-[var(--muted-foreground)]">{securityCopy.telegramLinkExpires}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {(profile.telegram_chat_id || profile.two_fa_enabled) && (
+                      <form onSubmit={handleTwoFactorChange} className="mt-4 border-t border-blue-200 pt-4 dark:border-blue-900">
+                        <p className="mb-3 text-sm text-[var(--muted-foreground)]">{securityCopy.twoFactorActionDescription}</p>
+                        <div className="flex flex-col gap-3 sm:flex-row">
+                          <input
+                            type="password"
+                            autoComplete="current-password"
+                            value={twoFactorPassword}
+                            onChange={(event) => setTwoFactorPassword(event.target.value)}
+                            placeholder={securityCopy.twoFactorPassword}
+                            required
+                            className="min-h-11 flex-1 rounded-lg border border-[var(--border)] bg-[var(--card)] px-4 text-[var(--foreground)] outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                          />
+                          <button type="submit" disabled={isUpdatingTwoFA} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-orange-500 px-5 font-bold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-400">
+                            {isUpdatingTwoFA ? <Loader2 className="h-5 w-5 animate-spin" /> : profile.two_fa_enabled ? <ShieldOff className="h-5 w-5" /> : <ShieldCheck className="h-5 w-5" />}
+                            {profile.two_fa_enabled ? securityCopy.disableTwoFactor : securityCopy.enableTwoFactor}
+                          </button>
+                        </div>
+                      </form>
+                    )}
+                  </section>
+
                   {/* Profile Form */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <div>
@@ -376,7 +595,7 @@ function ProfileContent() {
                         type="text"
                         value={formData.firstName}
                         onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 dark:bg-gray-700 dark:text-white"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-[var(--foreground)] outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
                       />
                     </div>
 
@@ -388,7 +607,7 @@ function ProfileContent() {
                         type="text"
                         value={formData.lastName}
                         onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 dark:bg-gray-700 dark:text-white"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-[var(--foreground)] outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
                       />
                     </div>
 
@@ -400,7 +619,7 @@ function ProfileContent() {
                         type="text"
                         value={formData.displayName}
                         onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 dark:bg-gray-700 dark:text-white"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-[var(--foreground)] outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
                       />
                     </div>
 
@@ -412,7 +631,7 @@ function ProfileContent() {
                         value={formData.bio}
                         onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                         rows={4}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 dark:bg-gray-700 dark:text-white"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-[var(--foreground)] outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
                         placeholder={copy.fields.bioPlaceholder}
                       />
                     </div>
@@ -427,7 +646,7 @@ function ProfileContent() {
                           type="tel"
                           value={formData.phone}
                           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                          className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 dark:bg-gray-700 dark:text-white"
+                          className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] py-3 pl-10 pr-4 text-[var(--foreground)] outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
                         />
                       </div>
                     </div>
@@ -441,7 +660,7 @@ function ProfileContent() {
                         <select
                           value={formData.timezone}
                           onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
-                          className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 dark:bg-gray-700 dark:text-white"
+                          className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] py-3 pl-10 pr-4 text-[var(--foreground)] outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
                         >
                           <option value="Asia/Bishkek">Asia/Bishkek (GMT+6)</option>
                           <option value="Europe/Moscow">Europe/Moscow (GMT+3)</option>
@@ -451,36 +670,14 @@ function ProfileContent() {
                     </div>
                   </div>
 
-                  {/* Telegram Info */}
-                  {profile.telegram_chat_id && (
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                      <div className="flex items-start gap-3">
-                        <MessageSquare className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                        <div className="flex-1">
-                          <h3 className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-1">
-                            {copy.telegram.connected}
-                          </h3>
-                          <p className="text-sm text-blue-700 dark:text-blue-400">
-                            @{profile.telegram_username || 'username'}
-                          </p>
-                          {profile.telegram_activated_with_key && (
-                            <p className="text-xs text-blue-600 dark:text-blue-500 mt-1">
-                              {copy.telegram.key}: {profile.telegram_activated_with_key}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
                   {/* Account Info */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-700">
+                  <div className="grid grid-cols-1 gap-3 border-t border-[var(--border)] pt-4 sm:grid-cols-2 sm:gap-4 sm:pt-6">
                     <div className="flex items-center gap-3 text-sm">
                       <Calendar className="w-4 h-4 text-gray-400" />
                       <div>
                         <span className="text-gray-500 dark:text-gray-400">{copy.fields.createdAt}:</span>
                         <span className="ml-2 text-gray-900 dark:text-white">
-                          {new Date(profile.created_at).toLocaleDateString('ru-RU')}
+                          {formatDate(profile.created_at)}
                         </span>
                       </div>
                     </div>
@@ -491,7 +688,7 @@ function ProfileContent() {
                         <div>
                           <span className="text-gray-500 dark:text-gray-400">{copy.fields.lastLogin}:</span>
                           <span className="ml-2 text-gray-900 dark:text-white">
-                            {new Date(profile.last_login_at).toLocaleDateString('ru-RU')}
+                            {formatDate(profile.last_login_at)}
                           </span>
                         </div>
                       </div>
@@ -501,7 +698,7 @@ function ProfileContent() {
                   <button
                     onClick={handleSaveProfile}
                     disabled={isSaving}
-                    className="w-full bg-amber-600 hover:bg-amber-700 disabled:bg-gray-400 text-white font-semibold py-3 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-3 font-bold text-white transition-colors hover:bg-orange-600 disabled:bg-gray-400"
                   >
                     {isSaving ? (
                       <>

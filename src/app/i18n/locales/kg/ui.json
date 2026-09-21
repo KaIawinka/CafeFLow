@@ -75,6 +75,21 @@
     "loadingError": "Профилди жүктөө катасы",
     "profileTab": "Профиль",
     "settingsTab": "Жөндөөлөр",
+    "summary": {
+      "overview": "Аккаунттун обзору",
+      "accountStatus": "Аккаунттун статусу",
+      "active": "Активдүү",
+      "pending": "Ырастоону күтүп жатат",
+      "emailVerified": "Email ырасталды",
+      "emailPending": "Email ырастала элек",
+      "telegramConnected": "Telegram туташтырылган",
+      "telegramPending": "Telegram туташтырылган эмес",
+      "security": "Коопсуздук",
+      "protected": "Коргоо жөндөлгөн",
+      "needsAttention": "Көңүл бурууну талап кылат",
+      "memberSince": "Катталган күнү",
+      "lastActivity": "Акыркы активдүүлүк"
+    },
     "updatePhoto": "Сүрөт",
     "uploading": "Жүктөлүүдө...",
     "roles": {

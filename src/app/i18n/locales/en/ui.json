@@ -75,6 +75,21 @@
     "loadingError": "Failed to load profile",
     "profileTab": "Profile",
     "settingsTab": "Settings",
+    "summary": {
+      "overview": "Account overview",
+      "accountStatus": "Account status",
+      "active": "Active",
+      "pending": "Awaiting confirmation",
+      "emailVerified": "Email verified",
+      "emailPending": "Email not verified",
+      "telegramConnected": "Telegram connected",
+      "telegramPending": "Telegram not connected",
+      "security": "Security",
+      "protected": "Protection configured",
+      "needsAttention": "Needs attention",
+      "memberSince": "Member since",
+      "lastActivity": "Last activity"
+    },
     "updatePhoto": "Photo",
     "uploading": "Uploading...",
     "roles": {

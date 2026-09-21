@@ -75,6 +75,21 @@
     "loadingError": "Ошибка загрузки профиля",
     "profileTab": "Профиль",
     "settingsTab": "Настройки",
+    "summary": {
+      "overview": "Обзор аккаунта",
+      "accountStatus": "Статус аккаунта",
+      "active": "Активен",
+      "pending": "Ожидает подтверждения",
+      "emailVerified": "Email подтверждён",
+      "emailPending": "Email не подтверждён",
+      "telegramConnected": "Telegram подключён",
+      "telegramPending": "Telegram не подключён",
+      "security": "Безопасность",
+      "protected": "Защита настроена",
+      "needsAttention": "Требует внимания",
+      "memberSince": "В системе с",
+      "lastActivity": "Последняя активность"
+    },
     "updatePhoto": "Фото",
     "uploading": "Загрузка...",
     "roles": {

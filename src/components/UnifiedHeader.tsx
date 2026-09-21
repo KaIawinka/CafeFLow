@@ -371,7 +371,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
 
   return (
     <>
-      <header data-theme={theme} className="header-surface sticky top-0 z-50 w-full border-b border-white/10 bg-[#151a1e]/95 shadow-sm backdrop-blur-md">
+      <header data-theme={theme} className="header-surface sticky top-0 z-[100] isolate w-full border-b border-white/10 bg-[#151a1e]/95 shadow-sm backdrop-blur-md">
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex min-h-16 items-center gap-3 sm:gap-5">
           <button
@@ -530,7 +530,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
                   </button>
 
                   {isDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2">
+                    <div className="absolute right-0 z-[120] mt-2 w-64 rounded-lg border border-gray-200 bg-white py-2 shadow-xl dark:border-gray-700 dark:bg-gray-800">
                       <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                         <div className="text-sm font-medium text-gray-900 dark:text-white">
                           {user.displayName || `${user.firstName} ${user.lastName || ''}`.trim()}
@@ -612,7 +612,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="header-mobile-menu absolute left-0 right-0 top-full border-t border-white/10 bg-[#151a1e] py-4 shadow-xl md:hidden md:max-w-md md:rounded-b-lg">
+          <div className="header-mobile-menu absolute left-0 right-0 top-full z-[110] border-t border-white/10 bg-[#151a1e] py-4 shadow-xl md:hidden md:max-w-md md:rounded-b-lg">
             {user && <div className="flex items-center gap-3 px-4 py-3 mb-4">
               {user.avatarUrl ? (
                 <Image src={user.avatarUrl} alt={header.avatar} width={40} height={40} className="h-10 w-10 rounded-full object-cover" />
