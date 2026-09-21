@@ -9,6 +9,7 @@ import { prisma } from '@/lib/prisma';
 import { verifyAccessToken, extractTokenFromHeader } from '@/lib/auth/jwt';
 import { generateTelegramLinkCode, getTelegramLinkUrl } from '@/lib/telegram/utils';
 import { logger } from '@/lib/logger';
+import { apiError, apiList, apiMessage } from '@/lib/api-response';
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
 
     if (!token) {
       return NextResponse.json(
-        { error: 'Токен не предоставлен' },
+        { error: apiMessage(request, 'tokenMissing') },
         { status: 401 }
       );
     }
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     if (!payload) {
       return NextResponse.json(
-        { error: 'Недействительный или истёкший токен' },
+        { error: apiMessage(request, 'invalidSessionToken') },
         { status: 401 }
       );
     }
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { error: 'Пользователь не найден' },
+        { error: apiMessage(request, 'userNotFound') },
         { status: 404 }
       );
     }
@@ -54,7 +55,7 @@ export async function GET(request: NextRequest) {
     if (user.telegram_chat_id) {
       return NextResponse.json(
         { 
-          error: 'Telegram уже привязан к этому аккаунту',
+          error: apiMessage(request, 'telegramAlreadyLinked'),
           alreadyLinked: true,
         },
         { status: 400 }
@@ -72,20 +73,12 @@ export async function GET(request: NextRequest) {
       code,
       linkUrl,
       expiresInMinutes: 10,
-      instructions: [
-        'Нажмите на ссылку ниже или откройте её в браузере',
-        'Telegram откроется автоматически',
-        'Нажмите START в боте',
-        'Ваш аккаунт будет привязан автоматически',
-      ],
+      instructions: apiList(request, 'telegramInstructions'),
     });
 
   } catch (error) {
     logger.error('Link code generation error', error);
     
-    return NextResponse.json(
-      { error: 'Внутренняя ошибка сервера' },
-      { status: 500 }
-    );
+    return apiError(request, 'server', 500);
   }
 }

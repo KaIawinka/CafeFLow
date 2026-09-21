@@ -10,6 +10,8 @@ import { logger } from '@/lib/logger';
 import { validateEmailAddress, createVerificationCode } from '@/lib/email/verification';
 import { sendVerificationEmail } from '@/lib/email/client';
 import { verifyRecaptcha } from '@/lib/recaptcha';
+import { getPasswordStrengthErrorKeys } from '@/lib/auth/password';
+import { apiError, apiMessage } from '@/lib/api-response';
 
 interface RegisterRequest {
   email: string;
@@ -33,7 +35,7 @@ export async function POST(request: NextRequest) {
     // Validation
     if (!email || !password || !firstName) {
       return NextResponse.json(
-        { error: 'Email, пароль и имя обязательны' },
+        { error: apiMessage(request, 'registrationRequired') },
         { status: 400 }
       );
     }
@@ -47,7 +49,7 @@ export async function POST(request: NextRequest) {
           score: recaptchaResult.score 
         });
         return NextResponse.json(
-          { error: 'Проверка безопасности не пройдена. Попробуйте позже.' },
+          { error: apiMessage(request, 'securityCheckFailed') },
           { status: 403 }
         );
       }
@@ -61,22 +63,23 @@ export async function POST(request: NextRequest) {
     const emailValidation = await validateEmailAddress(email);
     if (!emailValidation.valid) {
       return NextResponse.json(
-        { error: emailValidation.error },
+        { error: emailValidation.errorKey ? apiMessage(request, emailValidation.errorKey, emailValidation.errorParams) : emailValidation.error },
         { status: 400 }
       );
     }
 
     // Password strength validation
-    if (password.length < 8) {
+    const passwordErrorKey = getPasswordStrengthErrorKeys(password)[0];
+    if (passwordErrorKey) {
       return NextResponse.json(
-        { error: 'Пароль должен быть минимум 8 символов' },
+        { error: apiMessage(request, passwordErrorKey) },
         { status: 400 }
       );
     }
 
     if (firstName.length > 100 || (lastName && lastName.length > 100) || (phone && phone.length > 40)) {
       return NextResponse.json(
-        { error: 'Проверьте длину имени, фамилии и телефона' },
+        { error: apiMessage(request, 'invalidRegistrationData') },
         { status: 400 }
       );
     }
@@ -90,7 +93,7 @@ export async function POST(request: NextRequest) {
 
     if (existingUser) {
       return NextResponse.json(
-        { error: 'Пользователь с таким email уже существует' },
+        { error: apiMessage(request, 'emailExists') },
         { status: 409 }
       );
     }
@@ -172,7 +175,7 @@ export async function POST(request: NextRequest) {
             prisma.users.delete({ where: { id: user.id } }),
           ]);
           return NextResponse.json(
-            { error: 'Не удалось отправить код подтверждения. Проверьте настройки Resend и повторите регистрацию.' },
+            { error: apiMessage(request, 'verificationEmailConfigFailed') },
             { status: 503 },
           );
         }
@@ -186,7 +189,7 @@ export async function POST(request: NextRequest) {
           prisma.users.delete({ where: { id: user.id } }),
         ]);
         return NextResponse.json(
-          { error: 'Не удалось отправить код подтверждения. Проверьте настройки Resend и повторите регистрацию.' },
+          { error: apiMessage(request, 'verificationEmailConfigFailed') },
           { status: 503 },
         );
       }
@@ -216,21 +219,18 @@ export async function POST(request: NextRequest) {
       const prismaCode = String(error.code);
       if (prismaCode === 'P2002') {
         return NextResponse.json(
-          { error: 'Пользователь с таким email уже существует' },
+          { error: apiMessage(request, 'emailExists') },
           { status: 409 }
         );
       }
       if (prismaCode === 'P1001' || prismaCode === 'P1002' || prismaCode === 'P2021') {
         return NextResponse.json(
-          { error: 'База данных временно недоступна. Проверьте DATABASE_URL и примененные миграции.' },
+          { error: apiMessage(request, 'databaseUnavailable') },
           { status: 503 }
         );
       }
     }
 
-    return NextResponse.json(
-      { error: 'Внутренняя ошибка сервера' },
-      { status: 500 }
-    );
+    return apiError(request, 'server', 500);
   }
 }

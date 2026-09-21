@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAccessToken, extractTokenFromHeader } from '@/lib/auth/jwt';
 import { logger } from '@/lib/logger';
+import { apiError, apiMessage } from '@/lib/api-response';
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     if (!token) {
       return NextResponse.json(
-        { error: 'Токен не предоставлен' },
+        { error: apiMessage(request, 'tokenMissing') },
         { status: 401 }
       );
     }
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     if (!payload) {
       return NextResponse.json(
-        { error: 'Недействительный или истёкший токен' },
+        { error: apiMessage(request, 'invalidSessionToken') },
         { status: 401 }
       );
     }
@@ -51,7 +52,7 @@ export async function GET(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { error: 'Пользователь не найден' },
+        { error: apiMessage(request, 'userNotFound') },
         { status: 404 }
       );
     }
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
     // Check if user is still active
     if (user.status !== 'active') {
       return NextResponse.json(
-        { error: 'Аккаунт заблокирован' },
+        { error: apiMessage(request, 'accountBlockedShort') },
         { status: 403 }
       );
     }
@@ -88,9 +89,6 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     logger.error('Session check error', error);
     
-    return NextResponse.json(
-      { error: 'Внутренняя ошибка сервера' },
-      { status: 500 }
-    );
+    return apiError(request, 'server', 500);
   }
 }

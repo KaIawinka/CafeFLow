@@ -8,6 +8,7 @@ import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { createVerificationCode, canRequestNewCode } from '@/lib/email/verification';
 import { sendVerificationEmail } from '@/lib/email/client';
+import { apiError, apiMessage } from '@/lib/api-response';
 
 interface SendVerificationRequest {
   userId: string;
@@ -20,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     if (!userId) {
       return NextResponse.json(
-        { error: 'User ID обязателен' },
+        { error: apiMessage(request, 'userIdRequired') },
         { status: 400 }
       );
     }
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { error: 'Пользователь не найден' },
+        { error: apiMessage(request, 'userNotFound') },
         { status: 404 }
       );
     }
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest) {
     // Check if already verified
     if (user.email_verified_at) {
       return NextResponse.json(
-        { error: 'Email уже подтверждён' },
+        { error: apiMessage(request, 'emailAlreadyVerified') },
         { status: 400 }
       );
     }
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
     if (!canRequest) {
       return NextResponse.json(
         { 
-          error: `Пожалуйста, подождите ${waitSeconds} секунд перед новым запросом`,
+          error: apiMessage(request, 'verificationWait', { seconds: waitSeconds ?? 0 }),
           waitSeconds 
         },
         { status: 429 }
@@ -81,13 +82,13 @@ export async function POST(request: NextRequest) {
       if (process.env.NODE_ENV === 'development') {
         return NextResponse.json({
           success: true,
-          message: 'Код подтверждения отправлен (dev mode)',
+          message: apiMessage(request, 'verificationSentDev'),
           devCode: code, // Only in development!
         });
       }
       
       return NextResponse.json(
-        { error: 'Не удалось отправить письмо. Попробуйте позже.' },
+        { error: apiMessage(request, 'emailSendFailed') },
         { status: 500 }
       );
     }
@@ -96,15 +97,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Код подтверждения отправлен на ваш email',
+      message: apiMessage(request, 'verificationSent'),
     });
 
   } catch (error) {
     logger.error('Send verification error', error);
     
-    return NextResponse.json(
-      { error: 'Внутренняя ошибка сервера' },
-      { status: 500 }
-    );
+    return apiError(request, 'server', 500);
   }
 }

@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { verifyCode } from '@/lib/email/verification';
+import { apiError, apiMessage } from '@/lib/api-response';
 
 interface VerifyEmailRequest {
   userId: string;
@@ -20,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     if (!userId || !code) {
       return NextResponse.json(
-        { error: 'User ID и код обязательны' },
+        { error: apiMessage(request, 'userIdCodeRequired') },
         { status: 400 }
       );
     }
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
     // Validate code format (6 digits)
     if (!/^\d{6}$/.test(code)) {
       return NextResponse.json(
-        { error: 'Код должен состоять из 6 цифр' },
+        { error: apiMessage(request, 'invalidCodeFormat') },
         { status: 400 }
       );
     }
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { error: 'Пользователь не найден' },
+        { error: apiMessage(request, 'userNotFound') },
         { status: 404 }
       );
     }
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { 
           success: true,
-          message: 'Email уже подтверждён' 
+          message: apiMessage(request, 'emailAlreadyVerified'),
         },
         { status: 200 }
       );
@@ -67,7 +68,7 @@ export async function POST(request: NextRequest) {
 
     if (!result.success) {
       return NextResponse.json(
-        { error: result.error },
+        { error: result.errorKey ? apiMessage(request, result.errorKey) : result.error },
         { status: 400 }
       );
     }
@@ -85,15 +86,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Email успешно подтверждён',
+      message: apiMessage(request, 'emailVerified'),
     });
 
   } catch (error) {
     logger.error('Email verification error', error);
     
-    return NextResponse.json(
-      { error: 'Внутренняя ошибка сервера' },
-      { status: 500 }
-    );
+    return apiError(request, 'server', 500);
   }
 }

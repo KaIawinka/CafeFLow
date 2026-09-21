@@ -9,6 +9,7 @@ import { verifyCode } from '@/lib/telegram/utils';
 import { generateTokenPair, getTokenExpirySeconds, hashSessionToken } from '@/lib/auth/jwt';
 import { sendLoginAlert } from '@/lib/telegram/messages';
 import { logger } from '@/lib/logger';
+import { apiError, apiMessage } from '@/lib/api-response';
 
 interface Verify2FARequest {
   email: string;
@@ -24,7 +25,7 @@ export async function POST(request: NextRequest) {
     // Validation
     if (!email || !code || !tempSessionId) {
       return NextResponse.json(
-        { error: 'Email и код обязательны' },
+        { error: apiMessage(request, 'emailCodeRequired') },
         { status: 400 }
       );
     }
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
     // Validate code format (6 digits)
     if (!/^\d{6}$/.test(code)) {
       return NextResponse.json(
-        { error: 'Код должен состоять из 6 цифр' },
+        { error: apiMessage(request, 'invalidCodeFormat') },
         { status: 400 }
       );
     }
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
       logger.warn('2FA verification failed: User not found', { email });
       
       return NextResponse.json(
-        { error: 'Пользователь не найден' },
+        { error: apiMessage(request, 'userNotFound') },
         { status: 404 }
       );
     }
@@ -70,12 +71,12 @@ export async function POST(request: NextRequest) {
       where: { id: tempSessionId, user_id: user.id, is_2fa_verified: false, expires_at: { gt: new Date() } },
       select: { id: true },
     });
-    if (!pendingSession) return NextResponse.json({ error: 'Сессия подтверждения истекла. Войдите снова.' }, { status: 401 });
+    if (!pendingSession) return NextResponse.json({ error: apiMessage(request, 'pendingSessionExpired') }, { status: 401 });
 
     // Check if user is still active
     if (user.status !== 'active') {
       return NextResponse.json(
-        { error: 'Аккаунт заблокирован' },
+        { error: apiMessage(request, 'accountBlockedShort') },
         { status: 403 }
       );
     }
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest) {
     // Check if 2FA is enabled
     if (!user.two_fa_enabled || !user.telegram_chat_id) {
       return NextResponse.json(
-        { error: '2FA не включен для этого аккаунта' },
+        { error: apiMessage(request, 'twoFaDisabled') },
         { status: 400 }
       );
     }
@@ -100,7 +101,7 @@ export async function POST(request: NextRequest) {
       
       return NextResponse.json(
         { 
-          error: verification.error,
+          error: verification.errorKey ? apiMessage(request, verification.errorKey, verification.attemptsLeft === undefined ? {} : { attemptsLeft: verification.attemptsLeft }) : verification.error,
           attemptsLeft: verification.attemptsLeft,
         },
         { status: 401 }
@@ -175,9 +176,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     logger.error('2FA verification error', error);
     
-    return NextResponse.json(
-      { error: 'Внутренняя ошибка сервера' },
-      { status: 500 }
-    );
+    return apiError(request, 'server', 500);
   }
 }
