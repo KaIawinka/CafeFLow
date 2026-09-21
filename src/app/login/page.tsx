@@ -36,6 +36,11 @@ function LoginContent() {
 
   const currentLocale = getCurrentLocale();
   const { auth, common } = getLocaleTranslations(currentLocale);
+  const googleError = searchParams.get('error');
+  const google2FAEmail = searchParams.get('email') || '';
+  const google2FASession = searchParams.get('tempSessionId') || '';
+  const isGoogle2FA = googleError === 'google_2fa_required' && Boolean(google2FAEmail && google2FASession);
+  const googleErrorMessage = googleError && auth.login.google.errors[googleError as keyof typeof auth.login.google.errors];
 
   const navigateAfterLogin = (target: string) => {
     const localizedTarget = target.startsWith(`/${currentLocale}`)
@@ -46,14 +51,14 @@ function LoginContent() {
     window.location.assign(localizedTarget);
   };
 
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(google2FAEmail);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [code2FA, setCode2FA] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [requires2FA, setRequires2FA] = useState(false);
-  const [tempSessionId, setTempSessionId] = useState('');
+  const [error, setError] = useState(googleErrorMessage || '');
+  const [requires2FA, setRequires2FA] = useState(isGoogle2FA);
+  const [tempSessionId, setTempSessionId] = useState(google2FASession);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -253,6 +258,20 @@ function LoginContent() {
                   </>
                 )}
               </button>
+
+              <div className="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500">
+                <span className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
+                <span>{auth.login.google.or}</span>
+                <span className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
+              </div>
+
+              <Link
+                href={`/api/auth/google?locale=${currentLocale}&redirect=${encodeURIComponent(redirectTo)}`}
+                className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 font-semibold py-3 rounded-lg flex items-center justify-center gap-2 transition-colors hover:border-amber-500 hover:bg-amber-50 dark:hover:bg-gray-600"
+              >
+                <span aria-hidden="true" className="flex h-5 w-5 items-center justify-center rounded-full border border-gray-300 text-sm font-bold text-amber-600 dark:border-gray-500 dark:text-amber-400">G</span>
+                {auth.login.google.button}
+              </Link>
 
               <div className="text-center text-sm text-gray-600 dark:text-gray-400">
                 {auth.login.noAccount}{' '}

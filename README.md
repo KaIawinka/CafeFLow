@@ -59,6 +59,12 @@ ADMIN_SETUP_TOKEN="your-admin-token"
 # App URL
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 
+# Google OAuth (add this callback URL in Google Cloud Console)
+# http://localhost:3000/api/auth/google/callback
+GOOGLE_CLIENT_ID="your_google_client_id"
+GOOGLE_CLIENT_SECRET="your_google_client_secret"
+GOOGLE_REDIRECT_URI="http://localhost:3000/api/auth/google/callback"
+
 # Resend: бесплатный API key из resend.com
 RESEND_API_KEY="re_your_api_key"
 # Для теста без своего домена эту строку можно не указывать:
