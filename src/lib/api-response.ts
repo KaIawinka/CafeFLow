@@ -6,6 +6,7 @@ type ApiErrorKey = keyof TranslationCatalog['api']['errors'];
 type ApiAuthCatalog = TranslationCatalog['api']['auth'];
 type ApiUserCatalog = TranslationCatalog['api']['user'];
 type ApiPublicCatalog = TranslationCatalog['api']['public'];
+type ApiAdminCatalog = TranslationCatalog['api']['admin'];
 type ApiMessageKey = {
   [Key in keyof ApiAuthCatalog]: ApiAuthCatalog[Key] extends string ? Key : never;
 }[keyof ApiAuthCatalog];
@@ -14,6 +15,7 @@ type ApiListKey = {
 }[keyof ApiAuthCatalog];
 type ApiUserMessageKey = keyof ApiUserCatalog;
 type ApiPublicMessageKey = keyof ApiPublicCatalog;
+type ApiAdminMessageKey = keyof ApiAdminCatalog;
 
 function parseLocale(value: string | null | undefined): Locale | undefined {
   if (!value) return undefined;
@@ -87,6 +89,15 @@ export function apiPublicMessage(
 ) {
   const locale = getRequestLocale(request);
   return interpolateApiMessage(getLocaleTranslations(locale).api.public[key], params);
+}
+
+export function apiAdminMessage(
+  request: NextRequest,
+  key: ApiAdminMessageKey,
+  params: Record<string, string | number> = {},
+) {
+  const locale = getRequestLocale(request);
+  return interpolateApiMessage(getLocaleTranslations(locale).api.admin[key], params);
 }
 
 function interpolateApiMessage(template: string, params: Record<string, string | number>) {

@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { verifyAdminOrManager } from '@/lib/api-middleware';
+import { apiAdminMessage, apiError } from '@/lib/api-response';
 
 interface RouteContext {
   params: Promise<{
@@ -26,7 +27,7 @@ export async function GET(
   try {
     const { keyId } = await context.params;
     const auth = await verifyAdminOrManager(request, 'manage_staff');
-    if (!auth.success || !auth.userId || !auth.tenantId) return auth.error || NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
+    if (!auth.success || !auth.userId || !auth.tenantId) return auth.error || apiError(request, 'unauthorized', 401);
 
     const key = await prisma.bot_access_keys.findUnique({
       where: { id: keyId, creator: { tenant_id: auth.tenantId } },
@@ -64,8 +65,8 @@ export async function GET(
 
     if (!key) {
       return NextResponse.json(
-        { error: 'Ключ не найден' },
-        { status: 404 }
+        { error: apiAdminMessage(request, 'botKeyNotFound') },
+        { status: 404 },
       );
     }
 
@@ -77,10 +78,7 @@ export async function GET(
   } catch (error) {
     logger.error('Get bot key error', error);
     
-    return NextResponse.json(
-      { error: 'Внутренняя ошибка сервера' },
-      { status: 500 }
-    );
+    return apiError(request, 'server', 500);
   }
 }
 
@@ -94,7 +92,7 @@ export async function PATCH(
   try {
     const { keyId } = await context.params;
     const auth = await verifyAdminOrManager(request, 'manage_staff');
-    if (!auth.success || !auth.userId || !auth.tenantId) return auth.error || NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
+    if (!auth.success || !auth.userId || !auth.tenantId) return auth.error || apiError(request, 'unauthorized', 401);
 
     const body = await request.json();
     const { description, maxUses, isActive, expiresAt } = body;
@@ -106,8 +104,8 @@ export async function PATCH(
 
     if (!existingKey) {
       return NextResponse.json(
-        { error: 'Ключ не найден' },
-        { status: 404 }
+        { error: apiAdminMessage(request, 'botKeyNotFound') },
+        { status: 404 },
       );
     }
 
@@ -147,10 +145,7 @@ export async function PATCH(
   } catch (error) {
     logger.error('Update bot key error', error);
     
-    return NextResponse.json(
-      { error: 'Внутренняя ошибка сервера' },
-      { status: 500 }
-    );
+    return apiError(request, 'server', 500);
   }
 }
 
@@ -164,7 +159,7 @@ export async function DELETE(
   try {
     const { keyId } = await context.params;
     const auth = await verifyAdminOrManager(request, 'manage_staff');
-    if (!auth.success || !auth.userId || !auth.tenantId) return auth.error || NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
+    if (!auth.success || !auth.userId || !auth.tenantId) return auth.error || apiError(request, 'unauthorized', 401);
 
     // Check if key exists
     const existingKey = await prisma.bot_access_keys.findUnique({
@@ -173,8 +168,8 @@ export async function DELETE(
 
     if (!existingKey) {
       return NextResponse.json(
-        { error: 'Ключ не найден' },
-        { status: 404 }
+        { error: apiAdminMessage(request, 'botKeyNotFound') },
+        { status: 404 },
       );
     }
 
@@ -190,15 +185,12 @@ export async function DELETE(
 
     return NextResponse.json({
       success: true,
-      message: 'Ключ успешно удалён',
+      message: apiAdminMessage(request, 'botKeyDeleted'),
     });
 
   } catch (error) {
     logger.error('Delete bot key error', error);
     
-    return NextResponse.json(
-      { error: 'Внутренняя ошибка сервера' },
-      { status: 500 }
-    );
+    return apiError(request, 'server', 500);
   }
 }

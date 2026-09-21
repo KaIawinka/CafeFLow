@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAdminOrManager } from '@/lib/api-middleware';
+import { apiError } from '@/lib/api-response';
 
 export async function GET(request: NextRequest) {
   const auth = await verifyAdminOrManager(request, 'view_audit');
-  if (!auth.success || !auth.userId) return auth.error || NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
+  if (!auth.success || !auth.userId) return auth.error || apiError(request, 'unauthorized', 401);
   if (!auth.tenantId) return NextResponse.json({ logs: [], pagination: { page: 1, pageSize: 50, total: 0 } });
   const page = Math.max(1, Number(request.nextUrl.searchParams.get('page') || 1));
   const pageSize = 50;

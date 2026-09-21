@@ -159,5 +159,11 @@
     "cafeNotFound": "Кафе табылган жок",
     "reservationNotFound": "Брондоо табылган жок",
     "reservationCompleted": "Брондоо мурунтан аяктаган"
+  },
+  "admin": {
+    "telegramNotLinked": "Telegram аккаунтуңузга байланышкан эмес. 2FA жөндөө үчүн системанын администраторуна кайрылыңыз.",
+    "invalidBotKeyType": "Ачкычтын түрү туура эмес. Уруксат берилгендер: master, manager, kitchen, staff",
+    "botKeyNotFound": "Ачкыч табылган жок",
+    "botKeyDeleted": "Ачкыч ийгиликтүү өчүрүлдү"
   }
 }

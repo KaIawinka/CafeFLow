@@ -3,13 +3,14 @@
  * Logout admin and clear session cookies
  */
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logger } from '@/lib/logger';
 import { verifyAccessToken } from '@/lib/auth/jwt';
 import { prisma } from '@/lib/prisma';
+import { apiError } from '@/lib/api-response';
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get('accessToken')?.value;
@@ -26,9 +27,6 @@ export async function POST() {
   } catch (error) {
     logger.error('Logout error', error);
     
-    return NextResponse.json(
-      { error: 'Внутренняя ошибка сервера' },
-      { status: 500 }
-    );
+    return apiError(request, 'server', 500);
   }
 }

@@ -159,5 +159,11 @@
     "cafeNotFound": "Cafe not found",
     "reservationNotFound": "Reservation not found",
     "reservationCompleted": "Reservation is already completed"
+  },
+  "admin": {
+    "telegramNotLinked": "Telegram is not linked to your account. Contact the system administrator to set up 2FA.",
+    "invalidBotKeyType": "Invalid key type. Allowed: master, manager, kitchen, staff",
+    "botKeyNotFound": "Key not found",
+    "botKeyDeleted": "Key deleted successfully"
   }
 }

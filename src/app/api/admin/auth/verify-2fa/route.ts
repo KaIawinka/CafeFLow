@@ -10,6 +10,7 @@ import { logger } from '@/lib/logger';
 import { cookies } from 'next/headers';
 import crypto from 'crypto';
 import { getClientIp, isLoginRateLimited, recordLoginAttempt } from '@/lib/auth/login-attempts';
+import { apiError, apiMessage } from '@/lib/api-response';
 
 interface Verify2FARequest {
   email: string;
@@ -24,7 +25,7 @@ export async function POST(request: NextRequest) {
     // Validation
     if (!email || !code) {
       return NextResponse.json(
-        { error: 'Email и код обязательны' },
+        { error: apiMessage(request, 'emailCodeRequired') },
         { status: 400 }
       );
     }
@@ -33,13 +34,13 @@ export async function POST(request: NextRequest) {
     const ipAddress = getClientIp(request);
     if (await isLoginRateLimited(normalizedEmail, ipAddress)) {
       await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'admin_2fa_rate_limit_exceeded' });
-      return NextResponse.json({ error: 'Слишком много попыток входа. Попробуйте позже.' }, { status: 429 });
+      return NextResponse.json({ error: apiMessage(request, 'tooManyLoginAttempts') }, { status: 429 });
     }
 
     // Validate code format (6 digits)
     if (!/^\d{6}$/.test(code)) {
       return NextResponse.json(
-        { error: 'Код должен состоять из 6 цифр' },
+        { error: apiMessage(request, 'invalidCodeFormat') },
         { status: 400 }
       );
     }
@@ -65,15 +66,14 @@ export async function POST(request: NextRequest) {
       logger.warn('Admin 2FA verification failed: User not found', { email });
       
       return NextResponse.json(
-        { error: 'Пользователь не найден' },
-        { status: 404 }
+        apiError(request, 'userNotFound', 404)
       );
     }
 
     // Check if user is still active
     if (user.status !== 'active') {
       return NextResponse.json(
-        { error: 'Аккаунт заблокирован' },
+        { error: apiMessage(request, 'accountBlockedShort') },
         { status: 403 }
       );
     }
@@ -105,8 +105,8 @@ export async function POST(request: NextRequest) {
         await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'admin_2fa_expired', userId: user.id });
         logger.warn('Admin 2FA code expired', { email: user.email });
         return NextResponse.json(
-          { error: 'Код истёк. Запросите новый код.' },
-          { status: 401 }
+          { error: apiMessage(request, 'verificationCodeExpired') },
+          { status: 401 },
         );
       }
 
@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
           await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'admin_2fa_attempts_exceeded', userId: user.id });
           return NextResponse.json(
             { 
-              error: 'Превышено количество попыток. Запросите новый код.',
+              error: apiMessage(request, 'verificationAttemptsExceeded'),
               attemptsLeft: 0,
             },
             { status: 401 }
@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
         await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'admin_2fa_invalid_code', userId: user.id });
         return NextResponse.json(
           { 
-            error: 'Неверный код',
+            error: apiMessage(request, 'verificationCodeInvalid'),
             attemptsLeft,
           },
           { status: 401 }
@@ -158,8 +158,8 @@ export async function POST(request: NextRequest) {
       await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'admin_2fa_invalid_code', userId: user.id });
       
       return NextResponse.json(
-        { error: 'Неверный код' },
-        { status: 401 }
+        { error: apiMessage(request, 'verificationCodeInvalid') },
+        { status: 401 },
       );
     }
 
@@ -167,8 +167,8 @@ export async function POST(request: NextRequest) {
     if (verificationCode.attempts >= 3) {
       await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'admin_2fa_attempts_exceeded', userId: user.id });
       return NextResponse.json(
-        { error: 'Превышено количество попыток. Запросите новый код.' },
-        { status: 401 }
+        { error: apiMessage(request, 'verificationAttemptsExceeded') },
+        { status: 401 },
       );
     }
 
@@ -230,9 +230,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     logger.error('Admin 2FA verification error', error);
     
-    return NextResponse.json(
-      { error: 'Внутренняя ошибка сервера' },
-      { status: 500 }
-    );
+    return apiError(request, 'server', 500);
   }
 }

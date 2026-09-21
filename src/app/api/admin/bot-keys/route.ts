@@ -9,6 +9,7 @@ import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import crypto from 'crypto';
 import { verifyAdminOrManager } from '@/lib/api-middleware';
+import { apiAdminMessage, apiError } from '@/lib/api-response';
 
 /**
  * Generate a unique bot access key
@@ -27,7 +28,7 @@ function generateBotKey(keyType: string): string {
 export async function GET(request: NextRequest) {
   try {
     const auth = await verifyAdminOrManager(request, 'manage_staff');
-    if (!auth.success || !auth.userId || !auth.tenantId) return auth.error || NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
+    if (!auth.success || !auth.userId || !auth.tenantId) return auth.error || apiError(request, 'unauthorized', 401);
 
     // Get all keys with creator info and activation count
     const keys = await prisma.bot_access_keys.findMany({
@@ -72,10 +73,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     logger.error('Get bot keys error', error);
     
-    return NextResponse.json(
-      { error: 'Внутренняя ошибка сервера' },
-      { status: 500 }
-    );
+    return apiError(request, 'server', 500);
   }
 }
 
@@ -85,7 +83,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const auth = await verifyAdminOrManager(request, 'manage_staff');
-    if (!auth.success || !auth.userId || !auth.tenantId) return auth.error || NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
+    if (!auth.success || !auth.userId || !auth.tenantId) return auth.error || apiError(request, 'unauthorized', 401);
 
     const body = await request.json();
     const { keyType, description, maxUses, expiresInDays } = body;
@@ -95,7 +93,7 @@ export async function POST(request: NextRequest) {
     
     if (!keyType || !validKeyTypes.includes(keyType)) {
       return NextResponse.json(
-        { error: 'Неверный тип ключа. Допустимые: master, manager, kitchen, staff' },
+        { error: apiAdminMessage(request, 'invalidBotKeyType') },
         { status: 400 }
       );
     }
@@ -158,9 +156,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     logger.error('Create bot key error', error);
     
-    return NextResponse.json(
-      { error: 'Внутренняя ошибка сервера' },
-      { status: 500 }
-    );
+    return apiError(request, 'server', 500);
   }
 }

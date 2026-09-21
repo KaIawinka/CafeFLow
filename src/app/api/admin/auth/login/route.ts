@@ -10,6 +10,7 @@ import { verifyPassword } from '@/lib/auth/password';
 import { logger } from '@/lib/logger';
 import crypto from 'crypto';
 import { getClientIp, isLoginRateLimited, recordLoginAttempt } from '@/lib/auth/login-attempts';
+import { apiError, apiMessage, apiAdminMessage } from '@/lib/api-response';
 
 interface LoginRequest {
   email: string;
@@ -24,7 +25,7 @@ export async function POST(request: NextRequest) {
     // Validation
     if (!email || !password) {
       return NextResponse.json(
-        { error: 'Email и пароль обязательны' },
+        { error: apiMessage(request, 'emailPasswordRequired') },
         { status: 400 }
       );
     }
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     if (await isLoginRateLimited(normalizedEmail, ipAddress)) {
       await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'admin_rate_limit_exceeded' });
-      return NextResponse.json({ error: 'Слишком много попыток входа. Попробуйте позже.' }, { status: 429 });
+      return NextResponse.json({ error: apiMessage(request, 'tooManyLoginAttempts') }, { status: 429 });
     }
 
     // Find admin user by email
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
       logger.warn('Admin login failed: User not found or not admin', { email, ipAddress });
       
       return NextResponse.json(
-        { error: 'Неверный email или пароль' },
+        { error: apiMessage(request, 'invalidCredentials') },
         { status: 401 }
       );
     }
@@ -73,7 +74,7 @@ export async function POST(request: NextRequest) {
       logger.warn('Admin login failed: User inactive', { email, status: user.status });
       
       return NextResponse.json(
-        { error: 'Аккаунт заблокирован. Обратитесь к администратору.' },
+        { error: apiMessage(request, 'accountBlocked') },
         { status: 403 }
       );
     }
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest) {
       await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'admin_missing_password_hash', userId: user.id });
       logger.warn('Admin login failed: No password hash', { email });
       return NextResponse.json(
-        { error: 'Неверный email или пароль' },
+        { error: apiMessage(request, 'invalidCredentials') },
         { status: 401 }
       );
     }
@@ -95,7 +96,7 @@ export async function POST(request: NextRequest) {
       logger.warn('Admin login failed: Invalid password', { email, ipAddress });
       
       return NextResponse.json(
-        { error: 'Неверный email или пароль' },
+        { error: apiMessage(request, 'invalidCredentials') },
         { status: 401 }
       );
     }
@@ -109,7 +110,7 @@ export async function POST(request: NextRequest) {
       await recordLoginAttempt({ email: normalizedEmail, ipAddress, userAgent: request.headers.get('user-agent'), success: false, reason: 'admin_telegram_not_linked', userId: user.id });
       logger.error('Admin has no Telegram linked', { email: user.email });
       return NextResponse.json(
-        { error: 'У вас не привязан Telegram. Обратитесь к администратору системы для настройки 2FA.' },
+        { error: apiAdminMessage(request, 'telegramNotLinked') },
         { status: 400 }
       );
     }
@@ -173,7 +174,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         requires2FA: true,
-        message: 'Код подтверждения отправлен в Telegram',
+        message: apiMessage(request, 'twoFaCodeSent'),
         expiresInMinutes: 5,
       });
 
@@ -182,7 +183,7 @@ export async function POST(request: NextRequest) {
       logger.error('Failed to send 2FA code via Telegram', error);
       
       return NextResponse.json(
-        { error: 'Не удалось отправить код подтверждения. Попробуйте позже.' },
+        { error: apiMessage(request, 'verificationSendFailed') },
         { status: 500 }
       );
     }
@@ -190,9 +191,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     logger.error('Admin login error', error);
     
-    return NextResponse.json(
-      { error: 'Внутренняя ошибка сервера' },
-      { status: 500 }
-    );
+    return apiError(request, 'server', 500);
   }
 }

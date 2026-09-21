@@ -159,5 +159,11 @@
     "cafeNotFound": "Кафе не найдено",
     "reservationNotFound": "Бронирование не найдено",
     "reservationCompleted": "Бронирование уже завершено"
+  },
+  "admin": {
+    "telegramNotLinked": "У вас не привязан Telegram. Обратитесь к администратору системы для настройки 2FA.",
+    "invalidBotKeyType": "Неверный тип ключа. Допустимые: master, manager, kitchen, staff",
+    "botKeyNotFound": "Ключ не найден",
+    "botKeyDeleted": "Ключ успешно удалён"
   }
 }
