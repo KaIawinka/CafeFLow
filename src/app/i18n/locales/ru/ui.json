@@ -150,6 +150,90 @@
       "makeDefault": "Сделать основным"
     }
   },
+  "settings": {
+    "title": "Настройки",
+    "description": "Управление вашим аккаунтом и предпочтениями",
+    "tabs": {
+      "profile": "Профиль",
+      "security": "Безопасность",
+      "notifications": "Уведомления",
+      "privacy": "Приватность",
+      "appearance": "Оформление"
+    },
+    "profile": {
+      "title": "Настройки профиля",
+      "language": "Язык интерфейса",
+      "timezone": "Часовой пояс"
+    },
+    "languages": { "ru": "Русский", "en": "English", "kg": "Кыргызча" },
+    "timezones": {
+      "bishkek": "Бишкек (GMT+6)",
+      "moscow": "Москва (GMT+3)",
+      "london": "Лондон (GMT+0)",
+      "newYork": "Нью-Йорк (GMT-5)"
+    },
+    "security": {
+      "title": "Безопасность",
+      "twoFactor": "Двухфакторная аутентификация",
+      "twoFactorDescription": "Дополнительный уровень защиты через Telegram",
+      "verificationStatus": "Статус верификации",
+      "email": "Email адрес",
+      "phone": "Номер телефона",
+      "verified": "Подтверждён",
+      "verify": "Подтвердить",
+      "changePassword": "Изменить пароль",
+      "changePasswordDescription": "После изменения потребуется войти заново на устройствах.",
+      "currentPassword": "Текущий пароль",
+      "newPassword": "Новый пароль",
+      "confirmPassword": "Повторите новый пароль",
+      "changingPassword": "Изменение...",
+      "changePasswordButton": "Изменить пароль"
+    },
+    "notifications": {
+      "title": "Уведомления",
+      "email": "Email уведомления",
+      "emailDescription": "Получать уведомления на почту",
+      "sms": "SMS уведомления",
+      "smsDescription": "Получать SMS сообщения",
+      "push": "Push уведомления",
+      "pushDescription": "Уведомления в браузере",
+      "telegram": "Telegram уведомления",
+      "telegramDescription": "Уведомления в Telegram боте"
+    },
+    "privacy": {
+      "title": "Приватность",
+      "onlineStatus": "Показывать статус онлайн",
+      "onlineStatusDescription": "Другие пользователи видят когда вы в сети",
+      "phone": "Показывать номер телефона",
+      "phoneDescription": "Телефон виден в профиле",
+      "email": "Показывать email адрес",
+      "emailDescription": "Email виден в профиле"
+    },
+    "appearance": {
+      "title": "Оформление",
+      "theme": "Тема оформления",
+      "themes": { "light": "Светлая", "dark": "Тёмная", "system": "Системная" },
+      "compactMode": "Компактный режим",
+      "compactModeDescription": "Уменьшенные отступы и размеры элементов"
+    },
+    "buttons": { "save": "Сохранить изменения", "saving": "Сохранение..." },
+    "messages": {
+      "saved": "Настройки успешно сохранены",
+      "saveError": "Ошибка сохранения",
+      "saveGenericError": "Произошла ошибка при сохранении",
+      "passwordError": "Не удалось изменить пароль",
+      "passwordGenericError": "Произошла ошибка при изменении пароля"
+    }
+  },
+  "accessDenied": {
+    "title": "Доступ запрещён",
+    "description": "У вас недостаточно прав для доступа к этой странице.",
+    "yourRole": "Ваша роль:",
+    "required": "Требуется:",
+    "profile": "Перейти в профиль",
+    "home": "На главную",
+    "help": "Если вы считаете, что это ошибка, обратитесь к администратору."
+  },
   "notFound": {
     "title": "Страница не найдена",
     "message": "К сожалению, запрашиваемая страница не существует или была перемещена",

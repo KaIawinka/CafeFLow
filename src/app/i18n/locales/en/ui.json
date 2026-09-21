@@ -150,6 +150,90 @@
       "makeDefault": "Make default"
     }
   },
+  "settings": {
+    "title": "Settings",
+    "description": "Manage your account and preferences",
+    "tabs": {
+      "profile": "Profile",
+      "security": "Security",
+      "notifications": "Notifications",
+      "privacy": "Privacy",
+      "appearance": "Appearance"
+    },
+    "profile": {
+      "title": "Profile settings",
+      "language": "Interface language",
+      "timezone": "Time zone"
+    },
+    "languages": { "ru": "Russian", "en": "English", "kg": "Kyrgyz" },
+    "timezones": {
+      "bishkek": "Bishkek (GMT+6)",
+      "moscow": "Moscow (GMT+3)",
+      "london": "London (GMT+0)",
+      "newYork": "New York (GMT-5)"
+    },
+    "security": {
+      "title": "Security",
+      "twoFactor": "Two-factor authentication",
+      "twoFactorDescription": "An additional layer of protection through Telegram",
+      "verificationStatus": "Verification status",
+      "email": "Email address",
+      "phone": "Phone number",
+      "verified": "Verified",
+      "verify": "Verify",
+      "changePassword": "Change password",
+      "changePasswordDescription": "You will need to sign in again on your devices after changing it.",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "confirmPassword": "Repeat new password",
+      "changingPassword": "Changing...",
+      "changePasswordButton": "Change password"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "email": "Email notifications",
+      "emailDescription": "Receive notifications by email",
+      "sms": "SMS notifications",
+      "smsDescription": "Receive SMS messages",
+      "push": "Push notifications",
+      "pushDescription": "Notifications in your browser",
+      "telegram": "Telegram notifications",
+      "telegramDescription": "Notifications in the Telegram bot"
+    },
+    "privacy": {
+      "title": "Privacy",
+      "onlineStatus": "Show online status",
+      "onlineStatusDescription": "Other users can see when you are online",
+      "phone": "Show phone number",
+      "phoneDescription": "Your phone is visible on your profile",
+      "email": "Show email address",
+      "emailDescription": "Your email is visible on your profile"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "theme": "Theme",
+      "themes": { "light": "Light", "dark": "Dark", "system": "System" },
+      "compactMode": "Compact mode",
+      "compactModeDescription": "Reduce spacing and element sizes"
+    },
+    "buttons": { "save": "Save changes", "saving": "Saving..." },
+    "messages": {
+      "saved": "Settings saved successfully",
+      "saveError": "Save error",
+      "saveGenericError": "An error occurred while saving",
+      "passwordError": "Unable to change password",
+      "passwordGenericError": "An error occurred while changing the password"
+    }
+  },
+  "accessDenied": {
+    "title": "Access denied",
+    "description": "You do not have sufficient permissions to access this page.",
+    "yourRole": "Your role:",
+    "required": "Required:",
+    "profile": "Go to profile",
+    "home": "Go home",
+    "help": "If you believe this is an error, contact an administrator."
+  },
   "notFound": {
     "title": "Page not found",
     "message": "Sorry, the requested page does not exist or has been moved",

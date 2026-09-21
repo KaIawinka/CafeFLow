@@ -5,6 +5,8 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Mail, CheckCircle, AlertCircle, Loader2, ArrowLeft, RefreshCw } from 'lucide-react';
+import { getLocaleTranslations } from '@/app/i18n/catalog';
+import { locales, type Locale } from '@/app/i18n/config';
 
 export default function VerifyEmailPage() {
   return (
@@ -18,7 +20,8 @@ function VerifyEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const currentLocale = ['ru', 'en', 'kg'].includes(pathname.split('/').filter(Boolean)[0] || '') ? pathname.split('/').filter(Boolean)[0] : 'ru';
+  const currentLocale = (locales.find((item) => pathname.split('/')[1] === item) || 'ru') as Locale;
+  const { auth, common } = getLocaleTranslations(currentLocale);
   const userId = searchParams.get('userId');
   const email = searchParams.get('email');
 
@@ -84,7 +87,7 @@ function VerifyEmailContent() {
 
   const handleVerify = async (verificationCode: string) => {
     if (!userId) {
-      setError('User ID не найден. Пожалуйста, войдите снова.');
+      setError(auth.verify.missingUserId);
       return;
     }
 
@@ -104,7 +107,7 @@ function VerifyEmailContent() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || 'Ошибка верификации');
+        setError(data.error || auth.verify.verificationFailed);
         setIsVerifying(false);
         // Clear code on error
         setCode(['', '', '', '', '', '']);
@@ -118,7 +121,7 @@ function VerifyEmailContent() {
         router.push('/profile?verified=true');
       }, 2000);
     } catch {
-      setError('Произошла ошибка. Попробуйте позже.');
+      setError(auth.verify.errors.serverError);
       setIsVerifying(false);
       setCode(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
@@ -144,7 +147,7 @@ function VerifyEmailContent() {
           setResendCooldown(data.waitSeconds || 60);
           setError(data.error);
         } else {
-          setError(data.error || 'Не удалось отправить код');
+          setError(data.error || auth.verify.resendFailed);
         }
         return;
       }
@@ -154,7 +157,7 @@ function VerifyEmailContent() {
       setCode(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
     } catch {
-      setError('Произошла ошибка при отправке кода');
+      setError(auth.verify.resendFailed);
     }
   };
 
@@ -163,15 +166,15 @@ function VerifyEmailContent() {
       <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 max-w-md w-full text-center border border-gray-100 dark:border-gray-700">
           <AlertCircle className="w-16 h-16 text-red-500 dark:text-red-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Ошибка</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">{auth.verify.errors.serverError}</h2>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            Отсутствуют необходимые параметры. Пожалуйста, войдите в систему заново.
+            {auth.verify.errors.missingParams}
           </p>
           <Link
             href={`/${currentLocale}/login`}
             className="inline-flex items-center gap-2 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors min-h-[44px]"
           >
-            Перейти к входу
+            {auth.verify.errors.goToLogin}
           </Link>
         </div>
       </div>
@@ -184,22 +187,22 @@ function VerifyEmailContent() {
         <div className="mb-4">
           <Link href={`/${currentLocale}/profile`} className="inline-flex items-center gap-2 font-medium text-gray-800 dark:text-gray-200 hover:text-amber-700 dark:hover:text-amber-400 transition-colors min-h-[44px]">
             <ArrowLeft className="h-4 w-4" />
-            К профилю
+            {auth.verify.backToProfile}
           </Link>
         </div>
 
         <div className="text-center mb-8">
-          <Image src="/cafeflow-logo.svg" alt="CafeFlow" width={64} height={64} className="mx-auto mb-4 h-16 w-16 rounded-2xl object-cover shadow-lg" />
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">CaféFlow</h1>
+          <Image src="/cafeflow-logo.svg" alt={common.auth.brand} width={64} height={64} className="mx-auto mb-4 h-16 w-16 rounded-2xl object-cover shadow-lg" />
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{common.auth.brand}</h1>
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100 dark:border-gray-700">
           {success ? (
             <div className="text-center">
               <CheckCircle className="w-16 h-16 text-green-500 dark:text-green-400 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Email подтверждён!</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{auth.verify.verified}</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Ваш email успешно подтверждён. Перенаправление...
+                {auth.verify.verifiedMessage}
               </p>
               <Loader2 className="w-8 h-8 text-amber-600 dark:text-amber-400 animate-spin mx-auto" />
             </div>
@@ -209,9 +212,9 @@ function VerifyEmailContent() {
                 <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Mail className="w-8 h-8 text-amber-600 dark:text-amber-400" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Подтвердите email</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{auth.verify.title}</h2>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Мы отправили код подтверждения на
+                  {auth.verify.subtitle}
                 </p>
                 <p className="text-amber-600 dark:text-amber-400 font-medium">{email}</p>
               </div>
@@ -225,7 +228,7 @@ function VerifyEmailContent() {
 
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4 text-center">
-                  Введите 6-значный код
+                  {auth.verify.enterCode}
                 </label>
                 <div className="flex gap-2 justify-center" onPaste={handlePaste}>
                   {code.map((digit, index) => (
@@ -248,7 +251,7 @@ function VerifyEmailContent() {
               {isVerifying && (
                 <div className="flex items-center justify-center gap-2 text-amber-600 dark:text-amber-400 mb-4">
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  <span className="text-sm font-medium">Проверка кода...</span>
+                  <span className="text-sm font-medium">{auth.verify.verifying}</span>
                 </div>
               )}
 
@@ -260,21 +263,21 @@ function VerifyEmailContent() {
                 >
                   <RefreshCw className="w-4 h-4" />
                   {resendCooldown > 0 
-                    ? `Отправить повторно через ${resendCooldown}с`
-                    : 'Отправить код повторно'
+                    ? auth.verify.resendCodeIn.replace('{seconds}', String(resendCooldown))
+                    : auth.verify.resendCode
                   }
                 </button>
               </div>
 
               <div className="mt-6 pt-6 border-t border-gray-200 text-center text-sm text-gray-600">
-                <p>Код действует 10 минут</p>
+                <p>{auth.verify.codeExpires}</p>
               </div>
             </>
           )}
         </div>
 
         <div className="text-center mt-8 text-sm text-gray-600">
-          <p>© {new Date().getFullYear()} CaféFlow. Все права защищены.</p>
+          <p>© {new Date().getFullYear()} {common.auth.brand}. {common.footer.rights}.</p>
         </div>
       </div>
     </div>

@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { getLocaleTranslations } from '@/app/i18n/catalog';
+import { locales, type Locale } from '@/app/i18n/config';
 import {
   User,
   Shield,
@@ -55,7 +57,8 @@ interface UserSettings {
 export default function SettingsPage() {
   const pathname = usePathname();
   const router = useRouter();
-  const locale = pathname.split('/').filter(Boolean)[0] || 'ru';
+  const locale = (locales.find((item) => pathname.split('/')[1] === item) || 'ru') as Locale;
+  const copy = getLocaleTranslations(locale).ui.settings;
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -123,13 +126,13 @@ export default function SettingsPage() {
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess('Настройки успешно сохранены');
+        setSuccess(copy.messages.saved);
         setTimeout(() => setSuccess(''), 3000);
       } else {
-        setError(data.error || 'Ошибка сохранения');
+        setError(data.error || copy.messages.saveError);
       }
     } catch {
-      setError('Произошла ошибка при сохранении');
+      setError(copy.messages.saveGenericError);
     } finally {
       setIsSaving(false);
     }
@@ -150,25 +153,25 @@ export default function SettingsPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || 'Не удалось изменить пароль');
+        setError(data.error || copy.messages.passwordError);
         return;
       }
 
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
       router.push(`/${locale}/login?message=password_changed`);
     } catch {
-      setError('Произошла ошибка при изменении пароля');
+      setError(copy.messages.passwordGenericError);
     } finally {
       setIsChangingPassword(false);
     }
   };
 
   const tabs = [
-    { id: 'profile', label: 'Профиль', icon: User },
-    { id: 'security', label: 'Безопасность', icon: Shield },
-    { id: 'notifications', label: 'Уведомления', icon: Bell },
-    { id: 'privacy', label: 'Приватность', icon: Eye },
-    { id: 'appearance', label: 'Оформление', icon: Palette },
+    { id: 'profile', label: copy.tabs.profile, icon: User },
+    { id: 'security', label: copy.tabs.security, icon: Shield },
+    { id: 'notifications', label: copy.tabs.notifications, icon: Bell },
+    { id: 'privacy', label: copy.tabs.privacy, icon: Eye },
+    { id: 'appearance', label: copy.tabs.appearance, icon: Palette },
   ];
 
   if (isLoading) {
@@ -185,10 +188,10 @@ export default function SettingsPage() {
         {/* Header */}
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Настройки
+            {copy.title}
           </h1>
           <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-            Управление вашим аккаунтом и предпочтениями
+            {copy.description}
           </p>
         </div>
 
@@ -266,7 +269,7 @@ export default function SettingsPage() {
                   <div>
                     <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                       <User className="w-5 h-5 sm:w-6 sm:h-6" />
-                      Настройки профиля
+                      {copy.profile.title}
                     </h2>
                   </div>
 
@@ -274,33 +277,33 @@ export default function SettingsPage() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         <Globe className="w-4 h-4 inline mr-2" />
-                        Язык интерфейса
+                        {copy.profile.language}
                       </label>
                       <select
                         value={settings.language_ui}
                         onChange={(e) => setSettings({ ...settings, language_ui: e.target.value })}
                         className="w-full px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white touch-manipulation"
                       >
-                        <option value="ru">Русский</option>
-                        <option value="en">English</option>
-                        <option value="kg">Кыргызча</option>
+                        <option value="ru">{copy.languages.ru}</option>
+                        <option value="en">{copy.languages.en}</option>
+                        <option value="kg">{copy.languages.kg}</option>
                       </select>
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         <Globe className="w-4 h-4 inline mr-2" />
-                        Часовой пояс
+                        {copy.profile.timezone}
                       </label>
                       <select
                         value={settings.timezone}
                         onChange={(e) => setSettings({ ...settings, timezone: e.target.value })}
                         className="w-full px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white touch-manipulation"
                       >
-                        <option value="Asia/Bishkek">Бишкек (GMT+6)</option>
-                        <option value="Europe/Moscow">Москва (GMT+3)</option>
-                        <option value="Europe/London">Лондон (GMT+0)</option>
-                        <option value="America/New_York">Нью-Йорк (GMT-5)</option>
+                        <option value="Asia/Bishkek">{copy.timezones.bishkek}</option>
+                        <option value="Europe/Moscow">{copy.timezones.moscow}</option>
+                        <option value="Europe/London">{copy.timezones.london}</option>
+                        <option value="America/New_York">{copy.timezones.newYork}</option>
                       </select>
                     </div>
                   </div>
@@ -313,7 +316,7 @@ export default function SettingsPage() {
                   <div>
                     <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                       <Shield className="w-5 h-5 sm:w-6 sm:h-6" />
-                      Безопасность
+                      {copy.security.title}
                     </h2>
                   </div>
 
@@ -326,10 +329,10 @@ export default function SettingsPage() {
                         </div>
                         <div>
                           <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                            Двухфакторная аутентификация
+                            {copy.security.twoFactor}
                           </h3>
                           <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
-                            Дополнительный уровень защиты через Telegram
+                            {copy.security.twoFactorDescription}
                           </p>
                         </div>
                       </div>
@@ -347,20 +350,20 @@ export default function SettingsPage() {
 
                   {/* Verification Status */}
                   <div className="space-y-3 sm:space-y-4">
-                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">Статус верификации</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">{copy.security.verificationStatus}</h3>
                     
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
                       <div className="flex items-center gap-3">
                         <Mail className={`w-5 h-5 flex-shrink-0 ${settings.emailVerified ? 'text-green-600 dark:text-green-400' : 'text-gray-400'}`} />
-                        <span className="text-sm sm:text-base text-gray-700 dark:text-gray-300">Email адрес</span>
+                        <span className="text-sm sm:text-base text-gray-700 dark:text-gray-300">{copy.security.email}</span>
                       </div>
                       {settings.emailVerified ? (
                         <span className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap">
-                          Подтверждён
+                          {copy.security.verified}
                         </span>
                       ) : (
                         <button className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-medium min-h-[44px] transition-colors">
-                          Подтвердить
+                          {copy.security.verify}
                         </button>
                       )}
                     </div>
@@ -368,15 +371,15 @@ export default function SettingsPage() {
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
                       <div className="flex items-center gap-3">
                         <Phone className={`w-5 h-5 flex-shrink-0 ${settings.phoneVerified ? 'text-green-600 dark:text-green-400' : 'text-gray-400'}`} />
-                        <span className="text-sm sm:text-base text-gray-700 dark:text-gray-300">Номер телефона</span>
+                        <span className="text-sm sm:text-base text-gray-700 dark:text-gray-300">{copy.security.phone}</span>
                       </div>
                       {settings.phoneVerified ? (
                         <span className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap">
-                          Подтверждён
+                          {copy.security.verified}
                         </span>
                       ) : (
                         <button className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-medium min-h-[44px] transition-colors">
-                          Подтвердить
+                          {copy.security.verify}
                         </button>
                       )}
                     </div>
@@ -386,16 +389,16 @@ export default function SettingsPage() {
                     <div>
                       <h3 className="flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-white">
                         <Lock className="h-5 w-5" />
-                        Изменить пароль
+                        {copy.security.changePassword}
                       </h3>
-                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">После изменения потребуется войти заново на устройствах.</p>
+                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{copy.security.changePasswordDescription}</p>
                     </div>
                     <input
                       type="password"
                       autoComplete="current-password"
                       value={passwordData.currentPassword}
                       onChange={(event) => setPasswordData({ ...passwordData, currentPassword: event.target.value })}
-                      placeholder="Текущий пароль"
+                      placeholder={copy.security.currentPassword}
                       required
                       className="w-full rounded-lg border border-gray-300 px-4 py-3 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                     />
@@ -404,7 +407,7 @@ export default function SettingsPage() {
                       autoComplete="new-password"
                       value={passwordData.newPassword}
                       onChange={(event) => setPasswordData({ ...passwordData, newPassword: event.target.value })}
-                      placeholder="Новый пароль"
+                      placeholder={copy.security.newPassword}
                       required
                       className="w-full rounded-lg border border-gray-300 px-4 py-3 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                     />
@@ -413,7 +416,7 @@ export default function SettingsPage() {
                       autoComplete="new-password"
                       value={passwordData.confirmPassword}
                       onChange={(event) => setPasswordData({ ...passwordData, confirmPassword: event.target.value })}
-                      placeholder="Повторите новый пароль"
+                      placeholder={copy.security.confirmPassword}
                       required
                       className="w-full rounded-lg border border-gray-300 px-4 py-3 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                     />
@@ -423,7 +426,7 @@ export default function SettingsPage() {
                       className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-amber-600 px-5 font-semibold text-white transition-colors hover:bg-amber-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                     >
                       {isChangingPassword ? <Loader2 className="h-5 w-5 animate-spin" /> : <Lock className="h-5 w-5" />}
-                      {isChangingPassword ? 'Изменение...' : 'Изменить пароль'}
+                      {isChangingPassword ? copy.security.changingPassword : copy.security.changePasswordButton}
                     </button>
                   </form>
                 </div>
@@ -435,16 +438,16 @@ export default function SettingsPage() {
                   <div>
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                       <Bell className="w-6 h-6" />
-                      Уведомления
+                      {copy.notifications.title}
                     </h2>
                   </div>
 
                   <div className="space-y-3">
                     {[
-                      { key: 'emailNotifications', label: 'Email уведомления', icon: Mail, desc: 'Получать уведомления на почту' },
-                      { key: 'smsNotifications', label: 'SMS уведомления', icon: Phone, desc: 'Получать SMS сообщения' },
-                      { key: 'pushNotifications', label: 'Push уведомления', icon: Smartphone, desc: 'Уведомления в браузере' },
-                      { key: 'telegramNotifications', label: 'Telegram уведомления', icon: MessageSquare, desc: 'Уведомления в Telegram боте' },
+                      { key: 'emailNotifications', label: copy.notifications.email, icon: Mail, desc: copy.notifications.emailDescription },
+                      { key: 'smsNotifications', label: copy.notifications.sms, icon: Phone, desc: copy.notifications.smsDescription },
+                      { key: 'pushNotifications', label: copy.notifications.push, icon: Smartphone, desc: copy.notifications.pushDescription },
+                      { key: 'telegramNotifications', label: copy.notifications.telegram, icon: MessageSquare, desc: copy.notifications.telegramDescription },
                     ].map((item) => {
                       const Icon = item.icon;
                       return (
@@ -475,15 +478,15 @@ export default function SettingsPage() {
                   <div>
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                       <Eye className="w-6 h-6" />
-                      Приватность
+                      {copy.privacy.title}
                     </h2>
                   </div>
 
                   <div className="space-y-3">
                     {[
-                      { key: 'showOnlineStatus', label: 'Показывать статус онлайн', desc: 'Другие пользователи видят когда вы в сети' },
-                      { key: 'showPhone', label: 'Показывать номер телефона', desc: 'Телефон виден в профиле' },
-                      { key: 'showEmail', label: 'Показывать email адрес', desc: 'Email виден в профиле' },
+                      { key: 'showOnlineStatus', label: copy.privacy.onlineStatus, desc: copy.privacy.onlineStatusDescription },
+                      { key: 'showPhone', label: copy.privacy.phone, desc: copy.privacy.phoneDescription },
+                      { key: 'showEmail', label: copy.privacy.email, desc: copy.privacy.emailDescription },
                     ].map((item) => (
                       <label key={item.key} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
                         <div>
@@ -508,19 +511,19 @@ export default function SettingsPage() {
                   <div>
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                       <Palette className="w-6 h-6" />
-                      Оформление
+                      {copy.appearance.title}
                     </h2>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                      Тема оформления
+                      {copy.appearance.theme}
                     </label>
                     <div className="grid grid-cols-3 gap-4">
                       {[
-                        { value: 'light', label: 'Светлая', icon: Sun },
-                        { value: 'dark', label: 'Тёмная', icon: Moon },
-                        { value: 'system', label: 'Системная', icon: Smartphone },
+                        { value: 'light', label: copy.appearance.themes.light, icon: Sun },
+                        { value: 'dark', label: copy.appearance.themes.dark, icon: Moon },
+                        { value: 'system', label: copy.appearance.themes.system, icon: Smartphone },
                       ].map((theme) => {
                         const Icon = theme.icon;
                         return (
@@ -551,9 +554,9 @@ export default function SettingsPage() {
 
                   <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
                     <div>
-                      <span className="block font-medium text-gray-900 dark:text-white">Компактный режим</span>
+                      <span className="block font-medium text-gray-900 dark:text-white">{copy.appearance.compactMode}</span>
                       <span className="block text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                        Уменьшенные отступы и размеры элементов
+                        {copy.appearance.compactModeDescription}
                       </span>
                     </div>
                     <input
@@ -576,12 +579,12 @@ export default function SettingsPage() {
                   {isSaving ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      Сохранение...
+                      {copy.buttons.saving}
                     </>
                   ) : (
                     <>
                       <Save className="w-5 h-5" />
-                      Сохранить изменения
+                      {copy.buttons.save}
                     </>
                   )}
                 </button>

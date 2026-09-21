@@ -150,6 +150,90 @@
       "makeDefault": "Негизги кылуу"
     }
   },
+  "settings": {
+    "title": "Жөндөөлөр",
+    "description": "Аккаунтуңузду жана каалоолоруңузду башкаруу",
+    "tabs": {
+      "profile": "Профиль",
+      "security": "Коопсуздук",
+      "notifications": "Билдирүүлөр",
+      "privacy": "Купуялуулук",
+      "appearance": "Көрүнүш"
+    },
+    "profile": {
+      "title": "Профиль жөндөөлөрү",
+      "language": "Интерфейс тили",
+      "timezone": "Убакыт алкагы"
+    },
+    "languages": { "ru": "Орусча", "en": "Англисче", "kg": "Кыргызча" },
+    "timezones": {
+      "bishkek": "Бишкек (GMT+6)",
+      "moscow": "Москва (GMT+3)",
+      "london": "Лондон (GMT+0)",
+      "newYork": "Нью-Йорк (GMT-5)"
+    },
+    "security": {
+      "title": "Коопсуздук",
+      "twoFactor": "Эки факторлуу аутентификация",
+      "twoFactorDescription": "Telegram аркылуу кошумча коргоо деңгээли",
+      "verificationStatus": "Ырастоо статусу",
+      "email": "Email дареги",
+      "phone": "Телефон номери",
+      "verified": "Ырасталды",
+      "verify": "Ырастоо",
+      "changePassword": "Сырсөздү өзгөртүү",
+      "changePasswordDescription": "Өзгөрткөндөн кийин түзмөктөрүңүзгө кайра киришиңиз керек.",
+      "currentPassword": "Учурдагы сырсөз",
+      "newPassword": "Жаңы сырсөз",
+      "confirmPassword": "Жаңы сырсөздү кайталаңыз",
+      "changingPassword": "Өзгөртүлүүдө...",
+      "changePasswordButton": "Сырсөздү өзгөртүү"
+    },
+    "notifications": {
+      "title": "Билдирүүлөр",
+      "email": "Email билдирүүлөрү",
+      "emailDescription": "Билдирүүлөрдү email аркылуу алуу",
+      "sms": "SMS билдирүүлөрү",
+      "smsDescription": "SMS билдирүүлөрүн алуу",
+      "push": "Push билдирүүлөрү",
+      "pushDescription": "Браузердеги билдирүүлөр",
+      "telegram": "Telegram билдирүүлөрү",
+      "telegramDescription": "Telegram ботундагы билдирүүлөр"
+    },
+    "privacy": {
+      "title": "Купуялуулук",
+      "onlineStatus": "Онлайн статусун көрсөтүү",
+      "onlineStatusDescription": "Башка колдонуучулар сиздин онлайн экениңизди көрүшөт",
+      "phone": "Телефон номерин көрсөтүү",
+      "phoneDescription": "Телефонуңуз профилде көрүнөт",
+      "email": "Email дарегин көрсөтүү",
+      "emailDescription": "Email дарегиңиз профилде көрүнөт"
+    },
+    "appearance": {
+      "title": "Көрүнүш",
+      "theme": "Көрүнүш темасы",
+      "themes": { "light": "Ачык", "dark": "Караңгы", "system": "Системалык" },
+      "compactMode": "Ыкчам режим",
+      "compactModeDescription": "Аралыктарды жана элементтердин өлчөмдөрүн кичирейтүү"
+    },
+    "buttons": { "save": "Өзгөртүүлөрдү сактоо", "saving": "Сакталууда..." },
+    "messages": {
+      "saved": "Жөндөөлөр ийгиликтүү сакталды",
+      "saveError": "Сактоо катасы",
+      "saveGenericError": "Сактоодо ката кетти",
+      "passwordError": "Сырсөздү өзгөртүү мүмкүн болгон жок",
+      "passwordGenericError": "Сырсөздү өзгөртүүдө ката кетти"
+    }
+  },
+  "accessDenied": {
+    "title": "Кирүүгө тыюу салынган",
+    "description": "Бул бетке кирүүгө укуктарыңыз жетишсиз.",
+    "yourRole": "Сиздин ролуңуз:",
+    "required": "Талап кылынат:",
+    "profile": "Профилге өтүү",
+    "home": "Башкы бетке",
+    "help": "Бул ката деп ойлосоңуз, администраторго кайрылыңыз."
+  },
   "notFound": {
     "title": "Бет табылган жок",
     "message": "Тилектүү бет жок же жылдырылган",
