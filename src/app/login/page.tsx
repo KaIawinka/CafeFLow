@@ -267,10 +267,15 @@ function LoginContent() {
 
               <Link
                 href={`/api/auth/google?locale=${currentLocale}&redirect=${encodeURIComponent(redirectTo)}`}
-                className="flex min-h-12 w-full items-center justify-center gap-3 rounded-full border border-[#e1e3e6] bg-[#f1f3f4] px-5 text-sm font-semibold text-[#5f6368] shadow-sm transition hover:bg-[#e8eaed] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4285f4] focus-visible:ring-offset-2 dark:border-gray-600 dark:bg-[#f1f3f4] dark:text-[#5f6368]"
+                className="group relative flex min-h-12 w-full items-center justify-center overflow-hidden rounded-[4px] border border-[#dadce0] bg-white px-4 text-[15px] font-medium text-[#3c4043] shadow-[0_1px_2px_rgba(60,64,67,0.3)] transition-colors hover:border-[#4285f4] hover:bg-[#4285f4] hover:text-white hover:shadow-[0_1px_3px_rgba(66,133,244,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4285f4] focus-visible:ring-offset-2 dark:border-[#dadce0] dark:bg-white dark:text-[#3c4043] dark:hover:bg-[#4285f4] dark:hover:text-white"
               >
-                <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-lg font-bold leading-none shadow-sm">
-                  <span className="bg-[linear-gradient(90deg,#4285f4_0_25%,#34a853_25%_50%,#fbbc05_50%_75%,#ea4335_75%)] bg-clip-text text-transparent">G</span>
+                <span aria-hidden="true" className="absolute left-0 top-0 flex h-full w-16 items-center justify-center bg-white transition-colors group-hover:bg-white">
+                  <svg viewBox="0 0 48 48" className="h-6 w-6" role="img">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.72 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.61 0 6.51 5.38 2.56 13.22l7.98 6.2C12.43 13.25 17.69 9.5 24 9.5Z" />
+                    <path fill="#4285F4" d="M46.5 24.55c0-1.64-.15-3.22-.43-4.74H24v9h12.63c-.54 2.88-2.16 5.32-4.61 6.96l7.19 5.58C43.4 37.27 46.5 31.55 46.5 24.55Z" />
+                    <path fill="#FBBC05" d="M10.54 28.98A14.47 14.47 0 0 1 9.5 24c0-1.73.37-3.4 1.04-4.98l-7.98-6.2A24 24 0 0 0 0 24c0 3.87.93 7.53 2.56 10.78l7.98-5.8Z" />
+                    <path fill="#34A853" d="M24 48c6.47 0 11.9-2.14 15.87-5.83l-7.19-5.58c-1.99 1.33-4.53 2.11-8.68 2.11-6.31 0-11.57-3.75-13.46-9.92l-7.98 5.8C6.51 42.62 14.61 48 24 48Z" />
+                  </svg>
                 </span>
                 {auth.login.google.button}
               </Link>
