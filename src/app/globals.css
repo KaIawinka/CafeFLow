@@ -128,7 +128,7 @@ body {
   cursor: pointer;
   border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: 999px;
-  background: #20272c;
+  background: linear-gradient(#78c8f5 0 58%, #d7f2ff 58% 100%);
   padding: 0.25rem 0.35rem;
   color: #fdba74;
   transition: background-color 360ms ease, border-color 360ms ease;
@@ -141,7 +141,7 @@ body {
   height: 1.35rem;
   content: '';
   border-radius: 50%;
-  background: #fff8ea;
+  background: #ffd166;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
   transition: transform 360ms cubic-bezier(0.34, 1.56, 0.64, 1), background-color 360ms ease;
 }
@@ -156,8 +156,10 @@ body {
 
 .cafeflow-theme-switch__moon { opacity: 0.45; }
 .cafeflow-theme-switch__sun { opacity: 0.9; }
-.cafeflow-theme-switch input:checked + .cafeflow-theme-switch__slider { background: #fff1e7; border-color: rgba(249, 115, 22, 0.5); color: #ea580c; }
-.cafeflow-theme-switch input:checked + .cafeflow-theme-switch__slider::before { transform: translateX(1.6rem); background: #20272c; }
+.cafeflow-theme-switch__slider::after { position: absolute; bottom: 0.2rem; left: 0.5rem; height: 0.3rem; width: 1.1rem; content: ''; border-radius: 999px; background: rgba(255, 255, 255, 0.75); box-shadow: 0.7rem 0.15rem rgba(255, 255, 255, 0.65); transition: opacity 300ms ease; }
+.cafeflow-theme-switch input:checked + .cafeflow-theme-switch__slider { background: linear-gradient(#17223b 0 58%, #24314c 58% 100%); border-color: rgba(253, 186, 116, 0.5); color: #fed7aa; }
+.cafeflow-theme-switch input:checked + .cafeflow-theme-switch__slider::before { transform: translateX(1.6rem); background: #fff8ea; }
+.cafeflow-theme-switch input:checked + .cafeflow-theme-switch__slider::after { opacity: 0.18; }
 .cafeflow-theme-switch input:checked + .cafeflow-theme-switch__slider .cafeflow-theme-switch__sun { opacity: 0.35; }
 .cafeflow-theme-switch input:checked + .cafeflow-theme-switch__slider .cafeflow-theme-switch__moon { opacity: 0.95; }
 .cafeflow-theme-switch input:focus-visible + .cafeflow-theme-switch__slider { outline: 2px solid #fb923c; outline-offset: 3px; }
@@ -165,7 +167,7 @@ body {
 .cafeflow-social-card {
   display: flex;
   width: 3rem;
-  max-width: min(100%, 24rem);
+  max-width: 100%;
   align-items: center;
   gap: 0.4rem;
   overflow: hidden;
@@ -179,9 +181,15 @@ body {
 
 .cafeflow-social-card:hover,
 .cafeflow-social-card:focus-within {
-  width: min(24rem, 100%);
+  width: 24rem;
   border-color: rgba(249, 115, 22, 0.6);
   box-shadow: 0 14px 32px rgba(249, 115, 22, 0.2);
+}
+
+@media (max-width: 640px) {
+  .cafeflow-social-card:hover,
+  .cafeflow-social-card:focus-within { width: 100%; }
+  .cafeflow-social-card__link { height: 2rem; width: 2rem; flex-basis: 2rem; }
 }
 
 .cafeflow-social-card__link {
