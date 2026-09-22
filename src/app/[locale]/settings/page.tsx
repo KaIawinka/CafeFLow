@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { getLocaleTranslations } from '@/app/i18n/catalog';
 import { locales, type Locale } from '@/app/i18n/config';
+import { useTheme } from '@/components/ThemeProvider';
 import {
   Shield,
   Bell,
@@ -66,6 +67,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const locale = (locales.find((item) => pathname.split('/')[1] === item) || 'ru') as Locale;
   const copy = getLocaleTranslations(locale).ui.settings;
+  const { setTheme: setGlobalTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<SettingsTab>('security');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -120,6 +122,7 @@ export default function SettingsPage() {
             ...currentSettings,
             ...data.settings,
           }));
+          if (data.settings.theme === 'light' || data.settings.theme === 'dark') setGlobalTheme(data.settings.theme);
         }
       } catch (error) {
         console.error('Failed to load settings', error);
@@ -129,7 +132,7 @@ export default function SettingsPage() {
     };
 
     void loadSettings();
-  }, []);
+  }, [setGlobalTheme]);
 
   const handleLinkTelegram = async () => {
     setError('');
@@ -230,6 +233,7 @@ export default function SettingsPage() {
       const data = await response.json();
 
       if (response.ok) {
+        if (settings.theme === 'light' || settings.theme === 'dark') setGlobalTheme(settings.theme);
         setSuccess(copy.messages.saved);
         setTimeout(() => setSuccess(''), 3000);
       } else {
@@ -388,9 +392,9 @@ export default function SettingsPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 items-start gap-4 sm:gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
           {/* Sidebar - horizontal on mobile, vertical on desktop */}
-          <div className="lg:col-span-1">
+          <div className="self-start lg:col-span-1">
             {/* Mobile: horizontal scrollable tabs */}
             <div className="mb-4 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-2 shadow-[0_12px_32px_rgba(21,26,30,0.06)] lg:hidden">
               <nav className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide">
@@ -439,7 +443,7 @@ export default function SettingsPage() {
           </div>
 
           {/* Content */}
-          <div className="lg:col-span-3">
+          <div className="min-w-0 lg:col-span-1">
             <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-[0_12px_32px_rgba(21,26,30,0.06)] sm:p-6">
               {/* Security Tab */}
               {activeTab === 'security' && (
@@ -756,7 +760,11 @@ export default function SettingsPage() {
                         return (
                           <button
                             key={theme.value}
-                            onClick={() => setSettings({ ...settings, theme: theme.value as UserSettings['theme'] })}
+                            onClick={() => {
+                              const nextTheme = theme.value as UserSettings['theme'];
+                              setSettings({ ...settings, theme: nextTheme });
+                              if (nextTheme === 'light' || nextTheme === 'dark') setGlobalTheme(nextTheme);
+                            }}
                             className={`p-6 rounded-xl border-2 transition-all ${
                               settings.theme === theme.value
                                 ? 'border-amber-600 bg-amber-50 dark:bg-amber-900/20'

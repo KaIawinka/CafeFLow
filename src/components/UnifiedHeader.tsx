@@ -53,6 +53,17 @@ interface UnifiedHeaderProps {
 
 type SearchItem = { label: string; description: string; href: string; keywords: readonly string[] };
 
+function collectTranslationSearchItems(value: unknown, path: string, href: string, result: SearchItem[] = []) {
+  if (typeof value === 'string' && value.trim().length > 2) {
+    result.push({ label: value, description: path, href, keywords: [value] });
+  } else if (value && typeof value === 'object') {
+    Object.entries(value).forEach(([key, child]) => {
+      collectTranslationSearchItems(child, path ? `${path} / ${key}` : key, href, result);
+    });
+  }
+  return result;
+}
+
 function savePreferredLanguage(locale: Locale) {
   document.cookie = `preferredLanguage=${locale}; path=/; max-age=31536000`;
 }
@@ -118,12 +129,17 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
     .filter((item) => !('staffOnly' in item) || canSearchAdmin)
     .filter((item) => item.key !== 'cart' || !isStaff)
     .map(({ key, href, keywords }) => ({ ...header.searchItems[key], href, keywords }));
+  const translationSearchItems = collectTranslationSearchItems(translations, 'i18n', pathname)
+    .filter((item) => !item.label.includes('google_'));
+  const searchableItems = [...searchItems, ...translationSearchItems];
 
   const searchResults = searchQuery.trim()
-    ? searchItems.filter((item) => `${item.label} ${item.description} ${item.keywords.join(' ')}`.toLowerCase().includes(searchQuery.trim().toLowerCase()))
+    ? searchableItems
+      .filter((item, index, items) => items.findIndex((candidate) => candidate.label === item.label && candidate.href === item.href) === index)
+      .filter((item) => `${item.label} ${item.description} ${item.keywords.join(' ')}`.toLowerCase().includes(searchQuery.trim().toLowerCase()))
     : [];
   const similarResults = searchQuery.trim() && searchResults.length === 0
-    ? searchItems.filter((item) => item.keywords.some((keyword) => keyword[0] === searchQuery.trim().toLowerCase()[0])).slice(0, 3).concat(searchItems).slice(0, 3)
+    ? searchableItems.filter((item) => item.keywords.some((keyword) => keyword[0] === searchQuery.trim().toLowerCase()[0])).slice(0, 3)
     : [];
 
   // Close dropdowns when clicking outside
@@ -237,7 +253,13 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
 
   const navigateToSearchResult = (destination: string) => {
     if (destination.includes('/admin') && !canSearchAdmin) return;
-    if (destination.startsWith(`${pathname}#`)) {
+    if (destination === pathname) {
+      const query = searchQuery.trim().toLowerCase();
+      const match = Array.from(document.querySelectorAll<HTMLElement>('main, main *'))
+        .filter((element) => element.children.length === 0)
+        .find((element) => element.textContent?.toLowerCase().includes(query));
+      match?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else if (destination.startsWith(`${pathname}#`)) {
       document.querySelector(destination.slice(destination.indexOf('#')))?.scrollIntoView({ behavior: 'smooth' });
     } else {
       router.push(destination);

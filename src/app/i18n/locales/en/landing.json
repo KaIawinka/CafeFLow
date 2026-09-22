@@ -87,7 +87,7 @@
       "message": "Comment"
     },
     "placeholders": {
-      "name": "Jane Doe",
+      "name": "Your name",
       "phone": "+996 (555) 123-456",
       "email": "jane@example.com",
       "company": "Cozy Cafe",
