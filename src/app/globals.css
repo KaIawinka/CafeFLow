@@ -299,7 +299,6 @@ body {
   border-radius: 0.45rem 0.45rem 1rem 1rem;
   background: linear-gradient(135deg, #fb923c, #f97316);
   box-shadow: inset 0 5px rgba(255, 255, 255, 0.25), 0 8px 14px rgba(234, 88, 12, 0.25);
-  animation: cafeflow-loader-bob 900ms ease-in-out infinite;
 }
 
 .cafeflow-loader__cup::after {
@@ -345,7 +344,6 @@ body {
 @keyframes cafeflow-loader-bob { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-4px) rotate(-2deg); } }
 @keyframes cafeflow-loader-steam { 0%, 100% { opacity: 0; transform: translateY(8px) scaleX(0.7); } 45% { opacity: 0.8; } 100% { transform: translateY(-12px) scaleX(1.15); } }
 @keyframes cafeflow-loader-bean { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-6px) rotate(20deg); } }
-
 @keyframes cafeflow-card-float {
   0%, 100% { transform: rotateX(0deg) rotateY(-8deg) translateY(0); }
   50% { transform: rotateX(2deg) rotateY(-5deg) translateY(-5px); }
@@ -383,34 +381,42 @@ body {
 
 .landing-menu-carousel {
   --menu-slide-width: min(78vw, 22rem);
-  --menu-slide-gap: 1.25rem;
+  --menu-ring-depth: 15rem;
   position: relative;
 }
 
 .landing-menu-carousel__viewport {
+  min-height: 34rem;
   overflow: hidden;
-  margin: 0 calc(var(--menu-slide-gap) * -1);
-  padding: 1.25rem var(--menu-slide-gap) 1.5rem;
+  perspective: 1000px;
+  perspective-origin: center center;
 }
 
 .landing-menu-carousel__track {
-  display: flex;
-  gap: var(--menu-slide-gap);
-  transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+  height: 32rem;
+  width: 100%;
+  transform-style: preserve-3d;
   will-change: transform;
 }
 
 .landing-menu-carousel__slide {
+  position: absolute;
+  top: 50%;
+  left: 50%;
   width: var(--menu-slide-width);
   min-width: var(--menu-slide-width);
-  opacity: 0.56;
-  transform: scale(0.94) translateY(8px);
-  transition: opacity 500ms ease, transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  transform: translate(-50%, -50%) rotateY(var(--menu-card-angle)) translateZ(var(--menu-ring-depth));
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  opacity: 0.48;
+  filter: brightness(0.65) saturate(0.8);
+  transition: opacity 420ms ease, filter 420ms ease;
 }
 
 .landing-menu-carousel__slide.is-active {
   opacity: 1;
-  transform: scale(1) translateY(0);
+  filter: brightness(1) saturate(1);
 }
 
 .landing-menu-carousel__controls {
@@ -439,15 +445,14 @@ body {
 .landing-menu-carousel__dots button.is-active { width: 2rem; background: #f97316; }
 
 @media (min-width: 768px) {
-  .landing-menu-carousel { --menu-slide-width: min(38vw, 22rem); }
+  .landing-menu-carousel { --menu-slide-width: min(38vw, 22rem); --menu-ring-depth: 18rem; }
 }
 
 @media (min-width: 1280px) {
-  .landing-menu-carousel { --menu-slide-width: 23rem; }
+  .landing-menu-carousel { --menu-slide-width: 23rem; --menu-ring-depth: 20rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .landing-menu-carousel__track,
   .landing-menu-carousel__slide { transition: none; }
 }
 
