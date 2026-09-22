@@ -393,6 +393,39 @@ body {
   opacity: 1;
 }
 
+.dark .landing-menu-carousel__viewport::before {
+  background: linear-gradient(90deg, var(--card) 0%, rgba(32, 39, 44, 0.94) 35%, transparent 100%);
+}
+
+.dark .landing-menu-carousel__viewport::after {
+  background: linear-gradient(270deg, var(--card) 0%, rgba(32, 39, 44, 0.94) 35%, transparent 100%);
+}
+
+.dark .landing-menu-card {
+  background-color: var(--card) !important;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+}
+
+.dark .landing-menu-card > div.relative {
+  background-color: var(--card) !important;
+  color: var(--foreground);
+}
+
+.dark .landing-menu-card p {
+  color: var(--muted-foreground) !important;
+}
+
+.dark .landing-menu-card__action {
+  border-color: var(--border) !important;
+  color: var(--foreground) !important;
+}
+
+.dark .landing-menu-card__action:hover {
+  border-color: var(--primary) !important;
+  background-color: rgba(251, 146, 60, 0.14) !important;
+  color: #fdba74 !important;
+}
+
 @media (min-width: 768px) {
   .landing-menu-carousel { --menu-slide-width: calc((100% - 2rem) / 3); }
 }
