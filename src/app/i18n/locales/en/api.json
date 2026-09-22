@@ -57,6 +57,8 @@
     "telegramAlreadyLinked": "Telegram is already linked to this account",
     "telegramNotConfigured": "The Telegram bot is not configured yet",
     "telegramNotLinked": "Link Telegram to your account first",
+    "telegramUnlinked": "Telegram was unlinked and 2FA was disabled",
+    "telegramUnlinkFailed": "Could not unlink Telegram. Please try again.",
     "twoFaActionRequired": "Choose a 2FA action",
     "twoFaEnabled": "Two-factor authentication enabled",
     "twoFaSettingDisabled": "Two-factor authentication disabled",

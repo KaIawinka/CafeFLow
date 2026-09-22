@@ -57,6 +57,8 @@
     "telegramAlreadyLinked": "Telegram бул аккаунтка мурунтан байланышкан",
     "telegramNotConfigured": "Telegram бот азырынча жөндөлгөн эмес",
     "telegramNotLinked": "Адегенде Telegram'ды аккаунтка байланыштырыңыз",
+    "telegramUnlinked": "Telegram ажыратылып, 2FA өчүрүлдү",
+    "telegramUnlinkFailed": "Telegram'ды ажыратуу мүмкүн болгон жок. Кайра аракет кылыңыз.",
     "twoFaActionRequired": "2FA үчүн аракетти тандаңыз",
     "twoFaEnabled": "Эки факторлуу аутентификация күйгүзүлдү",
     "twoFaSettingDisabled": "Эки факторлуу аутентификация өчүрүлдү",

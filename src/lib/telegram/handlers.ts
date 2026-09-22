@@ -7,7 +7,7 @@ import { bot, type BotContext } from './bot';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { verifyPassword } from '@/lib/auth/password';
-import { consumeTelegramLinkCode } from './utils';
+import { consumeTelegramLinkCode, unlinkTelegramAccount } from './utils';
 
 // User state management (in-memory for simplicity)
 interface UserState {
@@ -499,6 +499,49 @@ bot?.command('status', async (ctx: BotContext) => {
   }
 });
 
+async function handleTelegramUnlink(ctx: BotContext) {
+  const chatId = ctx.chat?.id.toString();
+  if (!chatId) {
+    await ctx.reply('❌ Не удалось определить ваш чат.');
+    return;
+  }
+
+  if (getCommandArguments(ctx).toLowerCase() !== 'confirm') {
+    await ctx.reply(
+      '⚠️ *Отвязка Telegram*\n\n' +
+      'Команда отключит связь Telegram с аккаунтом, 2FA и удалит активные коды входа.\n\n' +
+      'Если вы уверены, отправьте: `/unlink confirm`',
+      { parse_mode: 'Markdown' },
+    );
+    return;
+  }
+
+  const user = await prisma.users.findFirst({
+    where: { telegram_chat_id: chatId },
+    select: { id: true, email: true },
+  });
+  if (!user) {
+    await ctx.reply('ℹ️ Этот Telegram не связан с аккаунтом CaféFlow.');
+    return;
+  }
+
+  const result = await unlinkTelegramAccount(user.id, chatId);
+  if (!result.success) {
+    await ctx.reply('❌ Не удалось отвязать Telegram. Попробуйте ещё раз.');
+    return;
+  }
+
+  logger.info('User unlinked Telegram from bot', { userId: user.id, chatId });
+  await ctx.reply(
+    `✅ Telegram отвязан от аккаунта ${user.email}.\n\n` +
+    '🔐 2FA отключена, активные коды входа удалены.\n' +
+    'Чтобы привязать Telegram снова, создайте новую ссылку в настройках аккаунта.',
+  );
+}
+
+bot?.command('unlink', handleTelegramUnlink);
+bot?.command('disconnect', handleTelegramUnlink);
+
 /**
  * /help command handler
  * Shows available commands and usage
@@ -512,6 +555,7 @@ bot?.command('help', async (ctx: BotContext) => {
     `🏠 /start — Приветствие и информация о боте\n` +
     `🔑 /activate — Активировать аккаунт по ключу\n` +
     `🔐 /login — Получить ссылку для входа\n` +
+    `🔓 /unlink — Отвязать Telegram от аккаунта\n` +
     `📊 /status — Проверить статус активации\n` +
     `❓ /help — Показать эту справку\n`;
 

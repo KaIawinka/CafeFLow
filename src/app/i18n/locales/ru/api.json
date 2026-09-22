@@ -57,6 +57,8 @@
     "telegramAlreadyLinked": "Telegram уже привязан к этому аккаунту",
     "telegramNotConfigured": "Telegram-бот пока не настроен",
     "telegramNotLinked": "Сначала привяжите Telegram к аккаунту",
+    "telegramUnlinked": "Telegram отвязан, а 2FA отключена",
+    "telegramUnlinkFailed": "Не удалось отвязать Telegram. Попробуйте ещё раз.",
     "twoFaActionRequired": "Выберите действие для 2FA",
     "twoFaEnabled": "Двухфакторная аутентификация включена",
     "twoFaSettingDisabled": "Двухфакторная аутентификация отключена",

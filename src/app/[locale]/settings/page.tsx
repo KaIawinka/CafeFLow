@@ -85,6 +85,7 @@ export default function SettingsPage() {
   const [telegramLinkInstructions, setTelegramLinkInstructions] = useState<string[]>([]);
   const [isLinkingTelegram, setIsLinkingTelegram] = useState(false);
   const [isCheckingTelegram, setIsCheckingTelegram] = useState(false);
+  const [isUnlinkingTelegram, setIsUnlinkingTelegram] = useState(false);
   const [isUpdatingTwoFA, setIsUpdatingTwoFA] = useState(false);
   const [isDeletionModalOpen, setIsDeletionModalOpen] = useState(false);
   const [deletionCode, setDeletionCode] = useState('');
@@ -186,6 +187,36 @@ export default function SettingsPage() {
       setError(copy.messages.saveGenericError);
     } finally {
       setIsCheckingTelegram(false);
+    }
+  };
+
+  const handleUnlinkTelegram = async () => {
+    if (!window.confirm(copy.security.unlinkTelegramConfirm)) return;
+    setError('');
+    setSuccess('');
+    setIsUnlinkingTelegram(true);
+
+    try {
+      const response = await fetch('/api/auth/telegram/unlink', { method: 'DELETE' });
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.error || copy.messages.saveGenericError);
+        return;
+      }
+
+      setSettings((currentSettings) => ({
+        ...currentSettings,
+        telegramLinked: false,
+        telegramUsername: null,
+        twoFAEnabled: false,
+      }));
+      setTelegramLinkUrl('');
+      setTelegramLinkInstructions([]);
+      setSuccess(data.message || copy.security.telegramUnlinked);
+    } catch {
+      setError(copy.messages.saveGenericError);
+    } finally {
+      setIsUnlinkingTelegram(false);
     }
   };
 
@@ -505,6 +536,17 @@ export default function SettingsPage() {
                             {isCheckingTelegram ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                             {copy.security.checkTelegram}
                           </button>
+                          {settings.telegramLinked && (
+                            <button
+                              type="button"
+                              onClick={() => void handleUnlinkTelegram()}
+                              disabled={isUnlinkingTelegram}
+                              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-red-200 px-4 text-sm font-semibold text-red-700 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/30"
+                            >
+                              {isUnlinkingTelegram ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldOff className="h-4 w-4" />}
+                              {copy.security.unlinkTelegram}
+                            </button>
+                          )}
                         </div>
                       </div>
 

@@ -141,6 +141,46 @@ export async function isUserTelegramLinked(userId: string): Promise<boolean> {
   return !!(user?.telegram_chat_id && user?.two_fa_enabled);
 }
 
+export async function unlinkTelegramAccount(userId: string, expectedChatId?: string): Promise<{ success: boolean; wasLinked: boolean }> {
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const user = await tx.users.findUnique({
+        where: { id: userId },
+        select: { telegram_chat_id: true },
+      });
+
+      if (!user || !user.telegram_chat_id || (expectedChatId && user.telegram_chat_id !== expectedChatId)) {
+        return { success: false, wasLinked: false };
+      }
+
+      await tx.users.update({
+        where: { id: userId },
+        data: {
+          telegram_chat_id: null,
+          telegram_username: null,
+          telegram_activated_with_key: null,
+          two_fa_enabled: false,
+          two_fa_secret: null,
+        },
+      });
+      await tx.verification_codes.deleteMany({
+        where: { user_id: userId, type: '2fa_login', used_at: null },
+      });
+      await tx.auth_sessions.deleteMany({
+        where: { user_id: userId, is_2fa_verified: false },
+      });
+      await tx.telegram_link_codes.deleteMany({
+        where: { user_id: userId, used_at: null },
+      });
+
+      return { success: true, wasLinked: true };
+    });
+  } catch {
+    logger.error('Telegram account unlink failed', { userId });
+    return { success: false, wasLinked: false };
+  }
+}
+
 /**
  * Get Telegram link URL for bot
  */
