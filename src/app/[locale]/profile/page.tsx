@@ -21,6 +21,7 @@ import {
 import { locales, type Locale } from '@/app/i18n/config';
 import { getLocaleTranslations } from '@/app/i18n/catalog';
 import { CustomerAddresses } from '@/components/profile/CustomerAddresses';
+import { CafeFlowLoader } from '@/components/ui/CafeFlowLoader';
 
 interface UserProfile {
   id: string;
@@ -148,7 +149,7 @@ function ProfileContent() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-amber-600" />
+        <CafeFlowLoader />
       </div>
     );
   }

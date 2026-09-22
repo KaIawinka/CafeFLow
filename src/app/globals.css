@@ -265,6 +265,77 @@ body {
 .cafeflow-hero-card__spark--one { right: 1rem; top: 0.8rem; }
 .cafeflow-hero-card__spark--two { bottom: 0.7rem; right: 2.2rem; animation-delay: 1.2s; }
 
+.cafeflow-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  color: #ea580c;
+}
+
+.cafeflow-loader__scene {
+  position: relative;
+  height: 5.5rem;
+  width: 8rem;
+}
+
+.cafeflow-loader__cup {
+  position: absolute;
+  bottom: 0.7rem;
+  left: 2.1rem;
+  height: 2.7rem;
+  width: 3.8rem;
+  border: 3px solid #ea580c;
+  border-radius: 0.45rem 0.45rem 1rem 1rem;
+  background: linear-gradient(135deg, #fb923c, #f97316);
+  box-shadow: inset 0 5px rgba(255, 255, 255, 0.25), 0 8px 14px rgba(234, 88, 12, 0.25);
+  animation: cafeflow-loader-bob 900ms ease-in-out infinite;
+}
+
+.cafeflow-loader__cup::after {
+  position: absolute;
+  top: 0.55rem;
+  right: -0.85rem;
+  height: 1.25rem;
+  width: 1rem;
+  content: '';
+  border: 3px solid #ea580c;
+  border-left: 0;
+  border-radius: 0 0.8rem 0.8rem 0;
+}
+
+.cafeflow-loader__cup span {
+  position: absolute;
+  top: -0.35rem;
+  left: 0.35rem;
+  height: 0.3rem;
+  width: 2.5rem;
+  border-radius: 50%;
+  background: #5b2c1c;
+}
+
+.cafeflow-loader__steam {
+  position: absolute;
+  bottom: 3.8rem;
+  height: 1.8rem;
+  width: 0.35rem;
+  border-radius: 50%;
+  background: rgba(249, 115, 22, 0.35);
+  filter: blur(1px);
+  animation: cafeflow-loader-steam 1.5s ease-in-out infinite;
+}
+
+.cafeflow-loader__steam--one { left: 3rem; }
+.cafeflow-loader__steam--two { left: 4.4rem; animation-delay: 500ms; }
+.cafeflow-loader__bean { position: absolute; height: 0.45rem; width: 0.75rem; border-radius: 50%; background: #fb923c; animation: cafeflow-loader-bean 1.2s ease-in-out infinite; }
+.cafeflow-loader__bean--one { bottom: 0.1rem; left: 0.8rem; }
+.cafeflow-loader__bean--two { bottom: 0.1rem; right: 0.5rem; animation-delay: 350ms; }
+.cafeflow-loader__label { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; }
+
+@keyframes cafeflow-loader-bob { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-4px) rotate(-2deg); } }
+@keyframes cafeflow-loader-steam { 0%, 100% { opacity: 0; transform: translateY(8px) scaleX(0.7); } 45% { opacity: 0.8; } 100% { transform: translateY(-12px) scaleX(1.15); } }
+@keyframes cafeflow-loader-bean { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-6px) rotate(20deg); } }
+
 @keyframes cafeflow-card-float {
   0%, 100% { transform: rotateX(0deg) rotateY(-8deg) translateY(0); }
   50% { transform: rotateX(2deg) rotateY(-5deg) translateY(-5px); }

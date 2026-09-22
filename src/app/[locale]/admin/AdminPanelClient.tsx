@@ -4,6 +4,7 @@ import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { CafeFlowLoader } from '@/components/ui/CafeFlowLoader';
 import {
   Users,
   Settings as SettingsIcon,
@@ -486,7 +487,7 @@ export default function AdminPage() {
   if (isLoading) {
     return (
       <div className="admin-page flex min-h-screen items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-amber-600" />
+        <CafeFlowLoader />
       </div>
     );
   }

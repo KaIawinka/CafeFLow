@@ -31,6 +31,7 @@ import {
   X,
 } from 'lucide-react';
 import { SettingsToggle } from '@/components/ui/SettingsToggle';
+import { CafeFlowLoader } from '@/components/ui/CafeFlowLoader';
 
 type SettingsTab = 'security' | 'notifications' | 'privacy' | 'appearance';
 
@@ -390,7 +391,7 @@ export default function SettingsPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-amber-600" />
+        <CafeFlowLoader />
       </div>
     );
   }
