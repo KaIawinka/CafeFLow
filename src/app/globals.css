@@ -167,6 +167,7 @@ body {
 .cafeflow-social-card {
   display: flex;
   width: 3rem;
+  flex: 0 0 3rem;
   max-width: 100%;
   align-items: center;
   gap: 0.4rem;
@@ -182,6 +183,7 @@ body {
 .cafeflow-social-card:hover,
 .cafeflow-social-card:focus-within {
   width: 24rem;
+  flex-basis: 24rem;
   border-color: rgba(249, 115, 22, 0.6);
   box-shadow: 0 14px 32px rgba(249, 115, 22, 0.2);
 }
