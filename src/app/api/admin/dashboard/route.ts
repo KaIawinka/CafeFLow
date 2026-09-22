@@ -221,14 +221,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const auth = await verifyAdminOrManager(request, 'manage_orders');
-  if (!auth.success || !auth.userId) return auth.error || apiError(request, 'unauthorized', 401);
-
   try {
-    const actor = await getActor(auth.userId);
-    if (!actor) return NextResponse.json({ error: apiAdminMessage(request, 'userOrBranchNotFound') }, { status: 404 });
-    const tenantId = auth.tenantId ?? actor.tenant_id;
-    const branchIds = auth.branchIds ?? (actor.branch_id ? [actor.branch_id] : null);
     const body = await request.json() as {
       resource?: 'user' | 'tenant' | 'order' | 'product';
       id?: string;
@@ -251,7 +244,13 @@ export async function PATCH(request: NextRequest) {
       price?: string;
       orderStatus?: OrderStatus;
     };
+    const auth = await verifyAdminOrManager(request, body.resource === 'user' ? 'manage_staff' : 'manage_orders');
+    if (!auth.success || !auth.userId) return auth.error || apiError(request, 'unauthorized', 401);
 
+    const actor = await getActor(auth.userId);
+    if (!actor) return NextResponse.json({ error: apiAdminMessage(request, 'userOrBranchNotFound') }, { status: 404 });
+    const tenantId = auth.tenantId ?? actor.tenant_id;
+    const branchIds = auth.branchIds ?? (actor.branch_id ? [actor.branch_id] : null);
     if (body.resource === 'user') {
       if (!body.id || body.id === actor.id) return NextResponse.json({ error: apiAdminMessage(request, 'currentAdminCannotChange') }, { status: 400 });
       if (body.role && !roles.includes(body.role)) return NextResponse.json({ error: apiAdminMessage(request, 'invalidRole') }, { status: 400 });
