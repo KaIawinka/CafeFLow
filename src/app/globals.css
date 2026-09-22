@@ -427,10 +427,32 @@ body {
 }
 
 .landing-menu-carousel__viewport {
+  position: relative;
   min-height: 0;
   overflow: hidden;
   perspective: 1200px;
   perspective-origin: center center;
+}
+
+.landing-menu-carousel__viewport::before,
+.landing-menu-carousel__viewport::after {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  width: clamp(3rem, 10vw, 8rem);
+  content: '';
+  pointer-events: none;
+}
+
+.landing-menu-carousel__viewport::before {
+  left: 0;
+  background: linear-gradient(90deg, #fffdf8 0%, rgba(255, 253, 248, 0.92) 35%, transparent 100%);
+}
+
+.landing-menu-carousel__viewport::after {
+  right: 0;
+  background: linear-gradient(270deg, #fffdf8 0%, rgba(255, 253, 248, 0.92) 35%, transparent 100%);
 }
 
 .landing-menu-carousel__track {
@@ -452,6 +474,10 @@ body {
   filter: none;
   transition: transform 420ms ease;
 }
+
+.landing-menu-carousel__slide:nth-child(3n + 1) { transform: translate3d(0, 0.8rem, 0) rotateZ(-0.6deg); }
+.landing-menu-carousel__slide:nth-child(3n + 2) { transform: translate3d(0, -0.35rem, 0); }
+.landing-menu-carousel__slide:nth-child(3n) { transform: translate3d(0, 0.8rem, 0) rotateZ(0.6deg); }
 
 .landing-menu-carousel__slide.is-active {
   opacity: 1;
