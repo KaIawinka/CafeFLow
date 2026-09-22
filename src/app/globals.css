@@ -165,51 +165,93 @@ body {
 .cafeflow-theme-switch input:focus-visible + .cafeflow-theme-switch__slider { outline: 2px solid #fb923c; outline-offset: 3px; }
 
 .cafeflow-social-card {
+  position: relative;
   display: flex;
-  width: 3rem;
-  flex: 0 0 3rem;
-  max-width: 100%;
-  align-items: center;
-  gap: 0.4rem;
+  height: 140px;
+  width: 140px;
+  flex: 0 0 140px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 0.8rem;
-  background: rgba(32, 39, 44, 0.88);
-  padding: 0.35rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-  transition: width 500ms cubic-bezier(0.22, 1, 0.36, 1), border-color 300ms ease, box-shadow 300ms ease;
+  border-radius: 21px;
+  box-shadow: rgba(100, 100, 111, 0.2) 0 7px 29px;
+  transition: all 1s ease-in-out;
+}
+
+.cafeflow-social-card__background {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: radial-gradient(circle at 100% 107%, #fdba74 0%, #f97316 32%, #ea580c 62%, #151a1e 100%);
 }
 
 .cafeflow-social-card:hover,
 .cafeflow-social-card:focus-within {
-  width: 24rem;
-  flex-basis: 24rem;
-  border-color: rgba(249, 115, 22, 0.6);
-  box-shadow: 0 14px 32px rgba(249, 115, 22, 0.2);
+  transform: scale(1.43);
 }
 
-@media (max-width: 640px) {
-  .cafeflow-social-card:hover,
-  .cafeflow-social-card:focus-within { width: 100%; }
-  .cafeflow-social-card__link { height: 2rem; width: 2rem; flex-basis: 2rem; }
+.cafeflow-social-card__logo {
+  position: absolute;
+  right: 50%;
+  bottom: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translate(50%, 50%);
+  transition: all 0.6s ease-in-out;
 }
+
+.cafeflow-social-card__logo svg { height: 30px; width: 30px; }
+
+.cafeflow-social-card__box {
+  position: absolute;
+  z-index: 1;
+  padding: 7px;
+  text-align: right;
+  background: rgba(255, 255, 255, 0.18);
+  border-top: 2px solid rgba(255, 255, 255, 0.85);
+  border-right: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 10% 13% 42% 0% / 10% 12% 75% 0%;
+  box-shadow: rgba(21, 26, 30, 0.3) -7px 7px 29px;
+  transform-origin: bottom left;
+  transition: all 1s ease-in-out;
+}
+
+.cafeflow-social-card__box::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  border-radius: inherit;
+  opacity: 0;
+  transition: all 0.5s ease-in-out;
+}
+
+.cafeflow-social-card__box:hover::before { opacity: 1; }
+.cafeflow-social-card__box--one { width: 70%; height: 70%; bottom: -70%; left: -70%; }
+.cafeflow-social-card__box--one::before { background: radial-gradient(circle at 30% 107%, #fdba74 0%, #f97316 60%, #ea580c 90%); }
+.cafeflow-social-card__box--two { width: 50%; height: 50%; bottom: -50%; left: -50%; transition-delay: 0.2s; }
+.cafeflow-social-card__box--two::before { background: radial-gradient(circle at 30% 107%, #fb923c 0%, #ea580c 90%); }
+.cafeflow-social-card__box--three { width: 30%; height: 30%; bottom: -30%; left: -30%; transition-delay: 0.4s; }
+.cafeflow-social-card__box--three::before { background: radial-gradient(circle at 30% 107%, #fed7aa 0%, #f97316 90%); }
+.cafeflow-social-card__box--four { width: 10%; height: 10%; bottom: -10%; left: -10%; transition-delay: 0.6s; }
 
 .cafeflow-social-card__link {
   display: flex;
-  height: 2.25rem;
-  width: 2.25rem;
-  flex: 0 0 2.25rem;
+  height: 20px;
+  width: 20px;
   align-items: center;
   justify-content: center;
-  border: 1px solid transparent;
-  border-radius: 0.55rem;
-  transition: transform 240ms ease, background-color 240ms ease, border-color 240ms ease, color 240ms ease;
+  opacity: 0.9;
 }
 
-.cafeflow-social-card__link:hover,
-.cafeflow-social-card__link:focus-visible {
-  transform: translateY(-3px) rotate(-3deg);
-  outline: none;
+.cafeflow-social-card__link svg { height: 20px; width: 20px; }
+.cafeflow-social-card__box .cafeflow-social-card__link + .cafeflow-social-card__link { margin-top: 4px; }
+.cafeflow-social-card:hover .cafeflow-social-card__box,
+.cafeflow-social-card:focus-within .cafeflow-social-card__box { bottom: -1px; left: -1px; }
+.cafeflow-social-card:hover .cafeflow-social-card__logo,
+.cafeflow-social-card:focus-within .cafeflow-social-card__logo { transform: translate(0, 0); bottom: 14px; right: 14px; }
+
+@media (max-width: 640px) {
+  .cafeflow-social-card { height: 120px; width: 120px; flex-basis: 120px; }
+  .cafeflow-social-card:hover, .cafeflow-social-card:focus-within { transform: scale(1.45); }
 }
 
 .cafeflow-hero-card-wrap {
@@ -380,76 +422,47 @@ body {
 }
 
 .landing-menu-carousel {
-  --menu-slide-width: min(78vw, 22rem);
-  --menu-ring-depth: 15rem;
+  --menu-slide-width: calc((100% - 2rem) / 3);
   position: relative;
 }
 
 .landing-menu-carousel__viewport {
-  min-height: 34rem;
+  min-height: 0;
   overflow: hidden;
-  perspective: 1000px;
+  perspective: 1200px;
   perspective-origin: center center;
 }
 
 .landing-menu-carousel__track {
-  position: relative;
-  height: 32rem;
+  display: flex;
+  gap: 1rem;
+  height: auto;
   width: 100%;
   transform-style: preserve-3d;
   will-change: transform;
 }
 
 .landing-menu-carousel__slide {
-  position: absolute;
-  top: 50%;
-  left: 50%;
+  position: relative;
   width: var(--menu-slide-width);
   min-width: var(--menu-slide-width);
-  transform: translate(-50%, -50%) rotateY(var(--menu-card-angle)) translateZ(var(--menu-ring-depth));
+  transform: translate3d(0, 0, 0);
   transform-style: preserve-3d;
-  backface-visibility: hidden;
-  opacity: 0.48;
-  filter: brightness(0.65) saturate(0.8);
-  transition: opacity 420ms ease, filter 420ms ease;
+  opacity: 1;
+  filter: none;
+  transition: transform 420ms ease;
 }
 
 .landing-menu-carousel__slide.is-active {
   opacity: 1;
-  filter: brightness(1) saturate(1);
 }
-
-.landing-menu-carousel__controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-}
-
-.landing-menu-carousel__controls > button {
-  display: flex;
-  height: 2.6rem;
-  width: 2.6rem;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #ddd8cd;
-  border-radius: 999px;
-  background: #fffdf8;
-  color: #ea580c;
-  transition: transform 240ms ease, background-color 240ms ease, color 240ms ease;
-}
-
-.landing-menu-carousel__controls > button:hover { transform: translateY(-2px); background: #f97316; color: #fff; }
-.landing-menu-carousel__dots { display: flex; align-items: center; gap: 0.4rem; }
-.landing-menu-carousel__dots button { height: 0.45rem; width: 0.45rem; border: 0; border-radius: 999px; background: #cfc8ba; transition: width 300ms ease, background-color 300ms ease; }
-.landing-menu-carousel__dots button.is-active { width: 2rem; background: #f97316; }
 
 @media (min-width: 768px) {
-  .landing-menu-carousel { --menu-slide-width: min(38vw, 22rem); --menu-ring-depth: 18rem; }
+  .landing-menu-carousel { --menu-slide-width: calc((100% - 2rem) / 3); }
 }
 
 @media (min-width: 1280px) {
-  .landing-menu-carousel { --menu-slide-width: 23rem; --menu-ring-depth: 20rem; }
+  .landing-menu-carousel { --menu-slide-width: calc((100% - 2rem) / 3); }
 }
 
 @media (prefers-reduced-motion: reduce) {
