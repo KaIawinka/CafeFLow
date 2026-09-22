@@ -392,9 +392,9 @@ export default function SettingsPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 items-start gap-4 sm:gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
+        <div className="grid grid-cols-1 items-stretch gap-4 sm:gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
           {/* Sidebar - horizontal on mobile, vertical on desktop */}
-          <div className="self-start lg:col-span-1">
+          <div className="self-stretch lg:col-span-1">
             {/* Mobile: horizontal scrollable tabs */}
             <div className="mb-4 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-2 shadow-[0_12px_32px_rgba(21,26,30,0.06)] lg:hidden">
               <nav className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide">
@@ -419,7 +419,7 @@ export default function SettingsPage() {
             </div>
 
             {/* Desktop: vertical sidebar */}
-            <div className="sticky top-8 hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] p-2 shadow-[0_12px_32px_rgba(21,26,30,0.06)] lg:block">
+            <div className="sticky top-8 hidden h-full min-h-[calc(100vh-13rem)] rounded-2xl border border-[var(--border)] bg-[var(--card)] p-2 shadow-[0_12px_32px_rgba(21,26,30,0.06)] lg:block">
               <nav className="space-y-1">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
