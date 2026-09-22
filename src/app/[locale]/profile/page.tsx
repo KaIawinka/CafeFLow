@@ -4,13 +4,9 @@ import { Suspense, useCallback, useState, useEffect } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import {
-  User,
   Mail,
   Phone,
   Clock,
-  Shield,
-  Bell,
-  Eye,
   Save,
   Loader2,
   CheckCircle,
@@ -25,7 +21,6 @@ import {
 import { locales, type Locale } from '@/app/i18n/config';
 import { getLocaleTranslations } from '@/app/i18n/catalog';
 import { CustomerAddresses } from '@/components/profile/CustomerAddresses';
-import { SettingsToggle } from '@/components/ui/SettingsToggle';
 
 interface UserProfile {
   id: string;
@@ -50,17 +45,6 @@ interface UserProfile {
   avatar_file?: {
     storage_key: string;
     mime_type: string;
-  };
-  user_settings?: {
-    email_notifications: boolean;
-    sms_notifications: boolean;
-    push_notifications: boolean;
-    telegram_notifications: boolean;
-    show_online_status: boolean;
-    show_phone: boolean;
-    show_email: boolean;
-    theme: string;
-    compact_mode: boolean;
   };
 }
 
@@ -93,7 +77,6 @@ function ProfileContent() {
   const [success, setSuccess] = useState(
     message === 'welcome' ? welcomeMessage : ''
   );
-  const [activeTab, setActiveTab] = useState<'profile' | 'settings'>('profile');
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   // Form data
@@ -102,17 +85,6 @@ function ProfileContent() {
     lastName: '',
     displayName: '',
     phone: '',
-  });
-
-  const [settings, setSettings] = useState({
-    emailNotifications: true,
-    smsNotifications: false,
-    pushNotifications: true,
-    telegramNotifications: true,
-    showOnlineStatus: true,
-    showPhone: false,
-    showEmail: false,
-    compactMode: false,
   });
 
   const loadProfile = useCallback(async () => {
@@ -130,21 +102,6 @@ function ProfileContent() {
           phone: data.user.phone || '',
         });
 
-        const settingsResponse = await fetch('/api/user/settings', { cache: 'no-store' });
-        const settingsData = await settingsResponse.json();
-        const serverSettings = settingsData.settings || data.user.user_settings;
-        if (serverSettings) {
-          setSettings({
-            emailNotifications: Boolean(serverSettings.emailNotifications ?? serverSettings.email_notifications),
-            smsNotifications: Boolean(serverSettings.smsNotifications ?? serverSettings.sms_notifications),
-            pushNotifications: Boolean(serverSettings.pushNotifications ?? serverSettings.push_notifications),
-            telegramNotifications: Boolean(serverSettings.telegramNotifications ?? serverSettings.telegram_notifications),
-            showOnlineStatus: Boolean(serverSettings.showOnlineStatus ?? serverSettings.show_online_status),
-            showPhone: Boolean(serverSettings.showPhone ?? serverSettings.show_phone),
-            showEmail: Boolean(serverSettings.showEmail ?? serverSettings.show_email),
-            compactMode: Boolean(serverSettings.compactMode ?? serverSettings.compact_mode),
-          });
-        }
       }
     } catch {
       setError(copy.loadingError);
@@ -178,32 +135,6 @@ function ProfileContent() {
       if (response.ok) {
         setSuccess(copy.messages.profileUpdated);
         setProfile((prev) => (prev ? { ...prev, ...data.user } : null));
-      } else {
-        setError(data.error || copy.messages.saveError);
-      }
-    } catch {
-      setError(copy.messages.genericError);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleSaveSettings = async () => {
-    setError('');
-    setSuccess('');
-    setIsSaving(true);
-
-    try {
-      const response = await fetch('/api/user/settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setSuccess(copy.messages.settingsUpdated);
       } else {
         setError(data.error || copy.messages.saveError);
       }
@@ -365,38 +296,10 @@ function ProfileContent() {
             </div>
           )}
 
-          {/* Tabs */}
+          {/* Profile form */}
           <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-[0_12px_32px_rgba(21,26,30,0.06)]">
-            <div className="border-b border-[var(--border)]">
-              <nav className="flex gap-1 p-2">
-                <button
-                  onClick={() => setActiveTab('profile')}
-                  className={`flex-1 px-6 py-4 text-sm font-medium ${
-                    activeTab === 'profile'
-                      ? 'rounded-xl bg-[var(--secondary)] text-[var(--primary)]'
-                        : 'rounded-xl text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]'
-                  }`}
-                >
-                  <User className="w-4 h-4 inline mr-2" />
-                  {copy.profileTab}
-                </button>
-                <button
-                  onClick={() => setActiveTab('settings')}
-                  className={`flex-1 px-6 py-4 text-sm font-medium ${
-                    activeTab === 'settings'
-                      ? 'rounded-xl bg-[var(--secondary)] text-[var(--primary)]'
-                        : 'rounded-xl text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]'
-                  }`}
-                >
-                  <Shield className="w-4 h-4 inline mr-2" />
-                  {copy.settingsTab}
-                </button>
-              </nav>
-            </div>
-
             <div className="p-5 sm:p-7">
-              {activeTab === 'profile' ? (
-                <div className="space-y-4 sm:space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                   {/* Profile Form */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <div>
@@ -496,75 +399,7 @@ function ProfileContent() {
                   </button>
 
                   {profile.role === 'customer' && <CustomerAddresses locale={locale} />}
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {/* Notifications */}
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                      <Bell className="w-5 h-5" />
-                      {copy.notifications.title}
-                    </h3>
-                    <div className="space-y-3">
-                      {[
-                        { key: 'emailNotifications', label: copy.notifications.email, icon: Mail },
-                        { key: 'smsNotifications', label: copy.notifications.sms, icon: Phone },
-                        { key: 'pushNotifications', label: copy.notifications.push, icon: Bell },
-                        { key: 'telegramNotifications', label: copy.notifications.telegram, icon: MessageSquare },
-                      ].map((item) => (
-                        <SettingsToggle
-                          key={item.key}
-                          checked={settings[item.key as keyof typeof settings] as boolean}
-                          label={item.label}
-                          icon={item.icon}
-                          onChange={(checked) => setSettings({ ...settings, [item.key]: checked })}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Privacy */}
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                      <Eye className="w-5 h-5" />
-                      {copy.privacy.title}
-                    </h3>
-                    <div className="space-y-3">
-                      {[
-                        { key: 'showOnlineStatus', label: copy.privacy.showOnlineStatus },
-                        { key: 'showPhone', label: copy.privacy.showPhone },
-                        { key: 'showEmail', label: copy.privacy.showEmail },
-                        { key: 'compactMode', label: copy.privacy.compactMode },
-                      ].map((item) => (
-                        <SettingsToggle
-                          key={item.key}
-                          checked={settings[item.key as keyof typeof settings] as boolean}
-                          label={item.label}
-                          onChange={(checked) => setSettings({ ...settings, [item.key]: checked })}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={handleSaveSettings}
-                    disabled={isSaving}
-                    className="w-full bg-amber-600 hover:bg-amber-700 disabled:bg-gray-400 text-white font-semibold py-3 rounded-lg flex items-center justify-center gap-2 transition-colors"
-                  >
-                    {isSaving ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        {copy.buttons.saving}
-                      </>
-                    ) : (
-                      <>
-                        <Save className="w-5 h-5" />
-                        {copy.buttons.saveSettings}
-                      </>
-                    )}
-                  </button>
-                </div>
-              )}
+              </div>
             </div>
           </div>
         </div>
