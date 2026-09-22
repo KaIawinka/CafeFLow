@@ -167,11 +167,11 @@ body {
 .cafeflow-social-card {
   position: relative;
   display: flex;
-  height: 140px;
-  width: 140px;
-  flex: 0 0 140px;
+  height: 96px;
+  width: 96px;
+  flex: 0 0 96px;
   overflow: hidden;
-  border-radius: 21px;
+  border-radius: 14px;
   box-shadow: rgba(100, 100, 111, 0.2) 0 7px 29px;
   transition: all 1s ease-in-out;
 }
@@ -185,7 +185,8 @@ body {
 
 .cafeflow-social-card:hover,
 .cafeflow-social-card:focus-within {
-  transform: scale(1.43);
+  transform: scale(2.08);
+  transform-origin: top right;
 }
 
 .cafeflow-social-card__logo {
@@ -231,7 +232,22 @@ body {
 .cafeflow-social-card__box--two::before { background: radial-gradient(circle at 30% 107%, #fb923c 0%, #ea580c 90%); }
 .cafeflow-social-card__box--three { width: 30%; height: 30%; bottom: -30%; left: -30%; transition-delay: 0.4s; }
 .cafeflow-social-card__box--three::before { background: radial-gradient(circle at 30% 107%, #fed7aa 0%, #f97316 90%); }
-.cafeflow-social-card__box--four { width: 10%; height: 10%; bottom: -10%; left: -10%; transition-delay: 0.6s; }
+.cafeflow-social-card__box--four { width: 22%; height: 22%; bottom: -22%; left: -22%; transition-delay: 0.6s; }
+.cafeflow-social-card__box--five { width: 16%; height: 16%; bottom: -16%; left: -16%; transition-delay: 0.8s; }
+.cafeflow-social-card__box--six { width: 11%; height: 11%; bottom: -11%; left: -11%; transition-delay: 1s; }
+.cafeflow-social-card__box--seven { width: 7%; height: 7%; bottom: -7%; left: -7%; transition-delay: 1.2s; }
+.cafeflow-social-card__box--four,
+.cafeflow-social-card__box--five,
+.cafeflow-social-card__box--six,
+.cafeflow-social-card__box--seven { padding: 2px; }
+.cafeflow-social-card__box--four .cafeflow-social-card__link,
+.cafeflow-social-card__box--four .cafeflow-social-card__link svg { height: 16px; width: 16px; }
+.cafeflow-social-card__box--five .cafeflow-social-card__link,
+.cafeflow-social-card__box--five .cafeflow-social-card__link svg,
+.cafeflow-social-card__box--six .cafeflow-social-card__link,
+.cafeflow-social-card__box--six .cafeflow-social-card__link svg,
+.cafeflow-social-card__box--seven .cafeflow-social-card__link,
+.cafeflow-social-card__box--seven .cafeflow-social-card__link svg { height: 12px; width: 12px; }
 
 .cafeflow-social-card__link {
   display: flex;
@@ -243,15 +259,14 @@ body {
 }
 
 .cafeflow-social-card__link svg { height: 20px; width: 20px; }
-.cafeflow-social-card__box .cafeflow-social-card__link + .cafeflow-social-card__link { margin-top: 4px; }
 .cafeflow-social-card:hover .cafeflow-social-card__box,
 .cafeflow-social-card:focus-within .cafeflow-social-card__box { bottom: -1px; left: -1px; }
 .cafeflow-social-card:hover .cafeflow-social-card__logo,
 .cafeflow-social-card:focus-within .cafeflow-social-card__logo { transform: translate(0, 0); bottom: 14px; right: 14px; }
 
 @media (max-width: 640px) {
-  .cafeflow-social-card { height: 120px; width: 120px; flex-basis: 120px; }
-  .cafeflow-social-card:hover, .cafeflow-social-card:focus-within { transform: scale(1.45); }
+  .cafeflow-social-card { height: 84px; width: 84px; flex-basis: 84px; }
+  .cafeflow-social-card:hover, .cafeflow-social-card:focus-within { transform: scale(2.08); }
 }
 
 .cafeflow-hero-card-wrap {
@@ -475,9 +490,9 @@ body {
   transition: transform 420ms ease;
 }
 
-.landing-menu-carousel__slide:nth-child(3n + 1) { transform: translate3d(0, 0.8rem, 0) rotateZ(-0.6deg); }
-.landing-menu-carousel__slide:nth-child(3n + 2) { transform: translate3d(0, -0.35rem, 0); }
-.landing-menu-carousel__slide:nth-child(3n) { transform: translate3d(0, 0.8rem, 0) rotateZ(0.6deg); }
+.landing-menu-carousel__slide:nth-child(3n + 1) { transform: translate3d(0, 0.15rem, 0) rotateY(5deg); transform-origin: right center; }
+.landing-menu-carousel__slide:nth-child(3n + 2) { transform: translate3d(0, 0, 0) rotateY(0deg); }
+.landing-menu-carousel__slide:nth-child(3n) { transform: translate3d(0, 0.15rem, 0) rotateY(-5deg); transform-origin: left center; }
 
 .landing-menu-carousel__slide.is-active {
   opacity: 1;
