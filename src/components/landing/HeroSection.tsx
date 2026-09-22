@@ -42,7 +42,15 @@ export function HeroSection({ t }: HeroSectionProps) {
             <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/10" />
             <div className="absolute bottom-7 left-7 right-7 flex items-end justify-between"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-orange-300">{t.hero.featuredDishLabel}</p><p className="mt-2 text-2xl font-bold">{t.hero.featuredDishName}</p></div><span className="rounded-full bg-orange-300 px-3 py-2 text-sm font-bold text-orange-950">{t.hero.featuredDishPrice}</span></div>
           </div>
-          <div className="absolute right-0 top-0 z-10 flex items-center gap-3 rounded-md border border-white/15 bg-[#20272c]/95 px-4 py-3 shadow-xl backdrop-blur-md"><div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500"><Star className="h-5 w-5 fill-current text-white" /></div><div><p className="text-sm font-bold">{t.hero.localsBadge}</p><p className="text-xs text-white/50">{t.hero.freshBadge}</p></div></div>
+          <div className="cafeflow-hero-card-wrap absolute right-0 top-0 z-10">
+            <div className="cafeflow-hero-card">
+              <div className="cafeflow-hero-card__shine" />
+              <div className="cafeflow-hero-card__icon"><Star className="h-5 w-5 fill-current text-white" /></div>
+              <div className="relative z-10"><p className="text-sm font-bold">{t.hero.localsBadge}</p><p className="text-xs text-white/60">{t.hero.freshBadge}</p></div>
+              <span className="cafeflow-hero-card__spark cafeflow-hero-card__spark--one" />
+              <span className="cafeflow-hero-card__spark cafeflow-hero-card__spark--two" />
+            </div>
+          </div>
         </div>
       </div>
       <a href="#about" aria-label={t.hero.scrollToStory} className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 items-center gap-2 text-xs uppercase tracking-[0.2em] text-white/50 transition hover:text-white sm:flex">{t.hero.discover} <ArrowDown className="h-4 w-4 animate-bounce" /></a>
