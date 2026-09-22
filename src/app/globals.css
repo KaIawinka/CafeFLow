@@ -379,6 +379,76 @@ body {
   transform: rotate(180deg);
 }
 
+.landing-menu-carousel {
+  --menu-slide-width: min(78vw, 22rem);
+  --menu-slide-gap: 1.25rem;
+  position: relative;
+}
+
+.landing-menu-carousel__viewport {
+  overflow: hidden;
+  margin: 0 calc(var(--menu-slide-gap) * -1);
+  padding: 1.25rem var(--menu-slide-gap) 1.5rem;
+}
+
+.landing-menu-carousel__track {
+  display: flex;
+  gap: var(--menu-slide-gap);
+  transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.landing-menu-carousel__slide {
+  width: var(--menu-slide-width);
+  min-width: var(--menu-slide-width);
+  opacity: 0.56;
+  transform: scale(0.94) translateY(8px);
+  transition: opacity 500ms ease, transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.landing-menu-carousel__slide.is-active {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+.landing-menu-carousel__controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.landing-menu-carousel__controls > button {
+  display: flex;
+  height: 2.6rem;
+  width: 2.6rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ddd8cd;
+  border-radius: 999px;
+  background: #fffdf8;
+  color: #ea580c;
+  transition: transform 240ms ease, background-color 240ms ease, color 240ms ease;
+}
+
+.landing-menu-carousel__controls > button:hover { transform: translateY(-2px); background: #f97316; color: #fff; }
+.landing-menu-carousel__dots { display: flex; align-items: center; gap: 0.4rem; }
+.landing-menu-carousel__dots button { height: 0.45rem; width: 0.45rem; border: 0; border-radius: 999px; background: #cfc8ba; transition: width 300ms ease, background-color 300ms ease; }
+.landing-menu-carousel__dots button.is-active { width: 2rem; background: #f97316; }
+
+@media (min-width: 768px) {
+  .landing-menu-carousel { --menu-slide-width: min(38vw, 22rem); }
+}
+
+@media (min-width: 1280px) {
+  .landing-menu-carousel { --menu-slide-width: 23rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-menu-carousel__track,
+  .landing-menu-carousel__slide { transition: none; }
+}
+
 @media (hover: hover) and (pointer: fine) {
   .landing-menu-card:hover {
     transform: translate3d(0, -4px, 0);

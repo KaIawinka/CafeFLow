@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { Locale } from '@/app/i18n/config';
 import type { LandingTranslations } from './types';
 import { ThemeAwareBackground } from './ThemeAwareBackground';
+import { MenuCarousel } from './MenuCarousel';
 
 interface FeaturesSectionProps {
   t: LandingTranslations;
@@ -63,9 +64,7 @@ export function FeaturesSection({ t, locale }: FeaturesSectionProps) {
       <section id="menu" className="landing-section landing-section--light bg-[#fffdf8] py-20 text-[#151a1e] sm:py-28">
         <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
           <div className="mb-10 flex flex-col justify-between gap-5 sm:mb-14 sm:flex-row sm:items-end"><div><p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-orange-600">{t.features.menuEyebrow}</p><h2 className="text-4xl font-black sm:text-6xl">{t.menu.title}</h2><p className="mt-3 max-w-lg text-[#687078]">{t.menu.subtitle}</p></div><Link href={`/${locale}/menu`} className="group inline-flex min-h-10 items-center gap-2 text-sm font-bold text-orange-600">{t.menu.viewAll}<ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" /></Link></div>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {localizedDishes.map((dish) => <article key={dish.name} className="landing-menu-card group/menu-card relative flex h-full flex-col overflow-hidden rounded-lg bg-[#f7f5f0] p-[2px]"><div className="landing-menu-card__glow" /><div className="relative z-[1] flex h-full flex-col overflow-hidden rounded-[calc(0.5rem-1px)] bg-[#f7f5f0]"><div className="relative h-64 shrink-0 overflow-hidden"><ThemeAwareBackground darkSrc={dish.image} lightSrc={dish.lightImage} /><div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" /><span className="absolute left-4 top-4 rounded-full bg-orange-500 px-3 py-1 text-xs font-bold text-white">{dish.label}</span></div><div className="flex flex-1 flex-col p-5"><div className="flex min-h-14 items-start justify-between gap-3"><h3 className="text-lg font-bold leading-6">{dish.name}</h3><span className="whitespace-nowrap text-sm font-black text-orange-600">{dish.price}</span></div><p className="mt-2 flex-1 text-sm leading-6 text-[#687078]">{dish.description}</p><Link href={`/${locale}/menu`} className="landing-menu-card__action group/menu-action mt-5 flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-md border border-[#ddd8cd] text-sm font-bold text-[#151a1e]">{t.menu.viewAll} <ArrowUpRight className="h-4 w-4 transition-transform duration-300 ease-out group-hover/menu-action:translate-x-1 group-hover/menu-action:-translate-y-0.5" /></Link></div></div></article>)}
-          </div>
+          <MenuCarousel dishes={localizedDishes} locale={locale} viewAll={t.menu.viewAll} />
         </div>
       </section>
     </>
