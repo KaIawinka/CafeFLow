@@ -468,14 +468,10 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
 
             {/* Theme Switcher */}
             <div className="hidden md:block">
-              <button
-                onClick={toggleTheme}
-                  className="flex h-10 w-10 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-orange-500 hover:text-white"
-                aria-label={theme === 'light' ? header.themeDark : header.themeLight}
-                title={theme === 'light' ? header.themeDark : header.themeLight}
-              >
-                {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-              </button>
+              <label className="cafeflow-theme-switch" title={theme === 'light' ? header.themeDark : header.themeLight}>
+                <input type="checkbox" checked={theme === 'dark'} onChange={toggleTheme} aria-label={theme === 'light' ? header.themeDark : header.themeLight} />
+                <span className="cafeflow-theme-switch__slider"><Sun className="cafeflow-theme-switch__sun" /><Moon className="cafeflow-theme-switch__moon" /></span>
+              </label>
             </div>
 
             {!isStaff && (
@@ -683,14 +679,13 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
               )}
 
               <div className="my-2 border-t border-gray-200 pt-2 dark:border-gray-700">
-                <button
-                  onClick={toggleTheme}
-                  className="flex min-h-[44px] w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-                  aria-label={theme === 'light' ? header.themeDark : header.themeLight}
-                >
-                  {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+                <label className="flex min-h-[44px] items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300">
                   <span>{theme === 'light' ? header.themeDark : header.themeLight}</span>
-                </button>
+                  <span className="cafeflow-theme-switch">
+                    <input type="checkbox" checked={theme === 'dark'} onChange={toggleTheme} aria-label={theme === 'light' ? header.themeDark : header.themeLight} />
+                    <span className="cafeflow-theme-switch__slider"><Sun className="cafeflow-theme-switch__sun" /><Moon className="cafeflow-theme-switch__moon" /></span>
+                  </span>
+                </label>
               </div>
 
               {/* Mobile Language Selector */}
