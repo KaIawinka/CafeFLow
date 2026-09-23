@@ -17,6 +17,8 @@ describe('customer address input', () => {
     expect(parseAddressUpdate({})).toBeNull();
     const created = parseAddressCreate({ addressText: 'ул. 1', entrance: '2', apartment: '34' });
     expect(created).not.toBeNull();
-    expect(addressSnapshot({ id: 'address-1', ...created! })).toMatchObject({ addressId: 'address-1', addressText: 'ул. 1', entrance: '2', apartment: '34' });
+    expect(addressSnapshot({ id: 'address-1', ...created! })).toMatchObject({ addressId: 'address-1', addressText: 'ул. 1', entrance: '2', apartment: '34', latitude: null, longitude: null });
+    const geocoded = parseAddressCreate({ addressText: 'ул. 1', latitude: 42.8746, longitude: 74.5698 });
+    expect(addressSnapshot({ id: 'address-2', ...geocoded! })).toMatchObject({ addressId: 'address-2', latitude: '42.8746', longitude: '74.5698' });
   });
 });

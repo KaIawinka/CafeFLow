@@ -13,6 +13,8 @@ type Address = {
   floor: string | null;
   apartment: string | null;
   comment: string | null;
+  latitude: string | number | null;
+  longitude: string | number | null;
   is_default: boolean;
 };
 
@@ -23,6 +25,8 @@ type AddressForm = {
   floor: string;
   apartment: string;
   comment: string;
+  latitude: string;
+  longitude: string;
   isDefault: boolean;
 };
 
@@ -33,6 +37,8 @@ const emptyForm: AddressForm = {
   floor: '',
   apartment: '',
   comment: '',
+  latitude: '',
+  longitude: '',
   isDefault: false,
 };
 
@@ -44,6 +50,8 @@ function toForm(address: Address): AddressForm {
     floor: address.floor || '',
     apartment: address.apartment || '',
     comment: address.comment || '',
+    latitude: address.latitude?.toString() || '',
+    longitude: address.longitude?.toString() || '',
     isDefault: address.is_default,
   };
 }
@@ -160,6 +168,7 @@ export function CustomerAddresses({ locale }: { locale: Locale }) {
                   </div>
                   <p className="mt-1 break-words text-sm text-gray-700 dark:text-gray-300">{address.address_text}</p>
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{[address.entrance, address.floor, address.apartment].filter(Boolean).join(' · ')}</p>
+                  {address.latitude !== null && address.longitude !== null && <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{address.latitude}, {address.longitude}</p>}
                 </div>
                 <div className="flex shrink-0 gap-1">
                   <button type="button" onClick={() => { setEditingId(address.id); setForm(toForm(address)); setError(''); setIsFormOpen(true); }} className="flex h-10 w-10 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700" aria-label={t.edit} title={t.edit}><Pencil className="h-4 w-4" /></button>
@@ -181,6 +190,12 @@ export function CustomerAddresses({ locale }: { locale: Locale }) {
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t.floor}<input value={form.floor} onChange={(event) => setForm({ ...form, floor: event.target.value })} className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-600 dark:bg-gray-800" /></label>
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t.apartment}<input value={form.apartment} onChange={(event) => setForm({ ...form, apartment: event.target.value })} className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-600 dark:bg-gray-800" /></label>
           <label className="flex items-center gap-2 pt-6 text-sm font-medium text-gray-700 dark:text-gray-300"><input type="checkbox" checked={form.isDefault} onChange={(event) => setForm({ ...form, isDefault: event.target.checked })} />{t.default}</label>
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Latitude<input type="number" min="-90" max="90" step="any" value={form.latitude} onChange={(event) => setForm({ ...form, latitude: event.target.value })} className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-600 dark:bg-gray-800" /></label>
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Longitude<input type="number" min="-180" max="180" step="any" value={form.longitude} onChange={(event) => setForm({ ...form, longitude: event.target.value })} className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-600 dark:bg-gray-800" /></label>
+          <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
+            <a href={`https://2gis.kg/search/${encodeURIComponent(form.addressText || 'Бишкек')}`} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-amber-700 underline underline-offset-4 dark:text-amber-400">Открыть адрес в 2ГИС</a>
+            <span className="text-xs text-gray-500 dark:text-gray-400">Скопируйте координаты выбранного здания в поля выше.</span>
+          </div>
           <label className="sm:col-span-2 text-sm font-medium text-gray-700 dark:text-gray-300">{t.comment}<textarea value={form.comment} onChange={(event) => setForm({ ...form, comment: event.target.value })} rows={2} className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-600 dark:bg-gray-800" /></label>
           <div className="flex gap-2 sm:col-span-2">
             <button type="submit" disabled={isSaving} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-amber-600 px-4 text-sm font-semibold text-white disabled:opacity-60"><Check className="h-4 w-4" />{isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : t.save}</button>
