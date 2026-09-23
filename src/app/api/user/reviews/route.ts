@@ -3,6 +3,21 @@ import { prisma } from '@/lib/prisma';
 import { verifyAccessToken } from '@/lib/auth/jwt';
 import { apiError, apiUserMessage } from '@/lib/api-response';
 
+export async function GET(request: NextRequest) {
+  const token = request.cookies.get('accessToken')?.value;
+  const payload = token ? await verifyAccessToken(token) : null;
+  if (!payload) return apiError(request, 'unauthorized', 401);
+  const user = await prisma.users.findUnique({ where: { id: payload.userId }, select: { id: true, tenant_id: true } });
+  if (!user?.tenant_id) return apiError(request, 'tenantNotConfigured', 409);
+  const reviews = await prisma.reviews.findMany({
+    where: { tenant_id: user.tenant_id, user_id: user.id },
+    orderBy: { created_at: 'desc' },
+    take: 100,
+    select: { id: true, rating: true, text: true, status: true, admin_reply: true, created_at: true, order_id: true, product: { select: { name: true } } },
+  });
+  return NextResponse.json({ reviews });
+}
+
 export async function POST(request: NextRequest) {
   const token = request.cookies.get('accessToken')?.value;
   const payload = token ? await verifyAccessToken(token) : null;
