@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getPublicCafeContext } from '@/lib/public-context';
 import { apiPublicMessage } from '@/lib/api-response';
+import { verifyAccessToken } from '@/lib/auth/jwt';
 
 function serialize<T>(value: T): T {
   return JSON.parse(JSON.stringify(value, (_, item) => typeof item === 'bigint' ? item.toString() : item));
@@ -85,6 +86,9 @@ export async function POST(request: NextRequest) {
   try {
     const context = await getPublicCafeContext(request);
     if (!context) return NextResponse.json({ error: apiPublicMessage(request, 'cafeNotConfigured') }, { status: 503 });
+    const token = request.cookies.get('accessToken')?.value;
+    const payload = token ? await verifyAccessToken(token) : null;
+    if (!payload) return NextResponse.json({ error: apiPublicMessage(request, 'authRequired') }, { status: 401 });
 
     const body = await request.json() as { 
       orderId?: string; 
@@ -94,6 +98,7 @@ export async function POST(request: NextRequest) {
     };
 
     const rating = Number(body.rating);
+    if (!body.orderId) return NextResponse.json({ error: apiPublicMessage(request, 'reviewTargetRequired') }, { status: 400 });
     if (!rating || rating < 1 || rating > 5 || !Number.isInteger(rating)) {
       return NextResponse.json({ error: apiPublicMessage(request, 'reviewRatingInvalid') }, { status: 400 });
     }
@@ -103,15 +108,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Проверяем заказ если указан
-    let userId: string | null = null;
+    const userId: string | null = payload.userId;
     if (body.orderId) {
       const order = await prisma.orders.findFirst({
         where: {
           id: body.orderId,
           tenant_id: context.tenant.id,
+          user_id: payload.userId,
           status: 'completed',
         },
-        select: { user_id: true },
+        select: { id: true },
       });
 
       if (!order) {
@@ -130,7 +136,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: apiPublicMessage(request, 'reviewAlreadyExists') }, { status: 409 });
       }
 
-      userId = order.user_id;
     }
 
     // Проверяем продукт если указан
@@ -146,6 +151,8 @@ export async function POST(request: NextRequest) {
       if (!product) {
         return NextResponse.json({ error: apiPublicMessage(request, 'productNotFound') }, { status: 404 });
       }
+      const orderedProduct = await prisma.order_items.findFirst({ where: { order_id: body.orderId, product_id: body.productId }, select: { id: true } });
+      if (!orderedProduct) return NextResponse.json({ error: apiPublicMessage(request, 'reviewOrderIncomplete') }, { status: 403 });
     }
 
     const review = await prisma.reviews.create({

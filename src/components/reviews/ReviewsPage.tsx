@@ -27,6 +27,12 @@ type Stats = {
   distribution: { 1: number; 2: number; 3: number; 4: number; 5: number };
 };
 
+type CompletedOrder = {
+  id: string;
+  order_number: string;
+  created_at: string;
+};
+
 function publicPath(path: string) {
   if (typeof window === 'undefined') return path;
   const branch = new URLSearchParams(window.location.search).get('branch');
@@ -34,12 +40,13 @@ function publicPath(path: string) {
 }
 
 export function ReviewsPage({ locale }: { locale: Locale }) {
-  const t = getLocaleTranslations(locale);
+  getLocaleTranslations(locale);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [completedOrders, setCompletedOrders] = useState<CompletedOrder[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ rating: 5, text: '', productId: '' });
+  const [form, setForm] = useState({ rating: 5, text: '', productId: '', orderId: '' });
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -51,9 +58,17 @@ export function ReviewsPage({ locale }: { locale: Locale }) {
         setLoading(false);
       })
       .catch(() => setLoading(false));
+    fetch('/api/user/orders')
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => setCompletedOrders((data?.orders || []).filter((order: { status: string }) => order.status === 'completed')))
+      .catch(() => undefined);
   }, []);
 
   const submitReview = async () => {
+    if (!form.orderId) {
+      setMessage('Выберите завершённый заказ');
+      return;
+    }
     if (!form.rating || form.rating < 1 || form.rating > 5) {
       setMessage('Выберите оценку от 1 до 5');
       return;
@@ -72,7 +87,7 @@ export function ReviewsPage({ locale }: { locale: Locale }) {
     }
 
     setMessage('Спасибо за отзыв! Он будет опубликован после модерации.');
-    setForm({ rating: 5, text: '', productId: '' });
+    setForm({ rating: 5, text: '', productId: '', orderId: '' });
     setShowForm(false);
   };
 
@@ -102,6 +117,20 @@ export function ReviewsPage({ locale }: { locale: Locale }) {
         {stats && (
           <div className="mb-8 rounded-2xl bg-white p-6 shadow-sm dark:bg-gray-900">
             <div className="flex items-center gap-6">
+              <div>
+                <label htmlFor="review-order" className="mb-2 block text-sm font-bold">Завершённый заказ</label>
+                <select
+                  id="review-order"
+                  required
+                  value={form.orderId}
+                  onChange={(e) => setForm({ ...form, orderId: e.target.value })}
+                  className="w-full rounded-lg border px-3 py-2 dark:border-gray-700 dark:bg-gray-800"
+                >
+                  <option value="">Выберите заказ</option>
+                  {completedOrders.map((order) => <option key={order.id} value={order.id}>{order.order_number}</option>)}
+                </select>
+                {!completedOrders.length && <p className="mt-2 text-sm text-gray-500">Отзывы доступны после завершённого заказа.</p>}
+              </div>
               <div>
                 <div className="text-5xl font-black text-orange-600">{stats.average}</div>
                 <div className="mt-2 flex gap-1">
