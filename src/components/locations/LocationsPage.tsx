@@ -65,7 +65,7 @@ export function LocationsPage() {
             Найдите ближайшее кафе
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg opacity-95">
-            {branches.length} {branches.length === 1 ? 'филиал' : branches.length < 5 ? 'филиала' : 'филиалов'} по городу — всегда рядом с вами
+            {branches.length ? `${branches.length} ${branches.length === 1 ? 'филиал' : branches.length < 5 ? 'филиала' : 'филиалов'} по городу` : 'Филиалы пока не настроены'}
           </p>
         </div>
       </section>
