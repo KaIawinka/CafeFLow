@@ -18,15 +18,10 @@ import {
   LayoutDashboard,
   UserCircle,
   Globe,
-  Sun,
-  Moon,
   Bell,
   CalendarDays,
   ClipboardList,
   Home,
-  Info,
-  MapPin,
-  Phone,
   ShoppingCart,
   Utensils,
   Search,
@@ -337,8 +332,6 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
   };
 
   const currentRole = user ? roleConfig[user.role] || roleConfig.customer : null;
-  const isAdmin = user?.role === 'admin';
-
   const getNavLinks = () => {
     const labels = header.nav;
     if (isStaff) {
@@ -469,7 +462,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
             <div className="hidden md:block">
               <label className="cafeflow-theme-switch" title={theme === 'light' ? header.themeDark : header.themeLight}>
                 <input type="checkbox" checked={theme === 'dark'} onChange={toggleTheme} aria-label={theme === 'light' ? header.themeDark : header.themeLight} />
-                <span className="cafeflow-theme-switch__slider"><Sun className="cafeflow-theme-switch__sun" /><Moon className="cafeflow-theme-switch__moon" /></span>
+                <span className="cafeflow-theme-switch__slider" />
               </label>
             </div>
 
@@ -620,11 +613,6 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
             const Icon = getNavIcon(link.href);
             return <Link key={link.href} href={link.href} className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors ${pathname === link.href ? 'bg-orange-500 text-white' : 'text-white/75 hover:bg-orange-500/15 hover:text-orange-300'}`}><Icon className="h-4 w-4" />{link.label}</Link>;
           })}
-          {!isAdmin && <>
-            <Link href={`/${currentLocale}#about`} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium text-white/75 transition-colors hover:bg-orange-500/15 hover:text-orange-300"><Info className="h-4 w-4" />{header.nav.about}</Link>
-            <Link href={`/${currentLocale}#address`} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium text-white/75 transition-colors hover:bg-orange-500/15 hover:text-orange-300"><MapPin className="h-4 w-4" />{header.nav.address}</Link>
-            <Link href={`/${currentLocale}#contact`} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium text-white/75 transition-colors hover:bg-orange-500/15 hover:text-orange-300"><Phone className="h-4 w-4" />{header.nav.contact}</Link>
-          </>}
         </nav>
 
         {/* Mobile Menu */}
@@ -682,7 +670,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
                   <span>{theme === 'light' ? header.themeDark : header.themeLight}</span>
                   <span className="cafeflow-theme-switch">
                     <input type="checkbox" checked={theme === 'dark'} onChange={toggleTheme} aria-label={theme === 'light' ? header.themeDark : header.themeLight} />
-                    <span className="cafeflow-theme-switch__slider"><Sun className="cafeflow-theme-switch__sun" /><Moon className="cafeflow-theme-switch__moon" /></span>
+                    <span className="cafeflow-theme-switch__slider" />
                   </span>
                 </label>
               </div>
