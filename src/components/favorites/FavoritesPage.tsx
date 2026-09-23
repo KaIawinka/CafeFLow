@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { Heart, Clock, ShoppingCart, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import type { Locale } from '@/app/i18n/config';
-import { getLocaleTranslations } from '@/app/i18n/catalog';
 
 type Product = {
   id: string;
@@ -40,13 +39,12 @@ function publicPath(path: string) {
 }
 
 export function FavoritesPage({ locale }: { locale: Locale }) {
-  const t = getLocaleTranslations(locale);
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
 
   const loadFavorites = () => {
-    fetch(publicPath('/api/public/favorites'))
+    fetch('/api/user/favorites')
       .then((res) => res.json())
       .then((data) => {
         setFavorites(data.favorites || []);
@@ -60,7 +58,7 @@ export function FavoritesPage({ locale }: { locale: Locale }) {
   }, []);
 
   const removeFavorite = async (productId: string) => {
-    const response = await fetch(publicPath(`/api/public/favorites?productId=${productId}`), {
+    const response = await fetch(`/api/user/favorites?productId=${productId}`, {
       method: 'DELETE',
     });
 

@@ -208,15 +208,6 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
     };
   }, [user]);
 
-  const markNotificationsRead = async () => {
-    const response = await fetch('/api/user/notifications', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ all: true }),
-    });
-    if (response.ok) setUnreadNotifications(0);
-  };
-
   const switchLocale = (newLocale: Locale) => {
     // Save to cookie (используется middleware для авто-применения)
     savePreferredLanguage(newLocale);
@@ -460,16 +451,15 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
           {/* Right Section */}
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
             {user && (
-              <button
-                type="button"
-                onClick={() => void markNotificationsRead()}
+              <Link
+                href={`/${currentLocale}/notifications`}
                 className="relative flex h-10 w-10 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-orange-500 hover:text-white"
                 aria-label={header.notifications}
                 title={header.notifications}
                 >
                 <Bell className="h-4 w-4" />
                 {unreadNotifications > 0 && <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-red-600 px-1 text-center text-[10px] font-bold leading-5 text-white">{unreadNotifications > 99 ? '99+' : unreadNotifications}</span>}
-              </button>
+              </Link>
             )}
 
             {/* Theme Switcher */}
