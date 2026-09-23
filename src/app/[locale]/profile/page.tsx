@@ -21,6 +21,7 @@ import {
 import { locales, type Locale } from '@/app/i18n/config';
 import { getLocaleTranslations } from '@/app/i18n/catalog';
 import { CustomerAddresses } from '@/components/profile/CustomerAddresses';
+import { CustomerReservations } from '@/components/profile/CustomerReservations';
 import { CafeFlowLoader } from '@/components/ui/CafeFlowLoader';
 
 interface UserProfile {
@@ -399,7 +400,10 @@ function ProfileContent() {
                     )}
                   </button>
 
-                  {profile.role === 'customer' && <CustomerAddresses locale={locale} />}
+                  {profile.role === 'customer' && <>
+                    <CustomerReservations locale={locale} />
+                    <CustomerAddresses locale={locale} />
+                  </>}
               </div>
             </div>
           </div>
