@@ -143,6 +143,7 @@
     "promotionMinimumAmount": "Минимальная сумма: {amount}",
     "tablesLoadFailed": "Не удалось загрузить столики",
     "orderInputInvalid": "Укажите имя, канал получения, оплату и корректные позиции заказа",
+    "onlinePaymentUnavailable": "Онлайн-оплата пока недоступна",
     "savedAddressDeliveryOnly": "Сохранённый адрес доступен только для доставки",
     "savedAddressAuthRequired": "Войдите в аккаунт, чтобы использовать сохранённый адрес",
     "savedAddressNotFound": "Сохранённый адрес не найден",

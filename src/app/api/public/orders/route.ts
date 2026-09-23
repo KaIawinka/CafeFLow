@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
     if (!customerName || customerName.length > 200 || customerPhone.length > 40 || !['dine_in', 'pickup', 'delivery'].includes(fulfillmentType) || !['cash', 'card', 'online', 'other'].includes(paymentMethod) || requestIdempotencyKey.length > 120) {
       return NextResponse.json({ error: apiPublicMessage(request, 'orderInputInvalid') }, { status: 400 });
     }
+    if (paymentMethod === 'online') return NextResponse.json({ error: apiPublicMessage(request, 'onlinePaymentUnavailable') }, { status: 409 });
     const context = await getPublicCafeContext(request);
     if (!context?.branch) return NextResponse.json({ error: apiPublicMessage(request, 'branchNotConfigured') }, { status: 503 });
     const branch = context.branch;

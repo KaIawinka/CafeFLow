@@ -143,6 +143,7 @@
     "promotionMinimumAmount": "Минималдуу сумма: {amount}",
     "tablesLoadFailed": "Столдорду жүктөө мүмкүн болгон жок",
     "orderInputInvalid": "Атыңызды, алуу ыкмасын, төлөмдү жана буйрутманын туура позицияларын көрсөтүңүз",
+    "onlinePaymentUnavailable": "Онлайн төлөм азырынча жеткиликтүү эмес",
     "savedAddressDeliveryOnly": "Сакталган дарек жеткирүү үчүн гана жеткиликтүү",
     "savedAddressAuthRequired": "Сакталган даректи колдонуу үчүн аккаунтка кириңиз",
     "savedAddressNotFound": "Сакталган дарек табылган жок",

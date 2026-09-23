@@ -143,6 +143,7 @@
     "promotionMinimumAmount": "Minimum amount: {amount}",
     "tablesLoadFailed": "Could not load tables",
     "orderInputInvalid": "Provide a name, fulfillment method, payment method, and valid order items",
+    "onlinePaymentUnavailable": "Online payment is not available yet",
     "savedAddressDeliveryOnly": "A saved address is available only for delivery",
     "savedAddressAuthRequired": "Sign in to use a saved address",
     "savedAddressNotFound": "Saved address not found",
