@@ -653,6 +653,49 @@ body {
   animation: landing-reveal 700ms ease-out both;
 }
 
+.landing-reveal--right,
+.landing-reveal--scale {
+  opacity: 0;
+  transform: translateX(28px);
+  transition: opacity 700ms ease, transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.landing-reveal--scale {
+  transform: scale(0.94) translateY(18px);
+}
+
+.animate-in.landing-reveal--right,
+.animate-in.landing-reveal--scale {
+  opacity: 1;
+  transform: translateX(0) scale(1) !important;
+}
+
+.landing-stagger > * {
+  opacity: 0;
+  transform: translateY(16px);
+  animation: landing-stagger-in 650ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--stagger-index, 0) * 90ms);
+}
+
+.landing-stagger > :nth-child(1) { --stagger-index: 1; }
+.landing-stagger > :nth-child(2) { --stagger-index: 2; }
+.landing-stagger > :nth-child(3) { --stagger-index: 3; }
+.landing-stagger > :nth-child(4) { --stagger-index: 4; }
+
+@keyframes landing-stagger-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.landing-hover-lift {
+  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 350ms ease;
+}
+
+.landing-hover-lift:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 42px rgba(21, 26, 30, 0.14);
+}
+
 @keyframes carousel-slide {
   from { opacity: 0; transform: scale(1.08); }
   to { opacity: 1; transform: scale(1); }
@@ -722,6 +765,20 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .landing-reveal,
+  .landing-reveal--right,
+  .landing-reveal--scale,
+  .landing-stagger > *,
+  .cafeflow-hero-card,
+  .cafeflow-hero-card__shine,
+  .cafeflow-hero-card__spark,
+  .landing-hover-lift {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
   .carousel-slide,
   .carousel-slide > div,
   .carousel-copy,
