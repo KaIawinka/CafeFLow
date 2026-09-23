@@ -3,6 +3,16 @@ import type { NextRequest } from 'next/server';
 
 const locales = ['ru', 'en', 'kg'];
 const defaultLocale = 'ru';
+const requestIdPattern = /^[A-Za-z0-9._:-]{1,128}$/;
+
+function withRequestId(request: NextRequest, response: NextResponse) {
+  const incomingId = request.headers.get('x-request-id')?.trim();
+  const requestId = incomingId && requestIdPattern.test(incomingId) ? incomingId : crypto.randomUUID();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-request-id', requestId);
+  response.headers.set('x-request-id', requestId);
+  return NextResponse.next({ request: { headers: requestHeaders }, headers: response.headers });
+}
 
 export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
@@ -14,7 +24,7 @@ export function proxy(request: NextRequest) {
     pathname.startsWith('/static') ||
     pathname.includes('.') // файлы с расширениями
   ) {
-    return NextResponse.next();
+    return withRequestId(request, NextResponse.next());
   }
 
   // Получаем сохранённый язык из cookie (проверяем оба варианта)
@@ -29,7 +39,7 @@ export function proxy(request: NextRequest) {
   // Если в URL есть валидный язык
   if (locales.includes(currentLocale)) {
     // An explicit locale in the URL takes precedence over the preference cookie.
-    return NextResponse.next();
+    return withRequestId(request, NextResponse.next());
   }
 
   // Если в URL нет языка - добавляем сохранённый или дефолтный
@@ -39,7 +49,9 @@ export function proxy(request: NextRequest) {
   const url = request.nextUrl.clone();
   url.pathname = newPathname;
   
-  return NextResponse.redirect(url);
+  const response = NextResponse.redirect(url);
+  response.headers.set('x-request-id', request.headers.get('x-request-id') || crypto.randomUUID());
+  return response;
 }
 
 export const config = {
