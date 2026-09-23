@@ -6,6 +6,7 @@ import { getPublicCafeContext } from '@/lib/public-context';
 import { isWithinBusinessHours } from '@/lib/reservations/hours';
 import { apiPublicMessage } from '@/lib/api-response';
 import { parseLocalDateTime } from '@/lib/reservations/time';
+import { verifyAccessToken } from '@/lib/auth/jwt';
 
 function token() { return randomBytes(48).toString('base64url'); }
 function serialize<T>(value: T): T { return JSON.parse(JSON.stringify(value, (_, item) => typeof item === 'bigint' ? item.toString() : item)); }
@@ -49,6 +50,11 @@ export async function POST(request: NextRequest) {
     const context = await getPublicCafeContext(request);
     if (!context?.branch) return NextResponse.json({ error: apiPublicMessage(request, 'branchNotConfigured') }, { status: 503 });
     const branch = context.branch;
+    const accessToken = request.cookies.get('accessToken')?.value;
+    const accessPayload = accessToken ? await verifyAccessToken(accessToken) : null;
+    const reservationUser = accessPayload
+      ? await prisma.users.findFirst({ where: { id: accessPayload.userId, tenant_id: context.tenant.id, status: 'active' }, select: { id: true } })
+      : null;
     const branchInfo = await prisma.branches.findUnique({ where: { id: branch.id }, select: { timezone: true } });
     const startAt = parseLocalDateTime(body.date, body.time, branchInfo?.timezone || 'UTC');
     if (!startAt || startAt < new Date()) return NextResponse.json({ error: apiPublicMessage(request, 'reservationDateTimeInvalid') }, { status: 400 });
@@ -70,7 +76,7 @@ export async function POST(request: NextRequest) {
         ]);
         if (conflict || block) throw new Error('RESERVATION_SLOT_UNAVAILABLE');
 
-        return tx.reservations.create({ data: { tenant_id: context.tenant.id, branch_id: branch.id, guest_name: guestName, guest_phone: guestPhone, guests_count: guests, start_at: startAt, end_at: endAt, status: 'pending', table_ids: [table.id], comment: body.comment?.trim() || null, guest_token: reservationToken }, select: { id: true, status: true, start_at: true, end_at: true, table_ids: true, guest_token: true } });
+        return tx.reservations.create({ data: { tenant_id: context.tenant.id, branch_id: branch.id, user_id: reservationUser?.id || null, guest_name: guestName, guest_phone: guestPhone, guests_count: guests, start_at: startAt, end_at: endAt, status: 'pending', table_ids: [table.id], comment: body.comment?.trim() || null, guest_token: reservationToken }, select: { id: true, status: true, start_at: true, end_at: true, table_ids: true, guest_token: true, user_id: true } });
       });
     } catch (error) {
       if (error instanceof Error && error.message === 'RESERVATION_SLOT_UNAVAILABLE') {
