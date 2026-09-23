@@ -130,7 +130,10 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
   const searchItems: SearchItem[] = searchItemMeta
     .filter((item) => !('staffOnly' in item) || canSearchAdmin)
     .filter((item) => item.key !== 'cart' || !isStaff)
-    .map(({ key, href, keywords }) => ({ ...header.searchItems[key], href, keywords }));
+    .flatMap(({ key, href, keywords }) => {
+      const metadata = header.searchItems[key as keyof typeof header.searchItems];
+      return metadata ? [{ ...metadata, href, keywords }] : [];
+    });
   const translationSearchItems = collectTranslationSearchItems(translations, 'i18n', pathname)
     .filter((item) => !item.label.includes('google_'));
   const searchableItems = [...searchItems, ...translationSearchItems];

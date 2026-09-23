@@ -89,21 +89,24 @@ export function MenuCarouselWrapper({ locale, viewAll }: { locale: Locale; viewA
             description: 'Двойной эспрессо с бархатистой микропенкой',
             label: 'Горячие напитки',
             price: '190 сом',
-            ...categoryImages.coffee,
+            image: categoryImages.coffee.dark,
+            lightImage: categoryImages.coffee.light,
           },
           {
             name: 'Авокадо тост',
             description: 'Цельнозерновой хлеб с гуакамоле и яйцом пашот',
             label: 'Завтраки',
             price: '420 сом',
-            ...categoryImages.food,
+            image: categoryImages.food.dark,
+            lightImage: categoryImages.food.light,
           },
           {
             name: 'Чизкейк ягодный',
             description: 'Нью-йоркский чизкейк с соусом из свежих ягод',
             label: 'Десерты',
             price: '350 сом',
-            ...categoryImages.dessert,
+            image: categoryImages.dessert.dark,
+            lightImage: categoryImages.dessert.light,
           },
         ]);
         setLoading(false);
