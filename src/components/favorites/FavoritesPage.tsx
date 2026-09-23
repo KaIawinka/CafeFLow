@@ -41,12 +41,19 @@ function publicPath(path: string) {
 export function FavoritesPage({ locale }: { locale: Locale }) {
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [loading, setLoading] = useState(true);
+  const [requiresLogin, setRequiresLogin] = useState(false);
   const [message, setMessage] = useState('');
 
   const loadFavorites = () => {
     fetch('/api/user/favorites')
-      .then((res) => res.json())
-      .then((data) => {
+      .then(async (res) => ({ status: res.status, data: await res.json() }))
+      .then(({ status, data }) => {
+        if (status === 401) {
+          setRequiresLogin(true);
+          setLoading(false);
+          return;
+        }
+        if (status >= 400) throw new Error(data.error || 'favorites-load-failed');
         setFavorites(data.favorites || []);
         setLoading(false);
       })
@@ -131,7 +138,14 @@ export function FavoritesPage({ locale }: { locale: Locale }) {
           </div>
         )}
 
-        {favorites.length === 0 ? (
+        {requiresLogin ? (
+          <div className="rounded-2xl bg-white p-12 text-center shadow-sm dark:bg-gray-900">
+            <Heart className="mx-auto mb-4 h-16 w-16 text-gray-400" />
+            <h2 className="mb-2 text-xl font-bold">Войдите, чтобы использовать избранное</h2>
+            <p className="mb-6 text-gray-600 dark:text-gray-400">Сохранённые блюда будут доступны на всех ваших устройствах.</p>
+            <Link href={`/${locale}/login`} className="inline-flex min-h-11 items-center gap-2 rounded-md bg-orange-500 px-5 font-bold text-white transition hover:bg-orange-600">Войти</Link>
+          </div>
+        ) : favorites.length === 0 ? (
           <div className="rounded-2xl bg-white p-12 text-center shadow-sm dark:bg-gray-900">
             <Heart className="mx-auto mb-4 h-16 w-16 text-gray-400" />
             <h2 className="mb-2 text-xl font-bold">Избранное пусто</h2>
