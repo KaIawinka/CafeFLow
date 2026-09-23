@@ -11,7 +11,24 @@ export async function GET(request: NextRequest) {
   const pageSize = 20;
   const where = { user_id: payload.userId };
   const [orders, total] = await Promise.all([
-    prisma.orders.findMany({ where, orderBy: { created_at: 'desc' }, skip: (page - 1) * pageSize, take: pageSize, select: { id: true, order_number: true, status: true, fulfillment_type: true, payment_status: true, total: true, currency: true, created_at: true, order_items: { select: { product_name: true, quantity: true, line_total: true } } } }),
+    prisma.orders.findMany({
+      where,
+      orderBy: { created_at: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      select: {
+        id: true,
+        order_number: true,
+        status: true,
+        fulfillment_type: true,
+        payment_status: true,
+        total: true,
+        currency: true,
+        created_at: true,
+        order_items: { select: { product_name: true, quantity: true, line_total: true } },
+        order_delivery: { select: { status: true, courier_name: true, tracking_code: true, promised_at: true } },
+      },
+    }),
     prisma.orders.count({ where }),
   ]);
   return NextResponse.json({ orders, pagination: { page, pageSize, total } });
