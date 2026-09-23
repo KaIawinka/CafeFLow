@@ -122,7 +122,8 @@
     "repeatItemsUnavailable": "Блюда из заказа больше недоступны",
     "reviewInvalid": "Оценка и текст отзыва некорректны",
     "reviewTargetRequired": "Заказ или блюдо обязательно",
-    "reviewOrderIncomplete": "Можно оставить отзыв только по завершённому заказу"
+    "reviewOrderIncomplete": "Можно оставить отзыв только по завершённому заказу",
+    "reviewAlreadyExists": "Для этого заказа такой отзыв уже оставлен"
   },
   "public": {
     "cafeNotConfigured": "Кафе пока не настроено",

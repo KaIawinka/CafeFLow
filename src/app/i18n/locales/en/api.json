@@ -122,7 +122,8 @@
     "repeatItemsUnavailable": "The dishes from this order are no longer available",
     "reviewInvalid": "The rating or review text is invalid",
     "reviewTargetRequired": "An order or dish is required",
-    "reviewOrderIncomplete": "You can review only a completed order"
+    "reviewOrderIncomplete": "You can review only a completed order",
+    "reviewAlreadyExists": "This review has already been submitted for the order"
   },
   "public": {
     "cafeNotConfigured": "The cafe is not configured yet",

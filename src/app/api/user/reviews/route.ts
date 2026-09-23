@@ -11,13 +11,17 @@ export async function POST(request: NextRequest) {
   if (!user?.tenant_id) return apiError(request, 'tenantNotConfigured', 409);
   const body = await request.json().catch(() => ({})) as { orderId?: string; productId?: string; rating?: number; text?: string };
   if (!Number.isInteger(body.rating) || Number(body.rating) < 1 || Number(body.rating) > 5 || (body.text && body.text.length > 4000)) return NextResponse.json({ error: apiUserMessage(request, 'reviewInvalid') }, { status: 400 });
-  if (!body.orderId && !body.productId) return NextResponse.json({ error: apiUserMessage(request, 'reviewTargetRequired') }, { status: 400 });
-  const order = body.orderId ? await prisma.orders.findFirst({ where: { id: body.orderId, tenant_id: user.tenant_id, user_id: user.id, status: 'completed' }, select: { id: true } }) : null;
-  if (body.orderId && !order) return NextResponse.json({ error: apiUserMessage(request, 'reviewOrderIncomplete') }, { status: 403 });
+  if (!body.orderId) return NextResponse.json({ error: apiUserMessage(request, 'reviewTargetRequired') }, { status: 400 });
+  const order = await prisma.orders.findFirst({ where: { id: body.orderId, tenant_id: user.tenant_id, user_id: user.id, status: 'completed' }, select: { id: true } });
+  if (!order) return NextResponse.json({ error: apiUserMessage(request, 'reviewOrderIncomplete') }, { status: 403 });
+  const existingReview = await prisma.reviews.findFirst({ where: { tenant_id: user.tenant_id, order_id: order.id, product_id: body.productId || null }, select: { id: true } });
+  if (existingReview) return NextResponse.json({ error: apiUserMessage(request, 'reviewAlreadyExists') }, { status: 409 });
   if (body.productId) {
     const product = await prisma.products.findFirst({ where: { id: body.productId, tenant_id: user.tenant_id, deleted_at: null }, select: { id: true } });
     if (!product) return NextResponse.json({ error: apiUserMessage(request, 'favoriteProductNotFound') }, { status: 404 });
+    const orderedProduct = await prisma.order_items.findFirst({ where: { order_id: order.id, product_id: body.productId }, select: { id: true } });
+    if (!orderedProduct) return NextResponse.json({ error: apiUserMessage(request, 'reviewOrderIncomplete') }, { status: 403 });
   }
-  const review = await prisma.reviews.create({ data: { tenant_id: user.tenant_id, user_id: user.id, order_id: order?.id || null, product_id: body.productId || null, rating: body.rating as number, text: body.text?.trim() || null, status: 'pending' } });
+  const review = await prisma.reviews.create({ data: { tenant_id: user.tenant_id, user_id: user.id, order_id: order.id, product_id: body.productId || null, rating: body.rating as number, text: body.text?.trim() || null, status: 'pending' } });
   return NextResponse.json({ review }, { status: 201 });
 }
