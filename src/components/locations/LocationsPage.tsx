@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { MapPin, Phone, Clock, Navigation } from 'lucide-react';
-import type { Locale } from '@/app/i18n/config';
 
 type Branch = {
   id: string;
@@ -12,9 +11,20 @@ type Branch = {
   phone: string | null;
   timezone: string | null;
   status: string;
+  business_hours: Array<{ day_of_week: number; open_time: string | null; close_time: string | null; is_closed: boolean }>;
 };
 
-export function LocationsPage({ locale }: { locale: Locale }) {
+function todayHours(branch: Branch) {
+  const weekday = new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: branch.timezone || 'UTC' }).format(new Date());
+  const dayOfWeek = ({ Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 } as Record<string, number>)[weekday];
+  const hours = branch.business_hours.find((item) => item.day_of_week === dayOfWeek);
+  if (!hours) return 'Режим работы не указан';
+  if (hours.is_closed || !hours.open_time || !hours.close_time) return 'Сегодня закрыто';
+  const format = (value: string) => new Date(value).toISOString().slice(11, 16);
+  return `${format(hours.open_time)}–${format(hours.close_time)}`;
+}
+
+export function LocationsPage() {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
@@ -113,7 +123,7 @@ export function LocationsPage({ locale }: { locale: Locale }) {
 
                   <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                     <Clock className="h-4 w-4" />
-                    <span>Ежедневно 8:00 - 22:00</span>
+                    <span>{todayHours(branch)}</span>
                   </div>
                 </button>
               ))

@@ -5,5 +5,5 @@ import { redirectStaffFromCustomerSurface } from '@/lib/auth/customer-surface';
 export default async function Locations({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = await params;
   await redirectStaffFromCustomerSurface(locale);
-  return <LocationsPage locale={locale} />;
+  return <LocationsPage />;
 }
