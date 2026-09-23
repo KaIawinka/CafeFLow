@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const context = await getPublicCafeContext(request);
     if (!context) return NextResponse.json({ error: apiPublicMessage(request, 'cafeNotConfigured') }, { status: 503 });
     const products = await prisma.products.findMany({
-      where: { tenant_id: context.tenant.id, is_available: true, deleted_at: null },
+      where: { tenant_id: context.tenant.id, is_available: true, deleted_at: null, OR: [{ category_id: null }, { category: { is_active: true } }] },
       select: { id: true, name: true, slug: true, description: true, price: true, currency: true, weight: true, image_file_ids: true, modifiers: true, allergens: true, preparation_minutes: true, sort_order: true, category: { select: { id: true, name: true, slug: true } } },
       orderBy: [{ sort_order: 'asc' }, { created_at: 'asc' }],
     });
