@@ -111,10 +111,12 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
     { key: 'booking', href: `/${currentLocale}/booking`, keywords: ['бронь', 'бронирование', 'столик', 'booking', 'брондо', 'ужин', 'встреча'] },
     { key: 'orders', href: `/${currentLocale}/orders`, keywords: ['заказы', 'заказ', 'orders', 'буйрутма', 'доставка', 'статус'] },
     { key: 'cart', href: `/${currentLocale}/cart`, keywords: ['корзина', 'cart', 'себет'] },
+    { key: 'favorites', href: `/${currentLocale}/favorites`, keywords: ['избранное', 'favorites', 'сүйүктүү', 'любимое'] },
+    { key: 'reviews', href: `/${currentLocale}/reviews`, keywords: ['отзывы', 'reviews', 'пикирлер', 'комментарии', 'мнения'] },
+    { key: 'about', href: `/${currentLocale}/about`, keywords: ['о нас', 'about', 'биз жөнүндө', 'компания', 'история'] },
+    { key: 'locations', href: `/${currentLocale}/locations`, keywords: ['адреса', 'locations', 'дарек', 'филиалы', 'карта', '2гис'] },
+    { key: 'contact', href: `/${currentLocale}/contact`, keywords: ['контакты', 'contact', 'байланыш', 'связь', 'телефон', 'email'] },
     { key: 'promotions', href: `/${currentLocale}#promotions`, keywords: ['акции', 'скидки', 'промо', 'promo', 'sale', 'акция', 'новинка', 'сезон'] },
-    { key: 'about', href: `/${currentLocale}#about`, keywords: ['о нас', 'about', 'биз жөнүндө'] },
-    { key: 'address', href: `/${currentLocale}#address`, keywords: ['адрес', 'address', 'дарек'] },
-    { key: 'contact', href: `/${currentLocale}#contact`, keywords: ['связаться', 'контакты', 'contact', 'телефон'] },
     { key: 'profile', href: `/${currentLocale}/profile`, keywords: ['профиль', 'profile', 'личные данные'] },
     { key: 'settings', href: `/${currentLocale}/settings`, keywords: ['настройки', 'settings', 'жөндөөлөр', 'аккаунт', 'уведомления'] },
     { key: 'registration', href: `/${currentLocale}/register`, keywords: ['регистрация', 'register', 'sign up', 'катталуу', 'аккаунт'] },
@@ -360,7 +362,11 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
     const links = [
       { href: `/${currentLocale}/menu`, label: labels.menu },
       { href: `/${currentLocale}/booking`, label: labels.booking },
-      { href: `/${currentLocale}/orders`, label: labels.orders },
+      { href: `/${currentLocale}/favorites`, label: 'Избранное' },
+      { href: `/${currentLocale}/reviews`, label: 'Отзывы' },
+      { href: `/${currentLocale}/about`, label: 'О нас' },
+      { href: `/${currentLocale}/locations`, label: 'Адреса' },
+      { href: `/${currentLocale}/contact`, label: 'Контакты' },
     ];
 
     return links;
@@ -376,7 +382,7 @@ export function UnifiedHeader({ user, siteName = 'CaféFlow', siteLogo = '/cafef
   const mobileNavLinks = [
     { href: `/${currentLocale}/menu`, label: header.nav.menu, icon: Utensils },
     { href: `/${currentLocale}/booking`, label: header.nav.booking, icon: CalendarDays },
-    { href: `/${currentLocale}/orders`, label: header.nav.orders, icon: ClipboardList },
+    { href: `/${currentLocale}/favorites`, label: 'Избранное', icon: Heart },
     { href: `/${currentLocale}/cart`, label: header.nav.cart, icon: ShoppingCart },
   ];
 

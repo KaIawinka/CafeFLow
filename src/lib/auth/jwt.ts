@@ -139,7 +139,15 @@ export async function verifyAccessToken(token: string): Promise<TokenPayload | n
       requiresApproval: currentUser.requires_approval,
     };
   } catch (error) {
-    logger.error('JWT verification failed', error);
+    // JWT verification failed - this is normal for guests or expired tokens
+    // Only log if it's an unexpected error
+    if (error && typeof error === 'object' && 'code' in error) {
+      const code = (error as { code?: string }).code;
+      // JWS signature verification failed, JWT expired, etc. are normal - don't log as errors
+      if (code !== 'ERR_JWS_SIGNATURE_VERIFICATION_FAILED' && code !== 'ERR_JWT_EXPIRED') {
+        logger.error('Unexpected JWT verification error', error);
+      }
+    }
     return null;
   }
 }

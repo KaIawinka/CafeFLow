@@ -9,12 +9,17 @@ export async function redirectStaffFromCustomerSurface(locale: Locale) {
   const token = (await cookies()).get('accessToken')?.value;
   if (!token) return;
 
-  const payload = await verifyAccessToken(token);
-  if (!payload || !staffRoles.has(payload.role)) return;
+  try {
+    const payload = await verifyAccessToken(token);
+    if (!payload || !staffRoles.has(payload.role)) return;
 
-  if (payload.role === 'admin' || payload.role === 'manager') {
-    redirect(`/${locale}/admin`);
+    if (payload.role === 'admin' || payload.role === 'manager') {
+      redirect(`/${locale}/admin`);
+    }
+
+    redirect(`/${locale}/access-denied`);
+  } catch (error) {
+    // Token is invalid or expired - allow access to customer pages
+    return;
   }
-
-  redirect(`/${locale}/access-denied`);
 }
