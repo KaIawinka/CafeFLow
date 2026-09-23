@@ -10,18 +10,18 @@ import { ThemeAwareBackground } from './ThemeAwareBackground';
 const promoMeta = [
   {
     href: 'menu',
-    image: 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?auto=format&fit=crop&w=1500&q=90',
-    lightImage: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1500&q=90',
+    image: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 600"%3E%3Cdefs%3E%3ClinearGradient id="g1" x1="0%25" y1="0%25" x2="100%25" y2="100%25"%3E%3Cstop offset="0%25" style="stop-color:%23f97316;stop-opacity:1" /%3E%3Cstop offset="100%25" style="stop-color:%23ea580c;stop-opacity:1" /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width="1500" height="600" fill="url(%23g1)"/%3E%3C/svg%3E',
+    lightImage: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 600"%3E%3Cdefs%3E%3ClinearGradient id="g1" x1="0%25" y1="0%25" x2="100%25" y2="100%25"%3E%3Cstop offset="0%25" style="stop-color:%23fed7aa;stop-opacity:1" /%3E%3Cstop offset="100%25" style="stop-color:%23fdba74;stop-opacity:1" /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width="1500" height="600" fill="url(%23g1)"/%3E%3C/svg%3E',
   },
   {
     href: 'menu',
-    image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1500&q=90',
-    lightImage: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=1500&q=90',
+    image: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 600"%3E%3Cdefs%3E%3ClinearGradient id="g1" x1="0%25" y1="0%25" x2="100%25" y2="100%25"%3E%3Cstop offset="0%25" style="stop-color:%236b4423;stop-opacity:1" /%3E%3Cstop offset="100%25" style="stop-color:%23443018;stop-opacity:1" /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width="1500" height="600" fill="url(%23g1)"/%3E%3C/svg%3E',
+    lightImage: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 600"%3E%3Cdefs%3E%3ClinearGradient id="g1" x1="0%25" y1="0%25" x2="100%25" y2="100%25"%3E%3Cstop offset="0%25" style="stop-color:%23d2a679;stop-opacity:1" /%3E%3Cstop offset="100%25" style="stop-color:%23b88c5a;stop-opacity:1" /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width="1500" height="600" fill="url(%23g1)"/%3E%3C/svg%3E',
   },
   {
     href: 'booking',
-    image: 'https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=1500&q=90',
-    lightImage: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1500&q=90',
+    image: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 600"%3E%3Cdefs%3E%3ClinearGradient id="g1" x1="0%25" y1="0%25" x2="100%25" y2="100%25"%3E%3Cstop offset="0%25" style="stop-color:%23dc2626;stop-opacity:1" /%3E%3Cstop offset="100%25" style="stop-color:%239f1239;stop-opacity:1" /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width="1500" height="600" fill="url(%23g1)"/%3E%3C/svg%3E',
+    lightImage: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 600"%3E%3Cdefs%3E%3ClinearGradient id="g1" x1="0%25" y1="0%25" x2="100%25" y2="100%25"%3E%3Cstop offset="0%25" style="stop-color:%23fca5a5;stop-opacity:1" /%3E%3Cstop offset="100%25" style="stop-color:%23fda4af;stop-opacity:1" /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width="1500" height="600" fill="url(%23g1)"/%3E%3C/svg%3E',
   },
 ];
 

@@ -10,11 +10,7 @@ interface HeroSectionProps {
 export function HeroSection({ t }: HeroSectionProps) {
   return (
     <section className="relative isolate overflow-hidden bg-[#151a1e] text-white">
-      <ThemeAwareBackground
-        darkSrc="https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=2200&q=85"
-        lightSrc="https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=2200&q=85"
-        className="-z-20"
-      />
+      <div className="absolute inset-0 -z-20 bg-gradient-to-br from-orange-900 via-orange-800 to-red-900 dark:from-orange-950 dark:via-red-950 dark:to-gray-900" />
       <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(10,13,15,0.96)_0%,rgba(10,13,15,0.8)_42%,rgba(10,13,15,0.32)_100%)]" />
       <div className="absolute inset-x-0 bottom-0 -z-10 h-48 bg-gradient-to-t from-[#151a1e] to-transparent" />
       <div className="mx-auto grid min-h-[min(780px,calc(100vh-4rem))] max-w-7xl items-center gap-10 px-5 py-20 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16 lg:px-12 lg:py-24">
@@ -33,12 +29,7 @@ export function HeroSection({ t }: HeroSectionProps) {
           </div>
         </div>
         <div className="relative hidden min-h-[510px] lg:block">
-          <div className="absolute right-0 top-1/2 h-[510px] w-[min(100%,520px)] -translate-y-1/2 rotate-2 overflow-hidden rounded-[2rem] border border-white/20 bg-black/20 shadow-2xl shadow-black/40">
-            <ThemeAwareBackground
-              darkSrc="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1100&q=90"
-              lightSrc="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1100&q=90"
-              className="hover:scale-105"
-            />
+          <div className="absolute right-0 top-1/2 h-[510px] w-[min(100%,520px)] -translate-y-1/2 rotate-2 overflow-hidden rounded-[2rem] border border-white/20 bg-gradient-to-br from-orange-600 to-red-700 shadow-2xl shadow-black/40">
             <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/10" />
             <div className="absolute bottom-7 left-7 right-7 flex items-end justify-between"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-orange-300">{t.hero.featuredDishLabel}</p><p className="mt-2 text-2xl font-bold">{t.hero.featuredDishName}</p></div><span className="rounded-full bg-orange-300 px-3 py-2 text-sm font-bold text-orange-950">{t.hero.featuredDishPrice}</span></div>
           </div>
